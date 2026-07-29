@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
+import Image from "next/image"
 
 export function LoginForm({
   className,
@@ -24,7 +25,7 @@ export function LoginForm({
               <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
                 <p className="text-balance text-muted-foreground">
-                  Login to your Acme Inc account
+                  Login to your TGAW Inc account
                 </p>
               </div>
               <Field>
@@ -39,12 +40,12 @@ export function LoginForm({
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto text-sm underline-offset-2 hover:underline"
+                  <Link
+                    href="/forgot-password"
+                    className="ml-auto text-sm underline-offset-2 hover:underline cursor-pointer"
                   >
                     Forgot your password?
-                  </a>
+                  </Link>
                 </div>
                 <Input id="password" type="password" required />
               </Field>
@@ -97,23 +98,24 @@ export function LoginForm({
               </Field>
               <FieldDescription className="text-center">
                 Don&apos;t have an account?{" "}
-                <Link href="/auth/signup">Sign up</Link>
+                <Link href="/auth/signup" className="cursor-pointer">Sign up</Link>
               </FieldDescription>
             </FieldGroup>
           </form>
           <div className="relative hidden bg-muted md:block">
-            <img
-              src="/images/christ_the_redeemer_colored.jpg"
+            <Image
+              src="/images/christ_the_redeemer.jpg"
               alt="Christ The Redeemer"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              fill
+              className="object-cover dark:brightness-[0.2] dark:grayscale"
             />
           </div>
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
         By clicking continue, you agree to our{" "}
-        <Link href="/terms">Terms of Service</Link> and{" "}
-        <Link href="/privacy">Privacy Policy</Link>.
+        <Link href="/terms" className="cursor-pointer">Terms of Service</Link> and{" "}
+        <Link href="/privacy" className="cursor-pointer">Privacy Policy</Link>.
       </FieldDescription>
     </div>
   )

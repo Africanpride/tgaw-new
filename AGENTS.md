@@ -955,5 +955,33 @@ All `<svg>` elements must comply with Biome's `noSvgWithoutTitle` rule to ensure
    - Avoid generic or redundant words like `"image"`, `"picture"`, or `"photo"` in `alt` text attributes (e.g. `alt="Image"`). Screen readers already announce `<img>` elements as images, so adding those words is repetitive.
    - Always provide concise, descriptive `alt` text describing what the image represents (e.g. `alt="Christ The Redeemer"`).
 
+---
+
+## 13. Next.js Image Component Directive
+
+**Always use `next/image` (`Image` component) instead of native `<img>` tags.** This is mandatory for all images in `components/`, `app/`, and any future pages.
+
+### Rules:
+- Import: `import Image from "next/image"`
+- For fill-based images (absolute positioned to cover a container): use `<Image fill className="..." />` — remove `absolute inset-0 h-full w-full` from className (the `fill` prop handles positioning).
+- For fixed-size images: use `<Image width={X} height={Y} />` with explicit dimensions.
+- Always provide meaningful `alt` text.
+- External URLs: use `unoptimized` prop or configure `next.config.ts` `images.remotePatterns`.
+
+---
+
+## 14. Next.js Link Component Cursor Directive
+
+**All `<Link>` components (`next/link`) must include the `cursor-pointer` class.**
+
+### Rules:
+- Every `<Link>` component rendered across any page or UI component MUST include `cursor-pointer` in its `className`.
+- Example:
+  ```tsx
+  <Link href="/auth/signup" className="cursor-pointer">Sign up</Link>
+  <Link href="/terms" className="text-sm hover:underline cursor-pointer">Terms of Service</Link>
+  ```
+
+
 
 
