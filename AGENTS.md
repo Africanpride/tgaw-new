@@ -1,115 +1,172 @@
+# AGENTS.md
+
 # Role & Task
 
-> **Mandatory Reference Directive**: Always consult `@DESIGN.md` for design system guidelines, color tokens, layout hierarchy, and component rules, and `@prompt.md` for system architecture, schema rules, and implementation patterns.
+> **Mandatory Reference Directive**: Always consult `@DESIGN.md` if present for design system guidelines, color tokens, layout hierarchy, and component rules, and `@prompt.md` for system architecture, schema rules, and implementation patterns.
 
 You are an expert full-stack React & Node.js developer specialising in Next.js 16 (App Router), TypeScript, Tailwind CSS, MongoDB Atlas, Prisma ORM, and Zod.
 
-Your goal is to faithfully convert the provided monolithic static HTML file (`index.html`) — **The Global Altar Watch (TGAW)** faith-companion dashboard — into a modern, production-grade Next.js 16 application.
+Your goal is to create a Christian Community Social Media App called "The Global Altar Watch (TGAW)". This is a modern Web Application built using **shadcn/ui** components and styling conventions.
 
-The migration must:
+### Feature Requirements:
 
-- Preserve **every UI section, interactive behaviour, and visual detail** present in `index.html`.
-- Be built on a **Mobile-First API Architecture** with decoupled `/api/v1/` REST endpoints ready for native mobile clients.
+- Real-time chat (1-1 and group chat).
+- Group creation, invitation, and user management.
+- Admin broadcast messages to all users.
+- Full social interaction: comments, likes, shares, user following, post following.
+- Content posting for text, media (images, video, audio, documents), links, polls, quotes, Bible verses, short notes, sermons, gospel tracts, articles, events, prayer requests, prayer answers, testimonials, and praise reports.
+- Dedicated dashboards: Prayer Dashboard, Bible Reading Plan & Tracker, Praise & Worship Dashboard, and Event & Meeting Calendar Dashboard.
+- Notification channels: Email, Push, and SMS.
+- User profile & role-based management.
+
+### Architectural Directives:
+
+- Built on a **Mobile-First API Architecture** with decoupled `/api/v1/` REST endpoints ready for native mobile clients.
 - Achieve end-to-end type safety with **MongoDB Atlas + Prisma ORM + Zod schema validation**.
-- Protect all dashboard routes with server-side authentication and **Role-Based Access Control (RBAC)** using **Better Auth** (configured in `lib/auth.ts`) enforcing three explicit roles: `user` (default), `admin`, and `superadmin`.
+- Protect all dashboard routes with server-side authentication and **Role-Based Access Control (RBAC)** using **Better Auth** (configured in `lib/auth.ts`) enforcing three explicit roles: `member` (default), `moderator`, and `admin`.
 
 ---
 
 ## 1. Tech Stack & Architecture
 
 1. **Framework & Engine**:
-   - Next.js 16 (App Router) using React 19 server/client boundaries.
-   - TypeScript (`strict: true`).
-   - **Database & ORM**: MongoDB Atlas connected via **Prisma ORM** (MongoDB connector).
-   - **Validation & Types**: **Zod** for schema definitions, API request body/query validation, and shared TypeScript inferred types.
-   - **Authentication & RBAC**: **Better Auth** (`better-auth`) with `admin` plugin enabling strict **Role-Based Access Control (RBAC)** across three explicit roles: `user` (default), `admin`, and `superadmin`. Auth is configured in `lib/auth.ts`. Route protection is handled in `proxy.ts` — **do NOT use `middleware.ts`** (deprecated in this project).
-   - **Forms**: **React Hook Form** + **Zod** for all client-side form validation and submission.
-   - **Styling**: Tailwind CSS v4 + CSS custom properties in `globals.css` (preserving the existing deep-purple glassmorphism design language — **do not redesign**).
-   - **Fonts**: Load `Playfair Display`, `DM Sans`, `Inter`, and `JetBrains Mono` via `next/font/google`. Inject as CSS variables (`--font-playfair`, `--font-dm-sans`, `--font-inter`, `--font-jetbrains-mono`) on the `<html>` element in `app/layout.tsx`. Reference them in `globals.css` `font-family` declarations.
+
+- **UI & UX Component Library**: Strictly **shadcn/ui** primitives (Radix UI, Lucide React icons, `cn()` utility via `clsx` and `tailwind-merge`).
+- Next.js 16 (App Router) using React 19 server/client boundaries.
+- TypeScript (`strict: true`).
+- **Database & ORM**: MongoDB Atlas connected via **Prisma ORM** (MongoDB connector).
+- **Validation & Types**: **Zod** for schema definitions, API request body/query validation, and shared TypeScript inferred types.
+- **Authentication & RBAC**: **Better Auth** (`better-auth`) with `admin` plugin enabling strict **Role-Based Access Control (RBAC)** across three explicit roles: `member` (default), `moderator`, and `admin`. Auth is configured in `lib/auth.ts`. Route protection is handled in `proxy.ts` — **do NOT use `middleware.ts**` (deprecated in this project).
+- **Forms**: **React Hook Form** + **Zod** resolver (`@hookform/resolvers/zod`) paired with shadcn `<Form/>` fields.
+- **Styling**: Tailwind CSS v4 using shadcn semantic variable tokens (`bg-background`, `text-foreground`, `border-border`, `bg-card`, `bg-primary`, etc.) defined in `globals.css`.
+- **Fonts**: Load standard Google Fonts (e.g. `Inter`) via `next/font/google` on the root layout.
 
 2. **Mobile-First API Strategy**:
-   - All core UI mutations interact with a decoupled REST API under `app/api/v1/*`.
-   - Every `POST`, `PUT`, `PATCH` request is validated with Zod `.safeParse()` before reaching the database.
-   - Standardise all API responses:
-     ```json
-     { "success": true, "data": { ... }, "error": null }
-     ```
-   - On validation failure return `400` with `{ "success": false, "error": <zod field errors> }`.
+
+- All core UI mutations interact with a decoupled REST API under `app/api/v1/*`.
+- Every `POST`, `PUT`, `PATCH` request is validated with Zod `.safeParse()` before reaching the database.
+- Standardise all API responses:
+
+```json
+{ "success": true, "data": { ... }, "error": null }
+
+```
+
+- On validation failure return `400` with `{ "success": false, "error": <zod field errors> }`.
 
 3. **Directory Structure**:
-   ```text
-   app/
-   ├── (auth)/
-   │   └── login/
-   │       └── page.tsx           # Split-panel login page (see §6)
-   ├── (dashboard)/
-   │   ├── layout.tsx             # Sidebar + Topbar shell, session guard
-   │   ├── page.tsx               # Overview / Home tab
-   │   ├── bible/
-   │   │   └── page.tsx           # Bible Reading Slots + Zoom links
-   │   ├── prayer/
-   │   │   └── page.tsx           # Prayer Slots + Zoom links
-   │   ├── calendar/
-   │   │   └── page.tsx           # Interactive Calendar & Scheduler
-   │   ├── messages/
-   │   │   └── page.tsx           # Community Messages inbox
-   │   ├── worship/
-   │   │   └── page.tsx           # Praise & Worship (stub page)
-   │   ├── groups/
-   │   │   └── page.tsx           # Groups (stub page)
-   │   ├── settings/
-   │   │   └── page.tsx           # Account Settings (stub page)
-   │   ├── admin/
-   │   │   ├── page.tsx           # Admin Dashboard (admin + superadmin)
-   │   │   └── users/
-   │   │       └── page.tsx       # User & Role Management (superadmin only)
-   │   └── unauthorized/
-   │       └── page.tsx           # 403 Access Denied page
-   ├── api/
-   │   ├── auth/
-   │   │   └── [...all]/
-   │   │       └── route.ts       # Better Auth catch-all handler
-   │   └── v1/
-   │       ├── events/
-   │       │   ├── route.ts       # GET (list/filter by date & type), POST
-   │       │   └── [id]/
-   │       │       └── route.ts   # GET, PUT/PATCH, DELETE
-   │       └── messages/
-   │           ├── route.ts       # GET (list), POST
-   │           └── [id]/
-   │               └── route.ts   # PATCH (mark read/unread)
-   ├── globals.css
-   ├── layout.tsx                 # Root layout — font CSS vars, metadata
-   └── page.tsx                   # Public landing page (see §5)
-   actions/                       # Server actions ('use server')
-   │   ├── eventActions.ts
-   │   └── messageActions.ts
-   components/
-   ├── ui/                        # Button, Modal, Card, Toast, Badge
-   ├── landing/                   # HeroSection, StatsRow, PhoneMockup, NavBar
-   ├── dashboard/                 # Sidebar, Topbar, StatCard, ProgressBar
-   ├── calendar/                  # MonthGrid, DaySchedule, EventForm
-   ├── messages/                  # MessageList, MessageRow
-   └── zoom/                      # ZoomLinkCard, ZoomQuickJoinBanner
-   lib/
-   ├── auth.ts                    # Better Auth config (providers, hooks, session shape)
-   ├── auth-client.ts             # Better Auth client for use in client components
-   ├── db/
-   │   └── prisma.ts              # Prisma Client singleton
-   ├── schemas/
-   │   ├── eventSchema.ts         # Zod schemas + inferred types for Event
-   │   └── messageSchema.ts       # Zod schemas + inferred types for Message
-   ├── services/
-   │   ├── eventService.ts        # Prisma query layer for events
-   │   └── messageService.ts      # Prisma query layer for messages
-   └── utils.ts                   # Date helpers, response formatters, error handlers
-   providers/                     # React context providers (auth session, theme)
-   │   └── SessionProvider.tsx
-   prisma/
-   └── schema.prisma              # MongoDB Atlas Prisma Schema
-   proxy.ts                       # Route protection — replaces middleware.ts (see §3B)
-   .env.example                   # All required env variable keys (see §9)
-   ```
+
+```text
+app/
+├── (auth)/
+│   └── login/
+│       └── page.tsx           # Split-panel / Card login page with shadcn UI
+├── (dashboard)/
+│   ├── layout.tsx             # SidebarProvider + Topbar shell, session guard
+│   ├── page.tsx               # Overview / Home tab
+│   ├── bible/
+│   │   └── page.tsx           # Bible Reading Slots + Zoom links
+│   ├── prayer/
+│   │   └── page.tsx           # Prayer Slots + Zoom links
+│   ├── calendar/
+│   │   └── page.tsx           # Interactive Calendar & Scheduler
+│   ├── messages/
+│   │   └── page.tsx           # Community Messages inbox
+│   ├── worship/
+│   │   └── page.tsx           # Praise & Worship (stub page)
+│   ├── groups/
+│   │   └── page.tsx           # Groups (stub page)
+│   ├── settings/
+│   │   └── page.tsx           # Account Settings (stub page)
+│   ├── admin/
+│   │   ├── page.tsx           # Admin Dashboard (moderator + admin)
+│   │   └── users/
+│   │       └── page.tsx       # User & Role Management (admin only)
+│   └── unauthorized/
+│       └── page.tsx           # 403 Access Denied page
+├── api/
+│   ├── auth/
+│   │   └── [...all]/
+│   │       └── route.ts       # Better Auth catch-all handler
+│   └── v1/
+│       ├── events/
+│       │   ├── route.ts       # GET (list/filter by date & type), POST
+│       │   └── [id]/
+│       │       └── route.ts   # GET, PUT/PATCH, DELETE
+│       ├── bookings/
+│       │   ├── route.ts       # POST (book a slot)
+│       │   └── [id]/
+│       │       └── route.ts   # PATCH (cancel)
+│       ├── messages/
+│       │   ├── route.ts       # GET (list), POST
+│       │   └── [id]/
+│       │       └── route.ts   # PATCH (mark read/unread)
+│       ├── posts/
+│       │   ├── route.ts       # GET (feed, paginated), POST
+│       │   └── [id]/
+│       │       ├── route.ts   # GET, DELETE, PATCH (isHidden — admin)
+│       │       ├── comments/route.ts
+│       │       └── likes/route.ts
+│       ├── groups/
+│       │   ├── route.ts       # GET (list), POST
+│       │   └── [id]/
+│       │       └── members/route.ts
+│       ├── reports/
+│       │   └── route.ts       # GET (open queue — admin), POST (file a report)
+│       ├── uploads/
+│       │   └── sign/route.ts  # POST — signed Cloudinary upload params
+│       └── calendar/
+│           └── ical/route.ts  # GET — per-user iCal feed (token auth)
+├── globals.css                # shadcn HSL / CSS variable tokens
+├── layout.tsx                 # Root layout — Font CSS vars, Toaster provider
+└── page.tsx                   # Public landing page using shadcn UI
+actions/                       # Server actions ('use server')
+│   ├── eventActions.ts
+│   └── messageActions.ts
+components/
+├── ui/                        # Standard shadcn UI primitives (Button, Card, Dialog, Toast, Badge, Form, Input, etc.)
+├── landing/                   # HeroSection, StatsRow, PhoneMockup, NavBar
+├── dashboard/                 # AppSidebar, Topbar, StatCard, ProgressBar
+├── calendar/                  # CalendarView, DaySchedule, EventForm
+├── messages/                  # MessageList, MessageRow
+└── zoom/                      # ZoomLinkCard, ZoomQuickJoinBanner
+lib/
+├── auth.ts                    # Better Auth config (providers, hooks, session shape)
+├── auth-client.ts             # Better Auth client for use in client components
+├── db/
+│   └── prisma.ts              # Prisma Client singleton
+├── schemas/
+│   ├── eventSchema.ts         # Zod schemas + inferred types for Event
+│   ├── messageSchema.ts       # Zod schemas + inferred types for Message
+│   ├── postSchema.ts          # Zod schemas + inferred types for Post/Comment
+│   └── groupSchema.ts         # Zod schemas + inferred types for Group
+├── services/
+│   ├── eventService.ts        # Prisma query layer for events
+│   ├── messageService.ts      # Prisma query layer for messages
+│   ├── postService.ts         # Prisma query layer for posts/comments/likes
+│   └── groupService.ts        # Prisma query layer for groups/membership
+├── socket/
+│   ├── server.ts              # Socket.IO server setup, room/namespace logic
+│   └── client.ts              # Socket.IO client singleton for client components
+├── storage/
+│   └── cloudinary.ts          # Cloudinary config + signed upload helper (swap target for S3)
+├── notifications/
+│   ├── email.ts               # Nodemailer transport + send helpers
+│   ├── push.ts                # Web Push (VAPID) subscribe/send helpers
+│   └── dispatch.ts            # Fan-out: picks channel(s) per notification type
+└── utils.ts                   # Date helpers, cn() utility, error handlers
+providers/                     # React context providers (Session, Theme, Toast, Socket)
+│   ├── SessionProvider.tsx
+│   └── SocketProvider.tsx     # Wraps app, exposes socket instance + connection state
+public/
+└── sw.js                      # Service worker — receives Web Push events
+prisma/
+└── schema.prisma              # MongoDB Atlas Prisma Schema
+server.ts                      # Custom Node server — Next.js handler + Socket.IO on same HTTP server
+proxy.ts                       # Route protection — replaces middleware.ts
+.env.example                   # Required environment keys
+
+```
 
 ---
 
@@ -117,7 +174,7 @@ The migration must:
 
 ### A. Prisma Schema (`prisma/schema.prisma`)
 
-> **MongoDB & Better Auth ID Mapping Rule**: Better Auth generates random string IDs (not 24-character hexadecimal ObjectIds). All models associated with authentication (`User`, `Account`, `Session`, `Verification`) as well as foreign keys referencing `User.id` (such as `Event.userId` and `Message.recipientId`) **MUST** use plain `String @id @map("_id")` or `String` without `@db.ObjectId`. Custom user fields created dynamically (e.g. `initials`) **MUST** be optional (`String?`) or provide `@default("")`.
+> **MongoDB & Better Auth ID Mapping Rule**: Better Auth generates random string IDs. Models associated with authentication (`User`, `Account`, `Session`, `Verification`) as well as foreign keys referencing `User.id` (such as `Event.userId` and `Message.recipientId`) **MUST** use plain `String @id @map("_id")` or `String` without `@db.ObjectId`.
 
 ```prisma
 datasource db {
@@ -132,39 +189,283 @@ generator client {
 enum EventType {
   BIBLE
   PRAYER
+  PRAISE_WORSHIP
 }
 
 model Event {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String                        // owner — plain string from session user.id
+  userId    String                        // owner/host — plain string from session user.id
   type      EventType
   title     String
   passage   String?                       // Bible passage or prayer focus
   date      String                        // YYYY-MM-DD
   time      String                        // HH:MM (24h)
   duration  Int                           // minutes
+  capacity  Int?                          // max bookings; null = unlimited
   zoomUrl   String?
   notes     String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  bookings  EventBooking[]
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model EventBooking {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  eventId      String        @db.ObjectId
+  event        Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId       String                          // who booked the slot
+  status       BookingStatus @default(CONFIRMED)
+  reminderSent Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+
+  @@unique([eventId, userId])
+  @@index([userId])
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+model Conversation {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  type        ConversationType
+  groupId     String?           @db.ObjectId  // set when type = GROUP
+  group       Group?            @relation(fields: [groupId], references: [id])
+  memberIds   String[]                        // participant user.id list (DIRECT: exactly 2)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  messages    Message[]
+
+  @@index([memberIds])
 }
 
 model Message {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
-  senderName       String
-  avatarText       String
-  avatarStyleClass String   // av1 | av2 | av3 | av4
-  preview          String
-  fullBody         String?
-  timestamp        DateTime @default(now())
-  isUnread         Boolean  @default(true)
-  recipientId      String                 // target user.id
+  id               String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId   String       @db.ObjectId
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId         String                      // author user.id
+  body             String
+  attachmentUrl    String?                     // Cloudinary URL, if any
+  readBy           String[]                    // user.id list who have seen it
+  createdAt        DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+// --- Groups ---
+
+enum GroupRole {
+  member
+  moderator
+  owner
+}
+
+model Group {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String?
+  coverImageUrl String?                        // Cloudinary URL
+  isPrivate     Boolean        @default(false)
+  ownerId       String                          // creator user.id
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  members       GroupMember[]
+  conversations Conversation[]
+}
+
+model GroupMember {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  groupId  String    @db.ObjectId
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId   String
+  role     GroupRole @default(member)
+  joinedAt DateTime  @default(now())
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+// --- Posts & content ---
+
+enum PostType {
+  TEXT
+  MEDIA
+  LINK
+  POLL
+  BIBLE_VERSE
+  QUOTE
+  SERMON
+  GOSPEL_TRACT
+  ARTICLE
+  PRAYER_REQUEST
+  PRAYER_ANSWER
+  TESTIMONIAL
+  PRAISE_REPORT
+}
+
+model Post {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  authorId     String                       // user.id
+  type         PostType
+  body         String?
+  mediaUrls    String[]                     // Cloudinary URLs (image/video/audio/document)
+  linkUrl      String?
+  versePassage String?                      // for BIBLE_VERSE posts
+  isAnswered   Boolean?   @default(false)    // for PRAYER_REQUEST posts
+  isHidden     Boolean    @default(false)    // set true by admin/moderator action
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  comments     Comment[]
+  likes        Like[]
+  poll         Poll?
+
+  @@index([authorId])
+  @@index([type])
+}
+
+model Comment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  body      String
+  isHidden  Boolean  @default(false)         // set true by admin/moderator action
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
+
+enum LikeTargetType {
+  POST
+  COMMENT
+}
+
+model Like {
+  id         String         @id @default(auto()) @map("_id") @db.ObjectId
+  postId     String?        @db.ObjectId
+  post       Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  targetType LikeTargetType
+  targetId   String                        // Post.id or Comment.id
+  userId     String
+  createdAt  DateTime       @default(now())
+
+  @@unique([targetType, targetId, userId])
+  @@index([postId])
+}
+
+model Poll {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String       @unique @db.ObjectId
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  question  String
+  options   PollOption[]
+  closesAt  DateTime?
+}
+
+model PollOption {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  pollId  String @db.ObjectId
+  poll    Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  label   String
+  voterIds String[]                        // user.id list who voted this option
+}
+
+// --- Social graph ---
+
+model Follow {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  followerId  String                       // user.id who follows
+  followingId String                       // user.id being followed (self-follow not allowed at app layer)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+}
+
+// --- Notifications & broadcasts ---
+
+enum NotificationChannel {
+  EMAIL
+  PUSH
+}
+
+enum NotificationType {
+  NEW_MESSAGE
+  NEW_COMMENT
+  NEW_LIKE
+  NEW_FOLLOWER
+  GROUP_INVITE
+  PRAYER_UPDATE
+  SLOT_REMINDER
+  ADMIN_BROADCAST
+}
+
+model Notification {
+  id        String               @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String                                  // recipient
+  type      NotificationType
+  channel   NotificationChannel
+  title     String
+  body      String
+  link      String?                                 // in-app deep link
+  isRead    Boolean              @default(false)
+  createdAt DateTime             @default(now())
+
+  @@index([userId])
+}
+
+model PushSubscription {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum ReportTargetType {
+  POST
+  COMMENT
+  USER
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+}
+
+model Report {
+  id         String           @id @default(auto()) @map("_id") @db.ObjectId
+  targetType ReportTargetType
+  targetId   String                          // Post.id, Comment.id, or User.id
+  reporterId String                          // user.id who filed the report
+  reason     String
+  status     ReportStatus     @default(OPEN)
+  createdAt  DateTime         @default(now())
+
+  @@index([status])
+}
+
+model Broadcast {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  authorId  String                        // admin/moderator user.id
+  title     String
+  body      String
+  createdAt DateTime @default(now())
 }
 
 enum Role {
-  user
+  member
+  moderator
   admin
-  superadmin
 }
 
 model User {
@@ -173,7 +474,7 @@ model User {
   passwordHash  String?
   name          String
   initials      String?
-  role          Role      @default(user)
+  role          Role      @default(member)
   banned        Boolean?  @default(false)
   banReason     String?
   banExpires    DateTime?
@@ -185,7 +486,6 @@ model User {
   image         String?
   sessions      Session[]
   accounts      Account[]
-  profile       Profile?
 
   @@map("user")
 }
@@ -237,14 +537,15 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
 ```
 
 ### B. Zod Schemas (`lib/schemas/eventSchema.ts`)
 
 ```typescript
-import { z } from "zod";
+import { z } from "zod"
 
-export const eventTypeSchema = z.enum(["BIBLE", "PRAYER"]);
+export const eventTypeSchema = z.enum(["BIBLE", "PRAYER"])
 
 export const createEventSchema = z.object({
   type: eventTypeSchema,
@@ -255,29 +556,29 @@ export const createEventSchema = z.object({
   duration: z.number().int().positive(),
   zoomUrl: z.string().url().optional().or(z.literal("")),
   notes: z.string().optional(),
-});
+})
 
-export const updateEventSchema = createEventSchema.partial();
-export type CreateEventInput = z.infer<typeof createEventSchema>;
-export type UpdateEventInput = z.infer<typeof updateEventSchema>;
+export const updateEventSchema = createEventSchema.partial()
+export type CreateEventInput = z.infer<typeof createEventSchema>
+export type UpdateEventInput = z.infer<typeof updateEventSchema>
 ```
 
 ### C. Prisma Client Singleton (`lib/db/prisma.ts`)
 
 ```typescript
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client"
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
+  prisma: PrismaClient | undefined
+}
 
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: ["error"], // Configured to log only errors to keep console output clean
-  });
+    log: ["error"],
+  })
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 ```
 
 ---
@@ -285,21 +586,46 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 ## 3. Authentication & RBAC (Better Auth)
 
 > **AGENTS.md rule**: Global `middleware.ts` is **deprecated** in this project. All request interception and route protection lives in `proxy.ts`. Do not create or modify `middleware.ts`.
-> **Role system**: Three explicit roles must be enforced: `user` (default), `admin`, and `superadmin`.
+> **Role system**: Three explicit roles must be enforced: `member` (default), `moderator`, and `admin`.
+> **Sign-up rule**: There is **no role selector anywhere in the sign-up form**. Every new account is created with `role: "member"` regardless of input. `moderator`/`admin` can only be granted by an existing `admin` via the User Management page (§11.7) calling Better Auth's admin `setRole` API — never by the user themselves.
+> **Moderator vs admin split**: Better Auth's `admin` plugin (`setRole`, `banUser`, impersonation, etc.) is configured with `adminRole: ["admin"]` only — those are destructive/account-level powers and stay `admin`-exclusive. `moderator` gets a narrower, app-level permission enforced in `proxy.ts` and in the API handlers themselves: access to the Moderation Queue (§11.8) to hide posts/comments and resolve reports, nothing more.
+> **No phone auth**: Login is email/password + social providers only. There is no phone/SMS-based sign-in or verification anywhere in this app.
 
-### A. Better Auth Config (`lib/auth.ts`)
+### A. Authentication Flow
 
-Configure Better Auth with the MongoDB Prisma adapter, OAuth providers, and the `admin` plugin to support role management (`user`, `admin`, `superadmin`):
+1. **Sign-Up / Login Screen** (`app/(auth)/login/page.tsx`, `app/(auth)/signup/page.tsx`) — email/password fields (shadcn `<Form/>`) plus a "Continue with GitHub" social button. No role field. On sign-up, `emailVerified` starts `false`; a verification email is sent via Nodemailer.
+2. **Forgot Password / Reset Flow** — `app/(auth)/forgot-password/page.tsx` collects an email and calls `authClient.forgetPassword({ email, redirectTo: "/reset-password" })`; Better Auth emails a reset link (sent via the Nodemailer transport in §7). `app/(auth)/reset-password/page.tsx` reads the token from the URL and calls `authClient.resetPassword({ newPassword, token })`.
+3. **Two-Factor Authentication (TOTP, free)** — enabled via Better Auth's `twoFactor` plugin (authenticator-app based, no SMS provider needed). A user opts in from Settings, scans a QR code (`authClient.twoFactor.enable()`), and confirms a code. On future logins where 2FA is enabled, `authClient.signIn.email()` returns a `twoFactorRedirect`, and `app/(auth)/two-factor/page.tsx` collects the 6-digit code via `authClient.twoFactor.verifyTotp({ code })`.
+
+### B. Better Auth Config (`lib/auth.ts`)
 
 ```typescript
-import { betterAuth } from "better-auth";
-import { admin } from "better-auth/plugins";
-import { prismaAdapter } from "better-auth/adapters/prisma";
-import { prisma } from "@/lib/db/prisma";
+import { betterAuth } from "better-auth"
+import { admin, twoFactor } from "better-auth/plugins"
+import { prismaAdapter } from "better-auth/adapters/prisma"
+import { prisma } from "@/lib/db/prisma"
+import { sendEmail } from "@/lib/notifications/email"
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "mongodb" }),
-  emailAndPassword: { enabled: true },
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: true,
+    sendResetPassword: async ({ user, url }) =>
+      sendEmail(
+        user.email,
+        "Reset your TGAW password",
+        `<a href="${url}">Reset password</a>`
+      ),
+  },
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url }) =>
+      sendEmail(
+        user.email,
+        "Verify your TGAW email",
+        `<a href="${url}">Verify email</a>`
+      ),
+  },
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_CLIENT_ID as string,
@@ -308,45 +634,42 @@ export const auth = betterAuth({
   },
   plugins: [
     admin({
-      defaultRole: "user",
-      adminRole: ["admin", "superadmin"],
+      defaultRole: "member",
+      adminRole: ["admin"],
     }),
+    twoFactor(),
   ],
-});
+})
 ```
 
-### B. Better Auth Client (`lib/auth-client.ts`)
-
-Export a typed client with `adminClient()` plugin for use in `"use client"` components:
+### C. Better Auth Client (`lib/auth-client.ts`)
 
 ```typescript
-import { createAuthClient } from "better-auth/react";
-import { adminClient } from "better-auth/client/plugins";
+import { createAuthClient } from "better-auth/react"
+import { adminClient } from "better-auth/client/plugins"
 
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   plugins: [adminClient()],
-});
+})
 
-export const { signIn, signOut, signUp, useSession } = authClient;
+export const { signIn, signOut, signUp, useSession } = authClient
 ```
 
-### C. Better Auth Route Handler (`app/api/auth/[...all]/route.ts`)
+### D. Better Auth Route Handler (`app/api/auth/[...all]/route.ts`)
 
 ```typescript
-import { auth } from "@/lib/auth";
-import { toNextJsHandler } from "better-auth/next-js";
+import { auth } from "@/lib/auth"
+import { toNextJsHandler } from "better-auth/next-js"
 
-export const { GET, POST } = toNextJsHandler(auth);
+export const { GET, POST } = toNextJsHandler(auth)
 ```
 
-### D. Route Protection & RBAC (`proxy.ts`)
-
-All global request interception and RBAC guards live in `proxy.ts` — not `middleware.ts`.
+### E. Route Protection & RBAC (`proxy.ts`)
 
 ```typescript
-import { auth } from "@/lib/auth";
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth"
+import { NextRequest, NextResponse } from "next/server"
 
 const PROTECTED_PATHS = [
   "/bible",
@@ -357,120 +680,84 @@ const PROTECTED_PATHS = [
   "/groups",
   "/settings",
   "/admin",
-];
+]
 
-const ADMIN_PATHS = ["/admin"];
-const SUPERADMIN_PATHS = ["/admin/users"];
+const ADMIN_ONLY_PATHS = ["/admin/users"] // account-level actions: role changes, bans
+const MODERATOR_PATHS = ["/admin"] // admin portal + moderation queue
 
 export async function proxy(req: NextRequest) {
-  const path = req.nextUrl.pathname;
-  const isProtected = PROTECTED_PATHS.some((p) => path.startsWith(p));
-  if (!isProtected) return NextResponse.next();
+  const path = req.nextUrl.pathname
+  const isProtected = PROTECTED_PATHS.some((p) => path.startsWith(p))
+  if (!isProtected) return NextResponse.next()
 
-  const session = await auth.api.getSession({ headers: req.headers });
+  const session = await auth.api.getSession({ headers: req.headers })
   if (!session) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(new URL("/login", req.url))
   }
 
-  const role = (session.user.role as string) || "user";
+  const role = (session.user.role as string) || "member"
 
-  // RBAC Guard: SuperAdmin-only paths
+  // RBAC Guard: Admin-only paths (user management, role assignment, banning)
+  if (ADMIN_ONLY_PATHS.some((p) => path.startsWith(p)) && role !== "admin") {
+    return NextResponse.redirect(new URL("/unauthorized", req.url))
+  }
+
+  // RBAC Guard: Moderator & Admin paths (admin portal, moderation queue)
   if (
-    SUPERADMIN_PATHS.some((p) => path.startsWith(p)) &&
-    role !== "superadmin"
+    MODERATOR_PATHS.some((p) => path.startsWith(p)) &&
+    !["moderator", "admin"].includes(role)
   ) {
-    return NextResponse.redirect(new URL("/unauthorized", req.url));
+    return NextResponse.redirect(new URL("/unauthorized", req.url))
   }
 
-  // RBAC Guard: Admin & SuperAdmin paths
-  if (
-    ADMIN_PATHS.some((p) => path.startsWith(p)) &&
-    !["admin", "superadmin"].includes(role)
-  ) {
-    return NextResponse.redirect(new URL("/unauthorized", req.url));
-  }
-
-  return NextResponse.next();
+  return NextResponse.next()
 }
 ```
-
-### E. Reading the Session & Roles (Server Components & Actions)
-
-In server components, route handlers, and server actions, verify session and roles using helper utilities:
-
-```typescript
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-
-export async function requireAuth() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
-  return session;
-}
-
-export async function requireRole(
-  allowedRoles: ("user" | "admin" | "superadmin")[],
-) {
-  const session = await requireAuth();
-  const role = (session.user.role as "user" | "admin" | "superadmin") || "user";
-  if (!allowedRoles.includes(role)) redirect("/unauthorized");
-  return session;
-}
-```
-
-### F. Role Permission Matrix
-
-| Role         | Access Scope & Permissions                                                                                                                                                                     |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `user`       | **Default role.** Access to personal faith dashboard (`/bible`, `/prayer`, `/calendar`, `/messages`, `/worship`, `/groups`, `/settings`). Cannot access `/admin`.                              |
-| `admin`      | All `user` privileges + access to Admin Portal (`/admin`): manage community announcements, broadcast messages, view global member directory. Cannot modify user roles or system configuration. |
-| `superadmin` | All `admin` privileges + access to User & Role Management (`/admin/users`): promote/demote user roles (`user`, `admin`, `superadmin`), ban/unban users, configure global system settings.      |
 
 ---
 
 ## 4. API Handler Pattern (`app/api/v1/events/route.ts`)
 
 ```typescript
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { createEventSchema } from "@/lib/schemas/eventSchema";
-import { prisma } from "@/lib/db/prisma";
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
+import { createEventSchema } from "@/lib/schemas/eventSchema"
+import { prisma } from "@/lib/db/prisma"
 
 export async function POST(req: NextRequest) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user)
     return NextResponse.json(
       { success: false, error: "Unauthorised" },
-      { status: 401 },
-    );
+      { status: 401 }
+    )
 
-  const body = await req.json();
-  const validation = createEventSchema.safeParse(body);
+  const body = await req.json()
+  const validation = createEventSchema.safeParse(body)
   if (!validation.success)
     return NextResponse.json(
       { success: false, error: validation.error.format() },
-      { status: 400 },
-    );
+      { status: 400 }
+    )
 
   const event = await prisma.event.create({
     data: { ...validation.data, userId: session.user.id! },
-  });
-  return NextResponse.json({ success: true, data: event }, { status: 201 });
+  })
+  return NextResponse.json({ success: true, data: event }, { status: 201 })
 }
 
 export async function GET(req: NextRequest) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user)
     return NextResponse.json(
       { success: false, error: "Unauthorised" },
-      { status: 401 },
-    );
+      { status: 401 }
+    )
 
-  const { searchParams } = new URL(req.url);
-  const date = searchParams.get("date"); // YYYY-MM-DD
-  const type = searchParams.get("type"); // BIBLE | PRAYER
+  const { searchParams } = new URL(req.url)
+  const date = searchParams.get("date")
+  const type = searchParams.get("type")
 
   const events = await prisma.event.findMany({
     where: {
@@ -479,412 +766,372 @@ export async function GET(req: NextRequest) {
       ...(type ? { type: type as "BIBLE" | "PRAYER" } : {}),
     },
     orderBy: { time: "asc" },
-  });
-  return NextResponse.json({ success: true, data: events });
+  })
+  return NextResponse.json({ success: true, data: events })
 }
 ```
 
 ---
 
-## 5. Public Landing Page (`app/page.tsx`)
-
-Recreate the **full** marketing landing page from `index.html` (`#landing` section). It is a **server component** (no interactivity beyond the nav CTA links).
-
-### Must include all of these elements:
-
-1. **Navigation bar** (`<nav>`):
-   - Left: TGAW logo (`TGA` + `W` in accent red).
-   - Right: Links — Features, About, Community — and a **Sign In** primary button linking to `/login`.
-   - On mobile (`< 900 px`), hide nav links; show only the Sign In button.
-
-2. **Hero section** (two-column layout, stacks on mobile):
-   - Left: Badge pill ("Your Daily Faith Companion"), `<h1>` with italic purple highlight, subtitle paragraph, two CTAs (Get Started Free → `/login`, Sign In → `/login`).
-   - Right: **Phone mockup card** — a floating glassmorphism card (280 px wide) displaying:
-     - Header: "Today's Plan" + avatar initials.
-     - Verse of the Day preview box (Jer 29:11).
-     - Three schedule slot rows (Morning Reading · John 3 · 6:00 AM · 30 min; Morning Prayer · Intercession · 7:00 AM · 20 min; Evening Study · Psalms 23 · 8:00 PM · 45 min).
-   - Two **floating badge chips** positioned absolutely: "🔥 Streak — 21 Days" (top-left of card) and "✅ Completed — 12 This Week" (bottom-right).
-
-3. **Animated background**:
-   - Three blurred radial orbs (`.orb1`, `.orb2`, `.orb3`) with a gentle `float` keyframe (`translateY 0 → -30px`, 8 s infinite).
-   - SVG fractal noise grain overlay (fixed, `pointer-events: none`, `opacity: 0.6`).
-
-4. **Stats row** (bottom of landing, full-width glass bar, responsive: 2 columns on mobile):
-   - 50K+ Active Believers
-   - 1.2M Prayer Sessions Logged
-   - 66 Books of the Bible Covered
-   - 98% Member Satisfaction
-
----
-
-## 6. Login Page (`app/(auth)/login/page.tsx`)
-
-Recreate the **split-panel** login page from `index.html` (`#login` section).
-
-### Layout (side-by-side on desktop, single column on mobile):
-
-**Left panel** (`login-art`) — decorative, hidden on mobile:
-
-- Dark purple gradient background with a blurred radial circle.
-- Centred quote block: large decorative `"` mark in accent red, italic scripture quote ("Your word is a lamp to my feet…"), citation ("— Psalm 119:105").
-
-**Right panel** (`login-form-wrap`, 480 px fixed, full-width on mobile):
-
-- TGAW logo.
-- `<h2>` "Welcome back" + sub-text "Continue your faith journey".
-- Email input field.
-- Password input field.
-- "Forgot password?" link (right-aligned, `/forgot-password` stub).
-- Full-width primary **Sign In to TGAW** button — calls `authClient.signIn.email({ email, password })` from `lib/auth-client.ts`.
-- Divider ("or continue with").
-- One social button: 🐙 GitHub (`authClient.signIn.social({ provider: "github" })`).
-- "Don't have an account? Create one free →" link (stub, `/register`).
-- "← Back to home" link → `/`.
-
-**Validation**: Use **React Hook Form** + **Zod** for field-level validation. Show inline error messages beneath each field. Display server errors (e.g. wrong credentials) as a banner above the form.
-
----
-
-## 7. Dashboard Layout (`app/(dashboard)/layout.tsx`)
-
-This is a **server component** that:
-
-1. Calls `auth.api.getSession({ headers: await headers() })` and redirects to `/login` if no session.
-2. Passes `session.user` (name, email, role) to child client components.
-3. Renders the outer `<div style="display:flex; min-height:100vh">` shell containing `<Sidebar>` and `<main>`.
-
-### Sidebar (`components/dashboard/Sidebar.tsx`) — client component:
-
-Faithfully reproduce the sidebar from `index.html`:
-
-- Logo at top.
-- **Section labels** + **nav items** exactly as in HTML:
-  - Overview section: Dashboard, Progress
-  - Devotion section: Calendar, Bible Reading, Prayer, Praise & Worship
-  - Community section: Messages (with unread count badge), Groups
-  - Account section: Settings, Sign Out
-  - **Admin section** (conditionally rendered for `admin` and `superadmin` roles only):
-    - Admin Portal (`/admin` — 🛡️ icon)
-    - User Management (`/admin/users` — 👑 icon, rendered only when `role === 'superadmin'`)
-- Each item navigates to its route using `<Link>` from `next/link`. Active item highlighted with `border-left: 3px solid var(--red-soft)` + purple background tint.
-- **Unread badge** on Messages: fetched server-side and passed as prop; re-validates on message read.
-- Footer: user avatar (gradient circle with initials), name, role + streak.
-
-**Mobile behaviour**:
-
-- On `< 900 px`, sidebar starts off-screen (`translateX(-260px)`) with `transition: transform 0.3s ease`.
-- **Hamburger button** (3-bar icon, top-left of topbar) toggles a React state `sidebarOpen`.
-- A dark overlay backdrop (`position: fixed; inset: 0; background: rgba(0,0,0,0.5)`) renders when sidebar is open; clicking it closes the sidebar.
-- `useState` + `useEffect` to add/remove `overflow: hidden` on `<body>` when sidebar is open.
-
-### Topbar (`components/dashboard/Topbar.tsx`) — client component:
-
-- Hamburger toggle (mobile only).
-- Dynamic page title (driven by current route using `usePathname()`).
-- Right actions: Messages icon (with red dot) → `/messages`; Bell icon (with red dot); Avatar button.
-
----
-
-## 8. Page Implementations
-
-### 8.1 Overview Page (`app/(dashboard)/page.tsx`)
-
-This is a **server component** that fetches today's events and passes them to client components.
-
-**Must render:**
-
-1. **Greeting** (client component to avoid hydration mismatch):
-   - Time-of-day salutation: "Good morning" (5–11), "Good afternoon" (12–16), "Good evening" (17–21), "Good night" (22–4).
-   - User's first name from session.
-   - Dynamic date: `Monday, 16 March 2026` format.
-   - Session count: "You have N sessions scheduled today" (N from today's event count).
-
-2. **Verse of the Day banner**: Display a rotating verse from a curated local array (minimum 30 entries). Include a Share button (copies verse text to clipboard).
-
-3. **Zoom Quick-Join Banner** (`components/zoom/ZoomQuickJoinBanner.tsx`):
-   - Shows the most imminent event (within the next 2 hours) that has a `zoomUrl`.
-   - Displays: event title, Live Now / Starting Soon status chip, Meeting ID + Passcode (parsed from the URL or stored separately), Host name.
-   - Actions: "📋 Copy Link" button, "▶ Join Now" `<a target="_blank">` button.
-   - Hidden when no qualifying event exists.
-
-4. **4 Stat cards** (data from API or session):
-   - Day Streak (from `session.user.streakDays`)
-   - Chapters Read (from aggregated events this month)
-   - Prayer Sessions (from aggregated events this month)
-   - Total Time (sum of durations)
-
-5. **2-column grid**:
-   - Today's Schedule panel: list of today's events (fetched from `/api/v1/events?date=<today>`), each row showing time, colour bar (purple=bible, red=prayer), event name, subtext, and status chip (Done/Now/Upcoming).
-   - Weekly Progress panel: 5 progress bars (Bible Reading Plan, Prayer Goal, New Testament, Old Testament, Community Engagement) — values computed from event data.
-
-6. **Wide panel**: Recent Messages preview (last 4 messages from `/api/v1/messages?limit=4`).
-
----
-
-### 8.2 Bible Reading Page (`app/(dashboard)/bible/page.tsx`)
-
-1. **3 stat cards**: Sessions This Week, Total Reading Time, Chapters Completed.
-
-2. **Zoom Meeting Links panel** (`components/zoom/ZoomLinkCard.tsx`):
-   - Renders all events of type `BIBLE` that have a `zoomUrl`.
-   - Each card shows: icon, session name, schedule text, the URL as a truncated link, status chip (Live Now / Starting Soon — computed from event time), Copy and Join actions.
-
-3. **Today's Reading Sessions panel**: Events of type `BIBLE` for today.
-
-4. **This Week's Reading Plan panel**: Events of type `BIBLE` for the current ISO week.
-
----
-
-### 8.3 Prayer Page (`app/(dashboard)/prayer/page.tsx`)
-
-Mirror of Bible Reading page with `type=PRAYER` data. Includes:
-
-1. **3 stat cards**: Sessions This Month, Total Prayer Time, Consistency Rate.
-2. **Zoom Meeting Links panel** — all prayer events with Zoom URLs.
-3. **Today's Prayer Schedule** panel.
-4. **Weekly Prayer Patterns** panel — progress bars by prayer category (Intercession, Thanksgiving, Supplication, Worship Prayer).
-
----
-
-### 8.4 Calendar Page (`app/(dashboard)/calendar/page.tsx`) — client component
-
-This is the most complex interactive page. Implement every behaviour from `index.html`:
-
-#### Left column — Month grid + Day schedule:
-
-1. **Month grid** (`components/calendar/MonthGrid.tsx`):
-   - Display a 7-column calendar grid for the current month.
-   - Navigation: `‹` / `›` buttons call `changeMonth(-1)` / `changeMonth(1)`.
-   - Each day cell:
-     - `today` class: purple tint + purple-glow border.
-     - `selected` class: red gradient + shadow.
-     - `has-events` + dot indicator below the number:
-       - Bible-only: purple-glow dot.
-       - Prayer-only: red-soft dot.
-       - Both: gradient dot.
-   - Clicking a day sets it as `selectedDate` and populates the date field in the Add Event form.
-   - Top-right: timezone badge showing local time + timezone abbreviation (use `Intl.DateTimeFormat().resolvedOptions().timeZone`).
-
-2. **Day schedule panel** (`components/calendar/DaySchedule.tsx`):
-   - Title: "Events on [selected date formatted as 'Wednesday, 16 Mar 2026']".
-   - Lists all events for the selected date sorted by time.
-   - Each event row: coloured dot, event name + passage/focus, time (12h), duration, optional "▶ Zoom" badge if `zoomUrl` exists.
-   - **Delete button**: appears on hover (`opacity: 0 → 1`); calls `DELETE /api/v1/events/[id]` and removes from local state optimistically.
-   - Empty state: 📭 icon + "No sessions scheduled" message.
-
-#### Right column — Add Event form (`components/calendar/EventForm.tsx`):
-
-Sticky panel that calls `POST /api/v1/events` on submit:
-
-| Field                        | Control                                                       |
-| ---------------------------- | ------------------------------------------------------------- |
-| Session Type                 | Toggle buttons: 📖 Bible Reading / 🙏 Prayer                  |
-| Session Title                | Text input                                                    |
-| Bible Passage / Prayer Focus | Text input (label changes based on type)                      |
-| Date                         | `<input type="date">` (pre-filled from selected calendar day) |
-| Start Time                   | `<input type="time">`                                         |
-| Duration                     | `<select>` (10 / 15 / 20 / 25 / 30 / 45 / 60 / 90 / 120 min)  |
-| Your Time Zone               | Read-only display (auto-detected, purple-tinted box)          |
-| Zoom Meeting Link            | `<input type="url">` (optional)                               |
-| Notes                        | `<textarea>` (optional)                                       |
-
-- On success: add event to local state, re-render calendar grid dots, show **toast notification** ("✦ Session added to your calendar!") that auto-dismisses after 3 s.
-- On error: show inline field-level error messages from the API's Zod error response.
-
----
-
-### 8.5 Messages Page (`app/(dashboard)/messages/page.tsx`)
-
-**Initial data** loaded server-side from `GET /api/v1/messages` (filtered by `recipientId = session.user.id`).
-
-**Inbox list** (`components/messages/MessageList.tsx`) — client component:
-
-- Each row (`MessageRow`): gradient avatar circle with initials, sender name, preview text (truncated), timestamp.
-- **Unread rows**: purple-tinted background + red dot in sender name row.
-- **Click to read**: calls `PATCH /api/v1/messages/[id]` with `{ isUnread: false }`, removes unread styling and dot optimistically. Updates the sidebar badge count via a shared React context or a server action revalidation.
-- Sidebar unread badge re-fetches/revalidates on read.
-- "Compose →" button: stub — shows a disabled state or a "Coming Soon" modal for now.
-
----
-
-### 8.6 Stub Pages (Praise & Worship, Groups, Settings)
-
-For each of `worship/`, `groups/`, and `settings/`, create a minimal page that:
-
-- Shows the page heading in the same Playfair Display style.
-- Renders a single glassmorphism card with a "Coming Soon" message and a brief description of the planned feature.
-- Does **not** show a 404 or error.
-
----
-
-### 8.7 Admin Portal & RBAC Pages
-
-#### A. Admin Dashboard (`app/(dashboard)/admin/page.tsx`)
-
-Accessible to `admin` and `superadmin` users. Renders:
-
-- Stat cards: Total Active Members, Community Announcements Published, Flagged Content.
-- Announcement Broadcast tool: compose a global message sent to all users.
-- Quick link to User Management (visible to `superadmin` only).
-
-#### B. User & Role Management (`app/(dashboard)/admin/users/page.tsx`)
-
-Accessible to `superadmin` users only (`requireRole(["superadmin"])`). Renders:
-
-- User management table with search and role filter (`user`, `admin`, `superadmin`).
-- Each user row displays: Name, Email, Current Role badge, Streak count, Created date.
-- **Role Assignment Dropdown**: Allows changing a user's role (`user` ↔ `admin` ↔ `superadmin`) via Better Auth's `authClient.admin.setRole({ userId, role })` or Server Action.
-- **Ban / Unban Action**: Toggle user ban status using `authClient.admin.banUser` / `unbanUser`.
-
-#### C. Access Denied Page (`app/(dashboard)/unauthorized/page.tsx`)
-
-Rendered when a user attempts to access a route restricted by RBAC (e.g. standard `user` accessing `/admin`):
-
-- Clean glassmorphism 403 card with warning icon ("🔒 Access Denied").
-- Heading: "Authorisation Required".
-- Text: "Your account role does not have permission to view this page."
-- CTA button: "← Return to Dashboard" (`/`).
-
----
-
-## 9. Design System & UI/UX Specification (`DESIGN.md` Integration)
-
-### A. Design Tokens
-
-```yaml
-colors:
-  primary: "#000000"
-  secondary: "#94A3B8"
-  accent: "#94A3B8"
-  background: "#000000"
-  surface: "#94A3B8"
-  text-primary: "#FFFFFF"
-  text-secondary: "#A1A1AA"
-  border: "#CBD5E1"
-typography:
-  display-lg:
-    fontFamily: "Inter"
-    fontSize: "64px"
-    fontWeight: 500
-    lineHeight: "1.04"
-    letterSpacing: "0"
-  body-md:
-    fontFamily: "Inter"
-    fontSize: "16px"
-    fontWeight: 400
-    lineHeight: "1.6"
-  label-md:
-    fontFamily: "JetBrains Mono"
-    fontSize: "12px"
-    fontWeight: 600
-    lineHeight: "1.2"
-spacing:
-  base: "8px"
-  gap: "16px"
-  card-padding: "24px"
-  section-padding: "80px"
-rounded:
-  card: "14px"
-  control: "14px"
-  pill: "9999px"
-components:
-  card:
-    background: "Use surface token with subtle borders and HTML-matched shadow depth"
-    radius: "Match declared card radius token (14px)"
-  button:
-    background: "Use primary or accent colors for main action"
-    radius: "Use control (14px) or pill (9999px) radius based on source HTML"
+## 5. Real-Time Chat (Socket.IO, self-hosted)
+
+> **Hosting constraint**: this project runs Next.js behind a **custom Node server** (`server.ts`), not on pure serverless — Socket.IO needs a long-lived HTTP server to hold connections open. Do not deploy this app to a platform that only supports serverless functions (e.g. plain Vercel serverless) without a persistent-process option.
+
+### A. Custom Server (`server.ts`)
+
+```typescript
+import { createServer } from "node:http"
+import next from "next"
+import { Server } from "socket.io"
+import { auth } from "@/lib/auth"
+
+const dev = process.env.NODE_ENV !== "production"
+const app = next({ dev })
+const handle = app.getRequestHandler()
+
+app.prepare().then(() => {
+  const httpServer = createServer((req, res) => handle(req, res))
+  const io = new Server(httpServer, { path: "/socket.io" })
+
+  io.use(async (socket, next) => {
+    const session = await auth.api.getSession({
+      headers: socket.handshake.headers as any,
+    })
+    if (!session?.user) return next(new Error("Unauthorized"))
+    socket.data.userId = session.user.id
+    next()
+  })
+
+  io.on("connection", (socket) => {
+    socket.on("conversation:join", (conversationId: string) => {
+      socket.join(conversationId)
+    })
+
+    socket.on("message:send", async (payload) => {
+      // validate with messageSchema, persist via messageService, then:
+      io.to(payload.conversationId).emit("message:new", payload)
+    })
+  })
+
+  httpServer.listen(process.env.PORT || 3000)
+})
 ```
 
-### B. CSS Custom Properties (`globals.css`)
+### B. Client Provider (`providers/SocketProvider.tsx`)
+
+- Connects once at the app root using `io({ path: "/socket.io" })`, cookies carry the Better Auth session for the handshake.
+- Exposes the socket instance and a `connected` boolean via context; components join/leave conversation rooms with `conversation:join` / `conversation:leave` on mount/unmount.
+- Direct messages and group messages both flow through `Conversation` — a `DIRECT` conversation is created (or reused) between two users on first message; a `GROUP` conversation is created when a `Group` is created.
+
+### C. Conventions
+
+- Socket events are the source of truth for **live delivery**; the REST API (`/api/v1/messages`) remains the source of truth for **persistence and history** (initial load, pagination, read receipts sync). Never rely on socket state alone for message history.
+- Every socket handler re-validates the sender's membership in the conversation/group server-side before broadcasting — never trust `conversationId` from the client without an ownership check.
+
+---
+
+## 6. Media Storage (Cloudinary)
+
+> Chosen for its free tier (no card required) to keep hosting cost at $0. Keep all upload logic behind `lib/storage/cloudinary.ts` so swapping to S3 later only means rewriting that one file.
+
+### A. Config (`lib/storage/cloudinary.ts`)
+
+```typescript
+import { v2 as cloudinary } from "cloudinary"
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
+
+export function getSignedUploadParams(folder: string) {
+  const timestamp = Math.round(Date.now() / 1000)
+  const signature = cloudinary.utils.api_sign_request(
+    { timestamp, folder },
+    process.env.CLOUDINARY_API_SECRET!
+  )
+  return {
+    timestamp,
+    signature,
+    folder,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  }
+}
+```
+
+### B. Upload Pattern
+
+- Client requests a signed payload from `POST /api/v1/uploads/sign` (auth required), then uploads **directly** to Cloudinary from the browser — the app server never proxies file bytes.
+- Allowed types/size limits are enforced both client-side (immediate feedback) and via Cloudinary upload preset restrictions (source of truth).
+- Store only the resulting Cloudinary `secure_url` (and `public_id` for later deletion) on the owning record (`Post.mediaUrls`, `Message.attachmentUrl`, `Group.coverImageUrl`, `User.image`).
+- Deleting a `Post`/`Message` should also call `cloudinary.uploader.destroy(publicId)` to avoid orphaned assets.
+
+---
+
+## 7. Notifications (Nodemailer + Web Push)
+
+> No SMS channel — kept to two free channels: **Email** (Nodemailer) and **Push** (Web Push / VAPID, browser-native, no third-party service or cost).
+
+### A. Email (`lib/notifications/email.ts`)
+
+```typescript
+import nodemailer from "nodemailer"
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: false,
+  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+})
+
+export async function sendEmail(to: string, subject: string, html: string) {
+  await transporter.sendMail({ from: process.env.SMTP_FROM, to, subject, html })
+}
+```
+
+- Use a free SMTP provider for development/low volume (e.g. Gmail SMTP with an app password, or a free-tier transactional provider) — swap `SMTP_*` env vars only, no code change.
+
+### B. Web Push (`lib/notifications/push.ts`)
+
+```typescript
+import webpush from "web-push"
+
+webpush.setVapidDetails(
+  `mailto:${process.env.VAPID_CONTACT_EMAIL}`,
+  process.env.VAPID_PUBLIC_KEY!,
+  process.env.VAPID_PRIVATE_KEY!
+)
+
+export async function sendPush(
+  subscription: PushSubscriptionJSON,
+  title: string,
+  body: string
+) {
+  await webpush.sendNotification(
+    subscription as any,
+    JSON.stringify({ title, body })
+  )
+}
+```
+
+- `public/sw.js` registers a `push` event listener that calls `self.registration.showNotification(...)`.
+- Client asks for `Notification.permission` and, once granted, subscribes via `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: VAPID_PUBLIC_KEY })`; the subscription object is POSTed to the API and stored in `PushSubscription`.
+- `NotificationType` values (`NEW_MESSAGE`, `NEW_COMMENT`, `NEW_LIKE`, `NEW_FOLLOWER`, `GROUP_INVITE`, `PRAYER_UPDATE`, `SLOT_REMINDER`, `ADMIN_BROADCAST`) map to a channel in `lib/notifications/dispatch.ts` — always write an in-app `Notification` row, then fan out to Email and/or Push depending on the type and the user's stored preferences.
+
+### C. Slot Reminder Scheduling
+
+- Since `server.ts` is already a persistent Node process (§5), use `node-cron` inside it (no external cron/queue service needed) to run every few minutes, find confirmed `EventBooking` rows starting soon with `reminderSent: false`, dispatch a `SLOT_REMINDER` notification, and flip `reminderSent`.
+
+---
+
+## 8. Public Landing Page (`app/page.tsx`)
+
+Build using clean **shadcn/ui** layout components, `<Button/>`, `<Badge/>`, and `<Card/>`.
+
+1. **Navbar**: Standard header using shadcn flex primitives, site brand title, navigation items, and `<Button asChild>` linking to `/login`.
+2. **Hero Section**: Responsive 2-column container using grid/flex.
+
+- Left: Badge ("Your Daily Faith Companion"), `<h1>`, subtitle, primary Action `<Button>` ("Get Started Free"), secondary Action `<Button variant="outline">` ("Sign In").
+- Right: Clean preview card (`<Card/>`) showing today's scripture and schedule summary using `<Badge/>` tags for event timing.
+
+3. **Stats Row**: Grid layout using standard `<Card/>` components displaying community metrics.
+
+---
+
+## 9. Sign-Up, Login & 2FA Pages (`app/(auth)/*`)
+
+Implement using **shadcn/ui** `<Form/>`, `<FormField/>`, `<FormItem/>`, `<FormLabel/>`, `<FormControl/>`, `<FormMessage/>`, `<Input/>`, and `<Button/>`.
+
+### 9.1 Login (`app/(auth)/login/page.tsx`)
+
+- Form handling with `react-hook-form` and `@hookform/resolvers/zod`.
+- Primary submission triggers `authClient.signIn.email({ email, password })`. If the response includes `twoFactorRedirect`, route to `/two-factor` instead of the dashboard.
+- Social authentication button triggers `authClient.signIn.social({ provider: "github" })`.
+- "Forgot password?" link to `/forgot-password`.
+- Feedback presented via shadcn `<Alert/>` or `toast()`.
+
+### 9.2 Sign-Up (`app/(auth)/signup/page.tsx`)
+
+- Fields: name, email, password (no role field — every account is created as `user`; see §3).
+- Submission triggers `authClient.signUp.email({ name, email, password })`, then shows a "check your email to verify" state.
+
+### 9.3 Forgot Password / Reset (`app/(auth)/forgot-password/page.tsx`, `app/(auth)/reset-password/page.tsx`)
+
+- Forgot-password form collects email, calls `authClient.forgetPassword({ email, redirectTo: "/reset-password" })`, shows a generic "if that email exists, a link was sent" message (never confirms whether the email is registered).
+- Reset-password page reads `token` from the query string, collects a new password, calls `authClient.resetPassword({ newPassword, token })`, then redirects to `/login`.
+
+### 9.4 Two-Factor Verification (`app/(auth)/two-factor/page.tsx`)
+
+- Single 6-digit code `<Input/>` (numeric, auto-submit on 6 digits), calls `authClient.twoFactor.verifyTotp({ code })`.
+- Settings page also has an "Enable 2FA" flow: `authClient.twoFactor.enable()` returns a QR code to render, then the user confirms with a code to activate it.
+
+---
+
+## 10. Dashboard Layout (`app/(dashboard)/layout.tsx`)
+
+Uses shadcn's official **Sidebar** component pattern (`SidebarProvider`, `Sidebar`, `SidebarContent`, `SidebarHeader`, `SidebarFooter`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`).
+
+### Navigation Menu structure:
+
+- **Overview**: Dashboard (Home)
+- **Devotion**: Calendar, Bible Reading, Prayer, Praise & Worship, Slot Booking
+- **Community**: Feed, Messages (with `<Badge/>` for unread count), Groups
+- **Account**: Settings, Sign Out
+- **Admin Section** (rendered conditionally for `moderator` / `admin` roles):
+- Admin Portal (`/admin`)
+- Moderation Queue (`/admin/reports`, `moderator` + `admin`)
+- User Management (`/admin/users`, `admin` only)
+
+### Topbar (`components/dashboard/Topbar.tsx`):
+
+- `SidebarTrigger` to toggle off-canvas menu on mobile views.
+- Dynamic page title via `usePathname()`.
+- Right actions: Notification bell with indicator badge (opens the Notifications panel, §11.6), User `<Avatar/>` dropdown menu.
+
+---
+
+## 11. Page Implementations (shadcn/ui Pattern)
+
+### 11.1 Overview Page (`app/(dashboard)/page.tsx`)
+
+- Stat Cards using `<Card/>`, `<CardHeader/>`, `<CardTitle/>`, and `<CardContent/>`.
+- Today's Schedule using `<Table/>` or stacked list components.
+- Progress bars using shadcn `<Progress/>` (e.g. Bible Reading Plan streak).
+- **Book a Slot** shortcut: a prominent `<Button>` linking to `/booking` (§11.2).
+- **Upcoming Slots preview**: next 2-3 `EventBooking` rows for the signed-in user (Bible Reading, Prayer, Praise & Worship), each showing type `<Badge/>`, date/time, and a "Join" action once the Zoom link is live.
+- **Notifications panel**: a compact list (last 5 unread `Notification` rows) with a "View all" link into the full panel (§11.6); bell icon in the Topbar opens the same panel as a `<Sheet/>` or `<Popover/>`.
+- **Community Feed shortcut**: a `<Card/>` teaser showing the latest 1-2 feed posts with a "View Feed" link to `/feed`.
+- Alert / Highlight cards using `<Alert/>` or `<Card/>`.
+
+### 11.2 Slot Booking (`app/(dashboard)/booking/page.tsx`)
+
+- **Slot type selection**: `<Tabs/>` or `<ToggleGroup/>` for Bible Reading / Prayer / Praise & Worship (`EventType`).
+- **Calendar view with availability**: shadcn `<Calendar/>` where each day shows open `Event` slots for the selected type; slots at or over `capacity` (via booking count vs `Event.capacity`) render disabled with a "Full" `<Badge variant="secondary">`.
+- Selecting an open slot opens a `<Dialog/>` with slot details and a "Confirm Booking" `<Button/>`, which calls `POST /api/v1/bookings` (creates an `EventBooking`, rejected with `409` if capacity is already reached — re-validate server-side, never trust the client's view of availability).
+- **Confirmation + reminder setup**: on success, show a confirmation `<Alert/>` and let the user toggle whether they want a reminder notification; a scheduled job (§7) creates a `SLOT_REMINDER` `Notification`/push ahead of the event and flips `EventBooking.reminderSent`.
+- A user's own bookings are listed below with a "Cancel" action (`PATCH` to set `status: CANCELLED`, freeing the slot).
+
+### 11.3 Bible & Prayer Pages (`/bible`, `/prayer`)
+
+- Structured with grid panels using `<Card/>` wrappers.
+- Zoom cards with status `<Badge/>` (e.g. `variant="default"` vs `variant="secondary"`).
+- Action triggers using standard `<Button size="sm" variant="outline">`.
+
+### 11.4 Calendar Page (`app/(dashboard)/calendar/page.tsx`)
+
+- **Unified, color-coded calendar**: shadcn `<Calendar/>` (or a grid view) rendering all of a user's `Event`/`EventBooking` records, color-coded per `EventType` (e.g. Bible = blue, Prayer = amber, Praise & Worship = violet) via Tailwind token classes, not raw hex.
+- **Filter by slot type**: `<ToggleGroup/>` or `<Select/>` to show/hide each `EventType`.
+- **External calendar sync**: a "Subscribe" `<Button/>` copies a personal iCal feed URL (`GET /api/v1/calendar/ical?token=...`) that a user pastes into Google/Apple/Outlook Calendar — one-way, read-only, no OAuth. The endpoint returns `text/calendar` built from that user's confirmed `EventBooking` rows; the `token` is a long-lived per-user secret (regenerable from Settings) rather than the session cookie, since calendar apps can't do interactive login.
+- Add Event Form (admin/host only) using shadcn `<Form/>`, `<Input/>`, `<Select/>`, and `<Textarea/>`.
+- Toast notifications fired via shadcn `toast()` hook on event creation or deletion.
+
+### 11.5 Messaging & Chat (`app/(dashboard)/messages/*`)
+
+- **Conversation list** (`app/(dashboard)/messages/page.tsx`): inbox of `Conversation` rows, unread items styled via subtle background highlights (`bg-muted/50`); user avatars rendered using `<Avatar/>`, `<AvatarImage/>`, and `<AvatarFallback/>`. Group conversations show the `Group` name/cover image instead of a single avatar.
+- **1-to-1 chat screen** (`app/(dashboard)/messages/[conversationId]/page.tsx`): message list joined to the Socket.IO room for that `conversationId` (§5); composer at the bottom.
+- **Group chat screen** (`app/(dashboard)/groups/[groupId]/chat/page.tsx`): same message-list/composer pattern scoped to the group's `Conversation`, plus a member-list `<Sheet/>` (useful for named groups like a Prayer Circle or Bible Study group).
+- **Composer**: plain `<Textarea/>` with lightweight rich text (bold/italic/lists — a small free library such as `tiptap` is fine, avoid a heavy paid WYSIWYG), an emoji picker (`emoji-picker-react`, free), and a media-attach button that uploads to Cloudinary (§6) and sends the resulting URL as `Message.attachmentUrl`.
+
+### 11.6 Community Feed (`app/(dashboard)/feed/page.tsx`)
+
+- **Post composer**: a `<Dialog/>` or inline `<Card/>` with a `PostType` selector (testimony, devotional, praise report, prayer request, Bible verse, poll, etc. — see `PostType` enum) and type-specific fields (verse passage, poll options, media upload via Cloudinary).
+- **Feed list**: infinite-scroll or "Load more" `<Button/>` over `Post` rows (paginate by `createdAt` cursor), each rendered via a `PostCard` component keyed to `PostType` (e.g. a Bible verse post looks different from a poll post).
+- **Like / comment / share**: `<Button size="icon">` actions; likes call `POST /api/v1/posts/:id/likes` (toggles a `Like` row); comments expand an inline list + composer; share copies a deep link.
+- **Report action**: every post/comment has a "Report" option in a `<DropdownMenu/>` that opens a short reason `<Textarea/>` and creates a `Report` row.
+- **Moderation tools for Admins**: `admin`/`moderator` see an extra "Hide" action directly on posts/comments (`isHidden = true`, soft-hides without deleting) in addition to the Moderation Queue (§11.8) that lists open `Report`s for review.
+
+### 11.7 Admin & RBAC Pages
+
+- User management implemented using shadcn `<Table/>`, `<TableHeader/>`, `<TableBody/>`, `<TableRow/>`, `<TableCell/>`.
+- Role assignment implemented using shadcn `<Select/>` dropdown inside table cells (calls the Better Auth admin `setRole` API — `admin` only, per §3).
+- Unauthorized 403 page built with `<Card/>` and clear fallback `<Button/>` returning to dashboard.
+
+### 11.8 Moderation Queue (`app/(dashboard)/admin/reports/page.tsx`)
+
+- `moderator`/`admin` only. `<Table/>` of open `Report` rows (target type, reason, reporter, date) with row actions: "Hide content" (sets `isHidden` on the target `Post`/`Comment`), "Dismiss" (marks the `Report` `RESOLVED` with no action), or "Ban user" (`admin` only — existing `User.banned`/`banReason` fields, gated by the Better Auth `admin` plugin's `adminRole: ["admin"]`).
+
+### 11.9 Notifications Panel
+
+- Full list at `app/(dashboard)/notifications/page.tsx`, plus the Topbar bell `<Popover/>`/`<Sheet/>` preview from §11.1.
+- Each `Notification` row renders an icon + text based on `NotificationType` (slot reminders, group activity such as new messages/invites, prayer request updates, admin broadcasts) and is clickable via its `link` field; marking read is a `PATCH` that flips `isRead`.
+
+---
+
+## 12. Design System & UI/UX Specification (shadcn/ui Integration)
+
+### A. Design Tokens & Globals (`globals.css`)
+
+Rely entirely on standard shadcn HSL / CSS custom properties:
 
 ```css
-:root {
-  /* DESIGN.md Tokens */
-  --color-primary: #000000;
-  --color-secondary: #94A3B8;
-  --color-accent: #94A3B8;
-  --color-background: #000000;
-  --color-surface: #94A3B8;
-  --color-text-primary: #FFFFFF;
-  --color-text-secondary: #A1A1AA;
-  --color-border: #CBD5E1;
+@import "tailwindcss";
 
-  /* Spacing Tokens */
-  --spacing-base: 8px;
-  --spacing-gap: 16px;
-  --spacing-card-padding: 24px;
-  --spacing-section-padding: 80px;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
 
-  /* Radius Tokens */
-  --radius-card: 14px;
-  --radius-control: 14px;
-  --radius-pill: 9999px;
-
-  /* TGAW Glassmorphic Theme Extensions */
-  --purple-deep: #1a0533;
-  --purple-mid: #4b1d8e;
-  --purple-light: #7c3fd6;
-  --purple-glow: #9b59f5;
-  --red: #d02040;
-  --red-soft: #e84060;
-  --white: #ffffff;
-  --off-white: #f5f0ff;
-  --muted: #c5b8e0;
-  --glass: rgba(255, 255, 255, 0.07);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --card-bg: rgba(75, 29, 142, 0.25);
-
-  /* Fonts */
-  --font-inter: var(--font-inter);
-  --font-mono: var(--font-jetbrains-mono);
-  --font-playfair: var(--font-playfair);
-  --font-dm-sans: var(--font-dm-sans);
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
 }
 ```
 
-### C. Layout, Composition & Component Rules
+### B. Utility Helper (`lib/utils.ts`)
 
-1. **Composition & Hierarchy**:
-   - Preserve visible hierarchy, first-screen composition, section rhythm, max-width behavior, and responsive stacking from the source.
-   - Dashboard, chart, and data panels must preserve compact operational hierarchy, nested surfaces, and metric emphasis.
+Standard shadcn class merging helper:
 
-2. **Styling & Radius Standards**:
-   - **Cards**: `background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-card); backdrop-filter: blur(8px); padding: var(--spacing-card-padding)`.
-   - **Glass Buttons**: `background: var(--glass); border: 1.5px solid var(--glass-border); border-radius: var(--radius-control); backdrop-filter: blur(8px)`.
-   - **Pill Badges & Buttons**: `border-radius: var(--radius-pill)`.
-   - **Primary Buttons**: `background: linear-gradient(135deg, var(--red), var(--red-soft)); box-shadow: 0 6px 28px rgba(208,32,64,0.4); border-radius: var(--radius-control)`. Hover: `translateY(-2px); opacity: 0.92`.
-   - **Input Focus**: `border-color: var(--purple-glow); background: rgba(124,63,214,0.1); border-radius: var(--radius-control)`.
-   - **Sidebar Active Item**: `border-left: 3px solid var(--red-soft); background: rgba(124,63,214,0.15)`.
+```typescript
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
-3. **Motion & WebGL Effects**:
-   - Preserve existing motion cues: masked reveals, staggered entrances, hover lifts (`translateY(-2px)`), scroll-triggered transitions, and ambient movement. Keep easing smooth and restrained.
-   - Rebuild canvas, WebGL, Three.js, gradient particle, or atmospheric effects as supporting background layers behind content (`pointer-events: none`). Keep effects performant and responsive.
-
-4. **Design Guardrails**:
-   - Do not flatten source structures into generic SaaS card grids.
-   - Do not swap color mode unless explicitly requested/supported.
-   - Preserve first viewport focal object and visual density.
-   - Align all buttons, cards, and badges to exact radius (`14px` / `9999px`) and border language.
-
-### D. Hydration Safety
-
-All computations that depend on current time, local timezone, or `window` APIs must be isolated in `"use client"` components with `useEffect` to avoid hydration mismatches. Never render time-dependent strings in server components directly.
-
-### E. Responsive Breakpoints
-
-| Breakpoint | Changes                                                                               |
-| ---------- | ------------------------------------------------------------------------------------- |
-| `< 1100px` | Stat cards: 2 columns                                                                 |
-| `< 900px`  | Sidebar off-canvas (hamburger); hero stacks; login art hidden; topbar padding reduced |
-| `< 580px`  | Stat cards: 2 col; verse banner stacks; message preview truncated                     |
-| `< 380px`  | Stat cards: 1 col                                                                     |
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+```
 
 ---
 
-## 10. Environment Variables (`.env.example`)
-
-Create this file as `.env.example` at the project root. Store actual secrets in `.env.local`. Do **not** commit `.env.local`.
+## 13. Environment Variables (`.env.example`)
 
 ```bash
 # MongoDB Atlas
@@ -892,96 +1139,64 @@ DATABASE_URL="mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<dbname>?ret
 
 # Better Auth
 BETTER_AUTH_SECRET="<generate with: openssl rand -base64 32>"
-BETTER_AUTH_URL="http://localhost:3000"   # public base URL
+BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
-# GitHub OAuth
+# OAuth Providers
 GITHUB_CLIENT_ID=""
 GITHUB_CLIENT_SECRET=""
 
-# Email (Resend + React Email)
+# Email (Nodemailer / SMTP — free-tier provider or Gmail app password)
 BETTER_AUTH_EMAIL="noreply@tgaw.app"
-RESEND_API_KEY=""
+SMTP_HOST=""
+SMTP_PORT="587"
+SMTP_USER=""
+SMTP_PASS=""
+SMTP_FROM="noreply@tgaw.app"
 
-# (Optional) Bible API — if using external verse-of-the-day
-BIBLE_API_KEY=""
+# Media Storage (Cloudinary free tier — swap target for S3 later)
+CLOUDINARY_CLOUD_NAME=""
+CLOUDINARY_API_KEY=""
+CLOUDINARY_API_SECRET=""
+
+# Web Push (VAPID — free, no third-party service)
+VAPID_PUBLIC_KEY=""
+VAPID_PRIVATE_KEY=""
+VAPID_CONTACT_EMAIL="admin@tgaw.app"
+
 ```
 
 ---
 
-## 11. Execution Checklist
+## 14. Execution Checklist
 
-Use `bun` / `bunx` for all package and runtime commands — not `npm` / `npx`.
+Use `bun` / `bunx` for all package and runtime commands.
 
-1. **Prisma schema**: Paste schema into `prisma/schema.prisma`. Set `DATABASE_URL` in `.env.local`. Run `bunx prisma db push` then `bunx prisma generate`.
-2. **Better Auth**: Install `better-auth` and `better-auth/adapters/prisma`. Configure `lib/auth.ts` (already started). Create `lib/auth-client.ts`. Wire `app/api/auth/[...all]/route.ts`.
-3. **`proxy.ts`**: Add dashboard route protection per §3D. **Do not create `middleware.ts`**.
-4. **`globals.css`**: Define all CSS variables, base resets, utility classes, and keyframe animations.
-5. **Font injection**: Configure `next/font/google` in `app/layout.tsx`, inject as CSS variables.
-6. **Zod schemas**: Create `lib/schemas/eventSchema.ts` and `messageSchema.ts`.
-7. **API routes**: Implement `/api/v1/events` and `/api/v1/messages` using `auth.api.getSession` for auth checks.
-8. **Server actions**: Create `actions/eventActions.ts` and `actions/messageActions.ts` with `'use server'` directive.
-9. **Landing page**: Build `app/page.tsx` per §5.
-10. **Login page**: Build `app/(auth)/login/page.tsx` per §6 (React Hook Form + Zod + `authClient`).
-11. **Dashboard layout**: Build sidebar (with conditional Admin section based on role) + topbar per §7.
-12. **Overview page**: Build per §8.1.
-13. **Bible & Prayer pages**: Build per §8.2 and §8.3.
-14. **Calendar page**: Build full interactive calendar per §8.4.
-15. **Messages page**: Build inbox with read/unread per §8.5.
-16. **Stub pages**: Create Worship, Groups, Settings per §8.6.
-17. **Admin & RBAC pages**: Create `/admin/page.tsx`, `/admin/users/page.tsx`, and `/unauthorized/page.tsx` per §8.7.
-18. **`.env.example`**: Populate per §10.
-19. **Verify**: Run `bun run dev`. Confirm all routes, interactions, and RBAC guards (`user` vs `admin` vs `superadmin`) work properly. Confirm responsive breakpoints match `index.html`. Run `bun run check` (Biome) before committing.
+1. **Install shadcn UI**: Run `bunx shadcn@latest init` to ensure components are pre-configured.
+2. **Prisma setup**: Run `bunx prisma db push` and `bunx prisma generate`.
+3. **Better Auth**: Wire `lib/auth.ts`, `lib/auth-client.ts`, and `app/api/auth/[...all]/route.ts`.
+4. **Proxy Protection**: Configure `proxy.ts` for route protection and RBAC guards. **Do not create `middleware.ts**`.
+5. **Custom Server**: Build `server.ts` (Next.js handler + Socket.IO on one HTTP server). Update `package.json` scripts to run `server.ts` via `tsx`/`ts-node` instead of `next dev`/`next start` directly.
+6. **Real-Time Chat**: Wire `lib/socket/server.ts`, `lib/socket/client.ts`, and `providers/SocketProvider.tsx`.
+7. **Media Storage**: Wire `lib/storage/cloudinary.ts` and the signed-upload endpoint (`/api/v1/uploads/sign`).
+8. **Notifications**: Wire `lib/notifications/email.ts` (Nodemailer), `lib/notifications/push.ts` (Web Push), `public/sw.js`, and `lib/notifications/dispatch.ts`.
+9. **UI Components**: Add required shadcn primitives (`bunx shadcn@latest add button card form input dropdown-menu avatar badge table calendar dialog select progress toast`).
+10. **API Endpoints**: Build validated REST handlers under `/api/v1/` (events, messages, posts, comments, likes, groups, polls, uploads).
+11. **Pages**: Implement Landing, Auth, Dashboard, Devotion, Calendar, Messages, Groups, and Admin management pages using shadcn/ui components.
+12. **Lint & Check**: Run `bun run check` (Biome) before committing.
 
 ---
 
-## 12. SVG Accessibility & Linting (`no-svg-without-title`)
+## 15. SVG Accessibility & Linting (`no-svg-without-title`)
 
-All `<svg>` elements must comply with Biome's `noSvgWithoutTitle` rule to ensure accessibility:
+All `<svg>` elements or Lucide React icons must adhere to Biome accessibility rules:
 
-1. **Decorative or Icon SVGs** (e.g. accompanied by `<span className="sr-only">Label</span>` or purely visual icons):
-   - Add `aria-hidden="true"` to the `<svg>` element.
-   ```tsx
-2. **Standalone or Informative SVGs**:
-   - Must include a descriptive `<title>` element inside the `<svg>`, and/or `aria-label` / `aria-labelledby`.
-   ```tsx
-   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-label="Apple logo">
-     <title>Apple logo</title>
-     ...
-   </svg>
-   ```
-
-3. **Image Alt Text Guidelines (`noRedundantAlt`)**:
-   - Avoid generic or redundant words like `"image"`, `"picture"`, or `"photo"` in `alt` text attributes (e.g. `alt="Image"`). Screen readers already announce `<img>` elements as images, so adding those words is repetitive.
-   - Always provide concise, descriptive `alt` text describing what the image represents (e.g. `alt="Christ The Redeemer"`).
+1. Decorative icons must include `aria-hidden="true"`.
+2. Standalone icons must include a `<title>` or explicit `aria-label`.
 
 ---
 
-## 13. Next.js Image Component Directive
+## 16. Next.js Directives
 
-**Always use `next/image` (`Image` component) instead of native `<img>` tags.** This is mandatory for all images in `components/`, `app/`, and any future pages.
-
-### Rules:
-- Import: `import Image from "next/image"`
-- For fill-based images (absolute positioned to cover a container): use `<Image fill className="..." />` — remove `absolute inset-0 h-full w-full` from className (the `fill` prop handles positioning).
-- For fixed-size images: use `<Image width={X} height={Y} />` with explicit dimensions.
-- Always provide meaningful `alt` text.
-- External URLs: use `unoptimized` prop or configure `next.config.ts` `images.remotePatterns`.
-
----
-
-## 14. Next.js Link Component Cursor Directive
-
-**All `<Link>` components (`next/link`) must include the `cursor-pointer` class.**
-
-### Rules:
-- Every `<Link>` component rendered across any page or UI component MUST include `cursor-pointer` in its `className`.
-- Example:
-  ```tsx
-  <Link href="/auth/signup" className="cursor-pointer">Sign up</Link>
-  <Link href="/terms" className="text-sm hover:underline cursor-pointer">Terms of Service</Link>
-  ```
-
-
-
-
+- **Images**: Always use `next/image` (`<Image/>`) instead of native `<img>` elements.
+- **Links**: Every `<Link>` component must explicitly include `className="cursor-pointer"`.
