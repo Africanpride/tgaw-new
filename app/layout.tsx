@@ -7,15 +7,16 @@ import {
   Inter,
   Instrument_Sans,
   Roboto_Slab,
-  JetBrains_Mono,
-} from "next/font/google"
+  JetBrains_Mono, Outfit, Oxanium } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+const oxaniumHeading = Oxanium({subsets:['latin'],variable:'--font-heading'});
+
+const outfit = Outfit({subsets:['latin'],variable:'--font-sans'})
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -47,14 +48,12 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       className={cn(
-        "antialiased",
-        fontMono.variable,
-        "font-sans",
-        inter.variable,
-        instrumentSans.variable,
-        robotoSlab.variable,
-        jetbrainsMono.variable
-      )}
+              "antialiased",
+              fontMono.variable,
+              instrumentSans.variable,
+              robotoSlab.variable,
+              jetbrainsMono.variable
+            , "font-sans", outfit.variable, oxaniumHeading.variable)}
     >
       <body>
         <ThemeProvider>
