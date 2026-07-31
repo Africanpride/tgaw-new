@@ -24,7 +24,7 @@ export function VerifyForm({
       {...props}
     >
       <CardHeader className="flex flex-col items-center gap-4 text-center">
-        <Link href="/">
+        <Link href="/" className="cursor-pointer">
           <Image
             src="/images/logos/logoicon.svg"
             alt="Logo"
@@ -62,7 +62,7 @@ export function VerifyForm({
           </Button>
         </form>
         <div className="mt-6 flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
-          <p>Didn't get the code?</p>
+          <p>Didn&apos;t get the code?</p>
           <Link className="font-medium text-primary hover:underline" href="#">
             Resend
           </Link>

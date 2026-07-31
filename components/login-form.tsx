@@ -41,7 +41,7 @@ export function LoginForm({
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                   <Link
-                    href="/forgot-password"
+                    href="/auth/password-reset"
                     className="ml-auto text-sm underline-offset-2 hover:underline cursor-pointer"
                   >
                     Forgot your password?
@@ -107,6 +107,8 @@ export function LoginForm({
               src="/images/christ_the_redeemer.jpg"
               alt="Christ The Redeemer"
               fill
+              priority
+              sizes="(min-width: 768px) 50vw, 100vw"
               className="object-cover dark:brightness-[0.2] dark:grayscale"
             />
           </div>

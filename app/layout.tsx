@@ -3,7 +3,6 @@
 // THE LAYOUT FOR THE AUTHENTICATION PAGES IS IN app/auth/layout.tsx
 
 import {
-  Geist,
   Geist_Mono,
   Inter,
   Instrument_Sans,

@@ -53,7 +53,7 @@ export default function ForgotPasswordOne() {
       <div className="p-4">
         <p className="text-center text-sm text-accent-foreground">
           <Link
-            href="/work/forgot-password/one"
+            href="/auth/login"
             className="group text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             ← Back to{" "}

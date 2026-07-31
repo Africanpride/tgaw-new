@@ -1,0 +1,352 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum EventType {
+  BIBLE
+  PRAYER
+  PRAISE_WORSHIP
+}
+
+model Event {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  type      EventType
+  title     String
+  passage   String?
+  date      String
+  time      String
+  duration  Int
+  capacity  Int?
+  zoomUrl   String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  bookings  EventBooking[]
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model EventBooking {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  eventId      String        @db.ObjectId
+  event        Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId       String
+  status       BookingStatus @default(CONFIRMED)
+  reminderSent Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+
+  @@unique([eventId, userId])
+  @@index([userId])
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+model Conversation {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  type        ConversationType
+  groupId     String?           @db.ObjectId
+  group       Group?            @relation(fields: [groupId], references: [id])
+  memberIds   String[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  messages    Message[]
+
+  @@index([memberIds])
+}
+
+model Message {
+  id               String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId   String       @db.ObjectId
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId         String
+  body             String
+  attachmentUrl    String?
+  readBy           String[]
+  createdAt        DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+enum GroupRole {
+  member
+  moderator
+  owner
+}
+
+model Group {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String?
+  coverImageUrl String?
+  isPrivate     Boolean        @default(false)
+  ownerId       String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  members       GroupMember[]
+  conversations Conversation[]
+}
+
+model GroupMember {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  groupId  String    @db.ObjectId
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId   String
+  role     GroupRole @default(member)
+  joinedAt DateTime  @default(now())
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+enum PostType {
+  TEXT
+  MEDIA
+  LINK
+  POLL
+  BIBLE_VERSE
+  QUOTE
+  SERMON
+  GOSPEL_TRACT
+  ARTICLE
+  PRAYER_REQUEST
+  PRAYER_ANSWER
+  TESTIMONIAL
+  PRAISE_REPORT
+}
+
+model Post {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  authorId     String
+  type         PostType
+  body         String?
+  mediaUrls    String[]
+  linkUrl      String?
+  versePassage String?
+  isAnswered   Boolean?   @default(false)
+  isHidden     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  comments     Comment[]
+  likes        Like[]
+  poll         Poll?
+
+  @@index([authorId])
+  @@index([type])
+}
+
+model Comment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  body      String
+  isHidden  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
+
+enum LikeTargetType {
+  POST
+  COMMENT
+}
+
+model Like {
+  id         String         @id @default(auto()) @map("_id") @db.ObjectId
+  postId     String?        @db.ObjectId
+  post       Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  targetType LikeTargetType
+  targetId   String
+  userId     String
+  createdAt  DateTime       @default(now())
+
+  @@unique([targetType, targetId, userId])
+  @@index([postId])
+}
+
+model Poll {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String       @unique @db.ObjectId
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  question  String
+  options   PollOption[]
+  closesAt  DateTime?
+}
+
+model PollOption {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  pollId   String  @db.ObjectId
+  poll     Poll    @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  label    String
+  voterIds String[]
+}
+
+model Follow {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+}
+
+enum NotificationChannel {
+  EMAIL
+  PUSH
+}
+
+enum NotificationType {
+  NEW_MESSAGE
+  NEW_COMMENT
+  NEW_LIKE
+  NEW_FOLLOWER
+  GROUP_INVITE
+  PRAYER_UPDATE
+  SLOT_REMINDER
+  ADMIN_BROADCAST
+}
+
+model Notification {
+  id        String               @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  type      NotificationType
+  channel   NotificationChannel
+  title     String
+  body      String
+  link      String?
+  isRead    Boolean              @default(false)
+  createdAt DateTime             @default(now())
+
+  @@index([userId])
+}
+
+model PushSubscription {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum ReportTargetType {
+  POST
+  COMMENT
+  USER
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+}
+
+model Report {
+  id         String           @id @default(auto()) @map("_id") @db.ObjectId
+  targetType ReportTargetType
+  targetId   String
+  reporterId String
+  reason     String
+  status     ReportStatus     @default(OPEN)
+  createdAt  DateTime         @default(now())
+
+  @@index([status])
+}
+
+model Broadcast {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  authorId  String
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  member
+  moderator
+  admin
+}
+
+model User {
+  id            String    @id @map("_id")
+  email         String    @unique
+  passwordHash  String?
+  name          String
+  initials      String?
+  role          Role      @default(member)
+  banned        Boolean?  @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  streakDays    Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  emailVerified Boolean
+  image         String?
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("user")
+}
+
+model Session {
+  id             String   @id @map("_id")
+  expiresAt      DateTime
+  token          String   @unique
+  createdAt      DateTime
+  updatedAt      DateTime
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @map("_id")
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id @map("_id")
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@index([identifier])
+  @@map("verification")
+}

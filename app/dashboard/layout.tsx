@@ -1,7 +1,6 @@
 // DASHBOARD SHOULD HAVE IT'S OWN LAYOUT
 
 import {
-  Geist,
   Geist_Mono,
   Inter,
   Instrument_Sans,
