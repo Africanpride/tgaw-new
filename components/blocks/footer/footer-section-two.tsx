@@ -8,32 +8,32 @@ import {
 import Link from "next/link"
 
 const links = [
-  { title: "Features", href: "#" },
-  { title: "Solutions", href: "#" },
-  { title: "Customers", href: "#" },
-  { title: "Pricing", href: "#" },
-  { title: "Help", href: "#" },
+  { title: "Features", href: "#features" },
+  { title: "About", href: "#about" },
+  { title: "Community", href: "/feed" },
+  { title: "Pricing", href: "#pricing" },
+  { title: "Help", href: "/notifications" },
 ]
 
 const socials = [
   {
     title: "LinkedIn",
-    href: "#",
+    href: "https://linkedin.com",
     icon: IconBrandLinkedin,
   },
   {
     title: "GitHub",
-    href: "#",
+    href: "https://github.com",
     icon: IconBrandGithub,
   },
   {
     title: "Twitter",
-    href: "#",
+    href: "https://x.com",
     icon: IconBrandX,
   },
   {
     title: "Email",
-    href: "#",
+    href: "mailto:hello@tgaw.app",
     icon: IconMail,
   },
 ]
@@ -47,7 +47,7 @@ export default function FooterSectionTwo() {
             <div className="flex items-center gap-1">
               {/* <LogoMark aria-hidden="true" className="size-6" /> */}
               <span className="text-lg font-semibold text-foreground">
-                Nav UI
+                TGA<span className="text-red-500">W</span>
               </span>
             </div>
           </div>
@@ -67,7 +67,7 @@ export default function FooterSectionTwo() {
 
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-dashed border-neutral-200 py-6 sm:flex-row dark:border-neutral-800">
           <span className="text-center text-sm text-muted-foreground sm:text-left">
-            © {new Date().getFullYear()} Nav UI, All rights reserved
+            © {new Date().getFullYear()} The Global Altar Watch. All rights reserved.
           </span>
           <ul className="flex items-center gap-5">
             {socials.map((item) => {

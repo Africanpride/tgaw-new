@@ -29,6 +29,7 @@ export function NavMain({
     items?: {
       title: string
       url: string
+      icon?: React.ReactNode
       minRole?: string
     }[]
   }[]
@@ -87,6 +88,7 @@ export function NavMain({
                           }
                           isActive={pathname === subItem.url}
                         >
+                          {subItem.icon}
                           <span>{subItem.title}</span>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>

@@ -1,9 +1,16 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import FooterSectionTwo from "@/components/blocks/footer/footer-section-two"
+import { useSession, signOut } from "@/lib/auth-client"
 
 export default function LandingPage() {
+  const { data: session } = useSession()
+  const isLoggedIn = !!session?.user
+
   return (
     <div className="flex flex-col min-h-screen">
       <nav className="flex items-center justify-between border-b px-6 py-4">
@@ -11,14 +18,33 @@ export default function LandingPage() {
           TGA<span className="text-red-500">W</span>
         </span>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="cursor-pointer">
-            <Button variant="ghost" className="cursor-pointer">
-              Sign In
-            </Button>
-          </Link>
-          <Link href="/signup" className="cursor-pointer">
-            <Button className="cursor-pointer">Get Started</Button>
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link href="/" className="cursor-pointer">
+                <Button variant="ghost" className="cursor-pointer">
+                  Dashboard
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => signOut()}
+              >
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="cursor-pointer">
+                <Button variant="ghost" className="cursor-pointer">
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/signup" className="cursor-pointer">
+                <Button className="cursor-pointer">Get Started</Button>
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -33,16 +59,26 @@ export default function LandingPage() {
             Bible reading, and fellowship with believers worldwide.
           </p>
           <div className="flex gap-4">
-            <Link href="/signup" className="cursor-pointer">
-              <Button size="lg" className="cursor-pointer">
-                Get Started Free
-              </Button>
-            </Link>
-            <Link href="/login" className="cursor-pointer">
-              <Button size="lg" variant="outline" className="cursor-pointer">
-                Sign In
-              </Button>
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/" className="cursor-pointer">
+                <Button size="lg" className="cursor-pointer">
+                  Go to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/signup" className="cursor-pointer">
+                  <Button size="lg" className="cursor-pointer">
+                    Get Started Free
+                  </Button>
+                </Link>
+                <Link href="/login" className="cursor-pointer">
+                  <Button size="lg" variant="outline" className="cursor-pointer">
+                    Sign In
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </section>
 
@@ -76,9 +112,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t px-6 py-4 text-center text-sm text-muted-foreground">
-        &copy; {new Date().getFullYear()} The Global Altar Watch. All rights reserved.
-      </footer>
+      <FooterSectionTwo />
     </div>
   )
 }
