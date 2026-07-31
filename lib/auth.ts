@@ -1,12 +1,12 @@
-import { betterAuth } from "better-auth"
+import { betterAuth, type BetterAuthOptions } from "better-auth"
 import { mongodbAdapter } from "better-auth/adapters/mongodb"
-import { admin, twoFactor } from "better-auth/plugins"
+import { admin, twoFactor, customSession } from "better-auth/plugins"
 import { MongoClient } from "mongodb"
 
 const client = new MongoClient(process.env.DATABASE_URL!)
 const db = client.db()
 
-export const auth = betterAuth({
+const options = {
   appName: "TGAW",
   database: mongodbAdapter(db, { client }),
   emailAndPassword: {
@@ -29,5 +29,21 @@ export const auth = betterAuth({
       adminRole: ["admin"],
     }),
     twoFactor(),
+  ],
+} satisfies BetterAuthOptions
+
+export const auth = betterAuth({
+  ...options,
+  plugins: [
+    ...(options.plugins ?? []),
+    customSession(async ({ user, session }) => {
+      return {
+        user: {
+          ...user,
+          image: user.image ?? null,
+        },
+        session,
+      }
+    }, options),
   ],
 })

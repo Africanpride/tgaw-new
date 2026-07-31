@@ -29,7 +29,7 @@ export function Topbar() {
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
-      <SidebarTrigger className="cursor-pointer lg:hidden" />
+      <SidebarTrigger className="cursor-pointer" />
       <h1 className="text-lg font-semibold">{title}</h1>
       <div className="ml-auto flex items-center gap-2">
         <Button variant="ghost" size="icon" nativeButton={false} render={<Link href="/notifications" className="cursor-pointer" />}>
