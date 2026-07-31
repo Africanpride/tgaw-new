@@ -1,11 +1,11 @@
-import { Server as SocketIOServer } from "socket.io"
+import type { Server as SocketIOServer } from "socket.io";
 
-let io: SocketIOServer | null = null
+let io: SocketIOServer | null = null;
 
 export function getIO(): SocketIOServer | null {
-  return io
+	return io;
 }
 
 export function setIO(server: SocketIOServer) {
-  io = server
+	io = server;
 }

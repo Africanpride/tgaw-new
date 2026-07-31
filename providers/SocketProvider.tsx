@@ -1,66 +1,66 @@
-"use client"
+"use client";
 
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react"
-import { getSocket } from "@/lib/socket/client"
-import type { Socket } from "socket.io-client"
+	createContext,
+	type ReactNode,
+	useContext,
+	useEffect,
+	useState,
+} from "react";
+import type { Socket } from "socket.io-client";
+import { getSocket } from "@/lib/socket/client";
 
 interface SocketContextValue {
-  socket: Socket | null
-  connected: boolean
+	socket: Socket | null;
+	connected: boolean;
 }
 
 const SocketContext = createContext<SocketContextValue>({
-  socket: null,
-  connected: false,
-})
+	socket: null,
+	connected: false,
+});
 
 export function useSocket() {
-  return useContext(SocketContext)
+	return useContext(SocketContext);
 }
 
-let sharedSocket: Socket | null = null
+let sharedSocket: Socket | null = null;
 
 function getSharedSocket(): Socket {
-  if (!sharedSocket) {
-    sharedSocket = getSocket()
-  }
-  return sharedSocket
+	if (!sharedSocket) {
+		sharedSocket = getSocket();
+	}
+	return sharedSocket;
 }
 
 export function SocketProvider({ children }: { children: ReactNode }) {
-  const [connected, setConnected] = useState(false)
-  const [socket] = useState<Socket>(() => getSharedSocket())
+	const [connected, setConnected] = useState(false);
+	const [socket] = useState<Socket>(() => getSharedSocket());
 
-  useEffect(() => {
-    const s = socket
+	useEffect(() => {
+		const s = socket;
 
-    const onConnect = () => setConnected(true)
-    const onDisconnect = () => setConnected(false)
+		const onConnect = () => setConnected(true);
+		const onDisconnect = () => setConnected(false);
 
-    s.on("connect", onConnect)
-    s.on("disconnect", onDisconnect)
+		s.on("connect", onConnect);
+		s.on("disconnect", onDisconnect);
 
-    if (!s.connected) {
-      s.connect()
-    }
+		if (!s.connected) {
+			s.connect();
+		}
 
-    return () => {
-      s.off("connect", onConnect)
-      s.off("disconnect", onDisconnect)
-      s.disconnect()
-      sharedSocket = null
-    }
-  }, [socket])
+		return () => {
+			s.off("connect", onConnect);
+			s.off("disconnect", onDisconnect);
+			s.disconnect();
+			sharedSocket = null;
+		};
+	}, [socket]);
 
-  return (
-    <SocketContext.Provider value={{ socket, connected }}>
-      {children}
-    </SocketContext.Provider>
-  )
+	return (
+		<SocketContext.Provider value={{ socket, connected }}>
+			{children}
+		</SocketContext.Provider>
+	);
 }
