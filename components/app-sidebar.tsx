@@ -3,9 +3,7 @@
 import * as React from "react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -14,170 +12,84 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { LayoutBottomIcon, AudioWave01Icon, CommandIcon, ComputerTerminalIcon, RoboticIcon, BookOpen02Icon, Settings05Icon, CropIcon, PieChartIcon, MapsIcon } from "@hugeicons/core-free-icons"
+import {
+  Home02Icon,
+  BookOpen01Icon,
+  Chat01Icon,
+  Settings05Icon,
+  Shield01Icon,
+  ShieldUserIcon,
+} from "@hugeicons/core-free-icons"
 
-// This is sample data.
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+const navData = [
+  {
+    title: "Overview",
+    url: "/",
+    icon: <HugeiconsIcon icon={Home02Icon} strokeWidth={2} />,
   },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: (
-        <HugeiconsIcon icon={LayoutBottomIcon} strokeWidth={2} />
-      ),
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: (
-        <HugeiconsIcon icon={AudioWave01Icon} strokeWidth={2} />
-      ),
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: (
-        <HugeiconsIcon icon={CommandIcon} strokeWidth={2} />
-      ),
-      plan: "Free",
-    },
-  ],
-  navMain: [
-    {
-      title: "Playground",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={ComputerTerminalIcon} strokeWidth={2} />
-      ),
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={RoboticIcon} strokeWidth={2} />
-      ),
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={BookOpen02Icon} strokeWidth={2} />
-      ),
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={Settings05Icon} strokeWidth={2} />
-      ),
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={CropIcon} strokeWidth={2} />
-      ),
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={PieChartIcon} strokeWidth={2} />
-      ),
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={MapsIcon} strokeWidth={2} />
-      ),
-    },
-  ],
-}
+  {
+    title: "Devotion",
+    url: "#",
+    icon: <HugeiconsIcon icon={BookOpen01Icon} strokeWidth={2} />,
+    items: [
+      { title: "Calendar", url: "/calendar" },
+      { title: "Bible Reading", url: "/bible" },
+      { title: "Prayer", url: "/prayer" },
+      { title: "Praise & Worship", url: "/worship" },
+    ],
+  },
+  {
+    title: "Community",
+    url: "#",
+    icon: <HugeiconsIcon icon={Chat01Icon} strokeWidth={2} />,
+    items: [
+      { title: "Feed", url: "/feed" },
+      { title: "Messages", url: "/messages" },
+      { title: "Groups", url: "/groups" },
+    ],
+  },
+  {
+    title: "Account",
+    url: "#",
+    icon: <HugeiconsIcon icon={Settings05Icon} strokeWidth={2} />,
+    items: [{ title: "Settings", url: "/settings" }],
+  },
+]
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+const adminItems = [
+  {
+    title: "Admin",
+    url: "#",
+    icon: <HugeiconsIcon icon={Shield01Icon} strokeWidth={2} />,
+    items: [
+      { title: "Admin Portal", url: "/admin", minRole: "moderator" },
+      { title: "User Management", url: "/admin/users", minRole: "admin" },
+    ],
+  },
+]
+
+export function AppSidebar({
+  role,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { role?: string }) {
+  const filteredAdminItems =
+    role && ["moderator", "admin"].includes(role) ? adminItems : []
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <div className="flex items-center gap-2 px-2 py-1.5">
+          <HugeiconsIcon icon={ShieldUserIcon} strokeWidth={2} className="size-6" />
+          <span className="truncate text-lg font-semibold group-data-[collapsible=icon]:hidden">
+            TGAW
+          </span>
+        </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={[...navData, ...filteredAdminItems]} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   Collapsible,
   CollapsibleContent,
@@ -7,7 +9,6 @@ import {
 } from "@/components/ui/collapsible"
 import {
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -25,44 +26,77 @@ export function NavMain({
     title: string
     url: string
     icon?: React.ReactNode
-    isActive?: boolean
     items?: {
       title: string
       url: string
+      minRole?: string
     }[]
   }[]
 }) {
+  const pathname = usePathname()
+
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <Collapsible
-            key={item.title}
-            defaultOpen={item.isActive}
-            className="group/collapsible"
-            render={<SidebarMenuItem />}
-          >
-            <CollapsibleTrigger
-              render={<SidebarMenuButton tooltip={item.title} />}
+        {items.map((item) => {
+          const hasSubItems = item.items && item.items.length > 0
+          const isOverview = item.title === "Overview" && !hasSubItems
+
+          if (isOverview) {
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  render={<Link href={item.url} className="cursor-pointer" />}
+                  isActive={pathname === item.url}
+                  tooltip={item.title}
+                >
+                  {item.icon}
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          }
+
+          return (
+            <Collapsible
+              key={item.title}
+              defaultOpen={item.items?.some((sub) => pathname === sub.url)}
+              className="group/collapsible"
             >
-              {item.icon}
-              <span>{item.title}</span>
-              <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} className="ml-auto transition-transform duration-200 group-data-open/collapsible:rotate-90" />
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <SidebarMenuSub>
-                {item.items?.map((subItem) => (
-                  <SidebarMenuSubItem key={subItem.title}>
-                    <SidebarMenuSubButton render={<a href={subItem.url} />}>
-                      <span>{subItem.title}</span>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                ))}
-              </SidebarMenuSub>
-            </CollapsibleContent>
-          </Collapsible>
-        ))}
+              <SidebarMenuItem>
+                <CollapsibleTrigger
+                  render={
+                    <SidebarMenuButton tooltip={item.title} />
+                  }
+                >
+                  {item.icon}
+                  <span>{item.title}</span>
+                  <HugeiconsIcon
+                    icon={ArrowRight01Icon}
+                    strokeWidth={2}
+                    className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    {item.items?.map((subItem) => (
+                      <SidebarMenuSubItem key={subItem.title}>
+                        <SidebarMenuSubButton
+                          render={
+                            <Link href={subItem.url} className="cursor-pointer" />
+                          }
+                          isActive={pathname === subItem.url}
+                        >
+                          <span>{subItem.title}</span>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
+          )
+        })}
       </SidebarMenu>
     </SidebarGroup>
   )

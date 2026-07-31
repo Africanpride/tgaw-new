@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import {
   Avatar,
   AvatarFallback,
@@ -20,84 +21,90 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useSession, signOut } from "@/lib/auth-client"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { UnfoldMoreIcon, SparklesIcon, CheckmarkBadgeIcon, CreditCardIcon, NotificationIcon, LogoutIcon } from "@hugeicons/core-free-icons"
+import {
+  UnfoldMoreIcon,
+  UserCircleIcon,
+  LogoutIcon,
+} from "@hugeicons/core-free-icons"
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
-}) {
+export function NavUser() {
+  const { data: session } = useSession()
   const { isMobile } = useSidebar()
+  const router = useRouter()
+
+  const user = session?.user
+  const name = user?.name ?? "User"
+  const email = user?.email ?? ""
+  const role = (user?.role as string) ?? "member"
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push("/login")
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent"
+              />
             }
           >
-            <Avatar>
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback>CN</AvatarFallback>
+            <Avatar className="size-8">
+              <AvatarImage src={user?.image ?? undefined} alt={name} />
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{user.name}</span>
-              <span className="truncate text-xs">{user.email}</span>
+              <span className="truncate font-medium">{name}</span>
+              <span className="truncate text-xs capitalize">{role}</span>
             </div>
-            <HugeiconsIcon icon={UnfoldMoreIcon} strokeWidth={2} className="ml-auto size-4" />
+            <HugeiconsIcon
+              icon={UnfoldMoreIcon}
+              strokeWidth={2}
+              className="ml-auto size-4"
+            />
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-fit"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                  <Avatar>
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user.name}</span>
-                    <span className="truncate text-xs">{user.email}</span>
-                  </div>
+            <DropdownMenuLabel className="p-0 font-normal">
+              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <Avatar className="size-8">
+                  <AvatarImage src={user?.image ?? undefined} alt={name} />
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-medium">{name}</span>
+                  <span className="truncate text-xs">{email}</span>
                 </div>
-              </DropdownMenuLabel>
-            </DropdownMenuGroup>
+              </div>
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <HugeiconsIcon icon={SparklesIcon} strokeWidth={2} />
-                Upgrade to Pro
+              <DropdownMenuItem onClick={() => router.push("/settings")}>
+                <HugeiconsIcon icon={UserCircleIcon} strokeWidth={2} />
+                Profile
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <HugeiconsIcon icon={CheckmarkBadgeIcon} strokeWidth={2} />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <HugeiconsIcon icon={CreditCardIcon} strokeWidth={2} />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <HugeiconsIcon icon={NotificationIcon} strokeWidth={2} />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut}>
               <HugeiconsIcon icon={LogoutIcon} strokeWidth={2} />
-              Log out
+              Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
