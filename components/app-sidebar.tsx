@@ -1,141 +1,185 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import * as React from "react"
+
+import { NavMain } from "@/components/nav-main"
+import { NavProjects } from "@/components/nav-projects"
+import { NavUser } from "@/components/nav-user"
+import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
+  SidebarRail,
 } from "@/components/ui/sidebar"
-import { NavUser } from "@/components/nav-user"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import {
-  BookOpen,
-  Calendar,
-  Church,
-  ChevronDown,
-  Home,
-  LayoutDashboard,
-  MessageSquare,
-  Shield,
-  Users,
-  Settings,
-  Bell,
-  PenSquare,
-  CreditCard,
-} from "lucide-react"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { LayoutBottomIcon, AudioWave01Icon, CommandIcon, ComputerTerminalIcon, RoboticIcon, BookOpen02Icon, Settings05Icon, CropIcon, PieChartIcon, MapsIcon } from "@hugeicons/core-free-icons"
 
-const navItems = [
-  { title: "Overview", url: "/", icon: Home },
-  {
-    title: "Devotion",
-    icon: BookOpen,
-    children: [
-      { title: "Calendar", url: "/calendar", icon: Calendar },
-      { title: "Bible Reading", url: "/bible", icon: BookOpen },
-      { title: "Prayer", url: "/prayer", icon: Church },
-      { title: "Praise & Worship", url: "/worship", icon: Church },
-      { title: "Book a Slot", url: "/booking", icon: CreditCard },
-    ],
+// This is sample data.
+const data = {
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
   },
-  {
-    title: "Community",
-    icon: Users,
-    children: [
-      { title: "Feed", url: "/feed", icon: PenSquare },
-      { title: "Messages", url: "/messages", icon: MessageSquare },
-      { title: "Groups", url: "/groups", icon: Users },
-    ],
-  },
-  {
-    title: "Account",
-    icon: Settings,
-    children: [
-      { title: "Settings", url: "/settings", icon: Settings },
-      { title: "Notifications", url: "/notifications", icon: Bell },
-    ],
-  },
-]
+  teams: [
+    {
+      name: "Acme Inc",
+      logo: (
+        <HugeiconsIcon icon={LayoutBottomIcon} strokeWidth={2} />
+      ),
+      plan: "Enterprise",
+    },
+    {
+      name: "Acme Corp.",
+      logo: (
+        <HugeiconsIcon icon={AudioWave01Icon} strokeWidth={2} />
+      ),
+      plan: "Startup",
+    },
+    {
+      name: "Evil Corp.",
+      logo: (
+        <HugeiconsIcon icon={CommandIcon} strokeWidth={2} />
+      ),
+      plan: "Free",
+    },
+  ],
+  navMain: [
+    {
+      title: "Playground",
+      url: "#",
+      icon: (
+        <HugeiconsIcon icon={ComputerTerminalIcon} strokeWidth={2} />
+      ),
+      isActive: true,
+      items: [
+        {
+          title: "History",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Settings",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Models",
+      url: "#",
+      icon: (
+        <HugeiconsIcon icon={RoboticIcon} strokeWidth={2} />
+      ),
+      items: [
+        {
+          title: "Genesis",
+          url: "#",
+        },
+        {
+          title: "Explorer",
+          url: "#",
+        },
+        {
+          title: "Quantum",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Documentation",
+      url: "#",
+      icon: (
+        <HugeiconsIcon icon={BookOpen02Icon} strokeWidth={2} />
+      ),
+      items: [
+        {
+          title: "Introduction",
+          url: "#",
+        },
+        {
+          title: "Get Started",
+          url: "#",
+        },
+        {
+          title: "Tutorials",
+          url: "#",
+        },
+        {
+          title: "Changelog",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Settings",
+      url: "#",
+      icon: (
+        <HugeiconsIcon icon={Settings05Icon} strokeWidth={2} />
+      ),
+      items: [
+        {
+          title: "General",
+          url: "#",
+        },
+        {
+          title: "Team",
+          url: "#",
+        },
+        {
+          title: "Billing",
+          url: "#",
+        },
+        {
+          title: "Limits",
+          url: "#",
+        },
+      ],
+    },
+  ],
+  projects: [
+    {
+      name: "Design Engineering",
+      url: "#",
+      icon: (
+        <HugeiconsIcon icon={CropIcon} strokeWidth={2} />
+      ),
+    },
+    {
+      name: "Sales & Marketing",
+      url: "#",
+      icon: (
+        <HugeiconsIcon icon={PieChartIcon} strokeWidth={2} />
+      ),
+    },
+    {
+      name: "Travel",
+      url: "#",
+      icon: (
+        <HugeiconsIcon icon={MapsIcon} strokeWidth={2} />
+      ),
+    },
+  ],
+}
 
-const adminItems = [
-  {
-    title: "Admin",
-    icon: Shield,
-    children: [
-      { title: "Admin Portal", url: "/admin", icon: LayoutDashboard },
-      { title: "Moderation Queue", url: "/admin/reports", icon: Shield },
-      { title: "User Management", url: "/admin/users", icon: Users },
-    ],
-  },
-]
-
-export function AppSidebar({ role }: { role: string }) {
-  const pathname = usePathname()
-  const isAdmin = ["moderator", "admin"].includes(role)
-  const allItems = isAdmin ? [...navItems, ...adminItems] : navItems
-
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1">
-          <span className="text-lg font-bold">
-            TGA<span className="text-red-500">W</span>
-          </span>
-        </div>
+        <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarMenu>
-          {allItems.map((item) =>
-            item.children ? (
-              <Collapsible key={item.title} defaultOpen>
-                <SidebarMenuItem>
-                  <CollapsibleTrigger render={<SidebarMenuButton />}>
-                      <item.icon className="size-4" />
-                      <span>{item.title}</span>
-                      <ChevronDown className="ml-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                    </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.children.map((child) => (
-                        <SidebarMenuSubItem key={child.url}>
-                          <SidebarMenuSubButton
-                            render={<Link href={child.url} className="cursor-pointer" />}
-                            isActive={pathname === child.url}
-                          >
-                              <child.icon className="size-4" />
-                              <span>{child.title}</span>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
-            ) : (
-                <SidebarMenuItem key={item.url}>
-                <SidebarMenuButton render={<Link href={item.url!} className="cursor-pointer" />} isActive={pathname === item.url}>
-                    <item.icon className="size-4" />
-                    <span>{item.title}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
-          )}
-        </SidebarMenu>
+        <NavMain items={data.navMain} />
+        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser />
+        <NavUser user={data.user} />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   )
 }
