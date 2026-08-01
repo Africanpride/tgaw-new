@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import FooterSectionTwo from "@/components/blocks/footer/footer-section-two";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { signOut, useSession } from "@/lib/auth-client";
 
 export default function LandingPage() {
 	const { data: session } = useSession();
+	const router = useRouter();
 	const isLoggedIn = !!session?.user;
 
 	return (
@@ -28,7 +30,10 @@ export default function LandingPage() {
 							<Button
 								variant="outline"
 								className="cursor-pointer"
-								onClick={() => signOut()}
+								onClick={async () => {
+									await signOut();
+									router.push("/");
+								}}
 							>
 								Sign Out
 							</Button>

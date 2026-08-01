@@ -36,7 +36,7 @@ export function TopbarUserMenu() {
 
 	const handleSignOut = async () => {
 		await signOut();
-		router.push("/login");
+		router.push("/");
 	};
 
 	return (

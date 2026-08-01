@@ -9,7 +9,8 @@
 		"start": "NODE_ENV=production tsx server.ts",
 		"lint": "eslint",
 		"format": "prettier --write \"**/*.{ts,tsx}\"",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"set-admin": "tsx --env-file=.env scripts/set-admin.ts"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.6.0",

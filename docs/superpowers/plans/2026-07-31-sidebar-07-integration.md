@@ -21,22 +21,23 @@
 
 ## File Structure
 
-| File | Action | Responsibility |
-|------|--------|---------------|
-| `components/ui/sidebar.tsx` | Skip (already installed) | Sidebar primitives |
-| `app/dashboard/page.tsx` | Delete | Remove demo page |
-| `components/app-sidebar.tsx` | Rewrite | Main sidebar with `collapsible="icon"`, TGAW nav data |
-| `components/team-switcher.tsx` | Delete | Not needed for TGAW |
-| `components/nav-main.tsx` | Rewrite | Collapsible nav groups with TGAW items |
-| `components/nav-projects.tsx` | Delete | TGAW doesn't need projects section |
-| `components/nav-user.tsx` | Rewrite | Accept user prop, use Hugeicons |
-| `components/dashboard/Topbar.tsx` | No change | Already has SidebarTrigger |
+| File                              | Action                   | Responsibility                                        |
+| --------------------------------- | ------------------------ | ----------------------------------------------------- |
+| `components/ui/sidebar.tsx`       | Skip (already installed) | Sidebar primitives                                    |
+| `app/dashboard/page.tsx`          | Delete                   | Remove demo page                                      |
+| `components/app-sidebar.tsx`      | Rewrite                  | Main sidebar with `collapsible="icon"`, TGAW nav data |
+| `components/team-switcher.tsx`    | Delete                   | Not needed for TGAW                                   |
+| `components/nav-main.tsx`         | Rewrite                  | Collapsible nav groups with TGAW items                |
+| `components/nav-projects.tsx`     | Delete                   | TGAW doesn't need projects section                    |
+| `components/nav-user.tsx`         | Rewrite                  | Accept user prop, use Hugeicons                       |
+| `components/dashboard/Topbar.tsx` | No change                | Already has SidebarTrigger                            |
 
 ---
 
 ### Task 1: Install sidebar-07 block
 
 **Files:**
+
 - Modify: `components/ui/sidebar.tsx` (skip — already identical)
 - Modify: `components/ui/button.tsx` (skip — already identical)
 - Modify: `components/ui/input.tsx` (skip — already identical)
@@ -77,6 +78,7 @@ Expected: All 3 files exist (will be cleaned up in subsequent tasks).
 ### Task 2: Delete demo page and unused files
 
 **Files:**
+
 - Delete: `app/dashboard/page.tsx`
 - Delete: `components/team-switcher.tsx`
 - Delete: `components/nav-projects.tsx`
@@ -118,9 +120,11 @@ git add -A && git commit -m "chore: remove sidebar-07 demo page and unused files
 ### Task 3: Rewrite app-sidebar.tsx with TGAW navigation
 
 **Files:**
+
 - Modify: `components/app-sidebar.tsx`
 
 **Interfaces:**
+
 - Consumes: `role` prop from `app/(dashboard)/layout.tsx`
 - Produces: `<AppSidebar>` component with `collapsible="icon"`
 
@@ -160,7 +164,11 @@ import {
 } from "@hugeicons/core-free-icons"
 
 const navItems = [
-  { title: "Overview", url: "/", icon: <HugeiconsIcon icon={Home01Icon} strokeWidth={1.8} /> },
+  {
+    title: "Overview",
+    url: "/",
+    icon: <HugeiconsIcon icon={Home01Icon} strokeWidth={1.8} />,
+  },
   {
     title: "Devotion",
     icon: <HugeiconsIcon icon={BookOpen02Icon} strokeWidth={1.8} />,
@@ -203,7 +211,10 @@ const adminItems = [
   },
 ]
 
-export function AppSidebar({ role, ...props }: React.ComponentProps<typeof Sidebar> & { role: string }) {
+export function AppSidebar({
+  role,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { role: string }) {
   const isAdmin = ["moderator", "admin"].includes(role)
   const allItems = isAdmin ? [...navItems, ...adminItems] : navItems
 
@@ -247,9 +258,11 @@ git add components/app-sidebar.tsx && git commit -m "feat: rewrite app-sidebar w
 ### Task 4: Rewrite nav-main.tsx
 
 **Files:**
+
 - Modify: `components/nav-main.tsx`
 
 **Interfaces:**
+
 - Consumes: `items` array from `AppSidebar` (each item has `title`, `icon`, optional `items` sub-array)
 - Produces: `NavMain` component rendering collapsible nav groups
 
@@ -322,7 +335,12 @@ export function NavMain({
                     {item.items.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.url}>
                         <SidebarMenuSubButton
-                          render={<Link href={subItem.url} className="cursor-pointer" />}
+                          render={
+                            <Link
+                              href={subItem.url}
+                              className="cursor-pointer"
+                            />
+                          }
                           isActive={pathname === subItem.url}
                         >
                           <span>{subItem.title}</span>
@@ -371,9 +389,11 @@ git add components/nav-main.tsx && git commit -m "feat: rewrite nav-main with TG
 ### Task 5: Rewrite nav-user.tsx
 
 **Files:**
+
 - Modify: `components/nav-user.tsx`
 
 **Interfaces:**
+
 - Consumes: session from `useSession()` (Better Auth client)
 - Produces: `NavUser` component with avatar, name, role, and dropdown menu
 
@@ -417,7 +437,9 @@ export function NavUser() {
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger render={<SidebarMenuButton className="cursor-pointer" />}>
+          <DropdownMenuTrigger
+            render={<SidebarMenuButton className="cursor-pointer" />}
+          >
             <Avatar className="size-8">
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
@@ -430,14 +452,22 @@ export function NavUser() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-48">
             <DropdownMenuItem className="cursor-pointer">
-              <HugeiconsIcon icon={User02Icon} strokeWidth={1.8} className="mr-2 size-4" />
+              <HugeiconsIcon
+                icon={User02Icon}
+                strokeWidth={1.8}
+                className="mr-2 size-4"
+              />
               Profile
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={() => signOut()}
             >
-              <HugeiconsIcon icon={Logout01Icon} strokeWidth={1.8} className="mr-2 size-4" />
+              <HugeiconsIcon
+                icon={Logout01Icon}
+                strokeWidth={1.8}
+                className="mr-2 size-4"
+              />
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>

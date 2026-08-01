@@ -15,6 +15,8 @@ export async function GET(req: NextRequest) {
 	const date = searchParams.get("date");
 	const type = searchParams.get("type");
 
+	const { limit = "20", cursor } = Object.fromEntries(searchParams);
+	const take = Math.min(Number(limit), 100);
 	const events = await prisma.event.findMany({
 		where: {
 			userId: session.user.id!,
@@ -22,8 +24,13 @@ export async function GET(req: NextRequest) {
 			...(type ? { type: type as "BIBLE" | "PRAYER" | "PRAISE_WORSHIP" } : {}),
 		},
 		orderBy: { time: "asc" },
+		take: take + 1,
+		...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
 	});
-	return NextResponse.json({ success: true, data: events });
+	const hasMore = events.length > take;
+	const data = hasMore ? events.slice(0, take) : events;
+	return NextResponse.json({ success: true, data, nextCursor: hasMore ? data[data.length - 1]?.id : null });
+
 }
 
 export async function POST(req: NextRequest) {

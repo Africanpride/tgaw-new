@@ -50,11 +50,17 @@ export default function LoginPage() {
 	}
 
 	async function handleGithub() {
-		await authClient.signIn.social({ provider: "github" });
+		await authClient.signIn.social({
+			provider: "github",
+			callbackURL: "/overview",
+		});
 	}
 
 	async function handleGoogle() {
-		await authClient.signIn.social({ provider: "google" });
+		await authClient.signIn.social({
+			provider: "google",
+			callbackURL: "/overview",
+		});
 	}
 
 	return (
