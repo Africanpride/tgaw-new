@@ -3,15 +3,31 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db/prisma";
 
 export default async function OverviewPage() {
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) redirect("/login");
 
 	const user = session.user;
+	const today = new Date().toISOString().split("T")[0];
+
+	const todayBookings = await prisma.eventBooking.findMany({
+		where: {
+			userId: user.id!,
+			status: "CONFIRMED",
+			event: { date: today },
+		},
+		include: { event: true },
+		orderBy: { event: { time: "asc" } },
+	});
+
+	const sessionCount = todayBookings.length;
+
 	const hour = new Date().getHours();
 	const greeting =
 		hour >= 5 && hour < 12
@@ -23,6 +39,13 @@ export default async function OverviewPage() {
 					: "Good night";
 
 	const firstName = user.name?.split(" ")[0] || "there";
+
+	const typeColors: Record<string, string> = {
+		BIBLE: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+		PRAYER: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
+		PRAISE_WORSHIP:
+			"bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300",
+	};
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -37,6 +60,14 @@ export default async function OverviewPage() {
 						month: "long",
 						day: "numeric",
 					})}
+					{sessionCount > 0 && (
+						<span className="ml-2 inline-flex items-center gap-1">
+							&middot;{" "}
+							<Badge variant="secondary" className="text-xs">
+								{sessionCount} session{sessionCount !== 1 ? "s" : ""} today
+							</Badge>
+						</span>
+					)}
 				</p>
 			</div>
 
@@ -76,9 +107,36 @@ export default async function OverviewPage() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-sm text-muted-foreground">
-							No sessions scheduled today.
-						</p>
+						{todayBookings.length === 0 ? (
+							<p className="text-sm text-muted-foreground">
+								No sessions scheduled today.
+							</p>
+						) : (
+							<div className="flex flex-col gap-2">
+								{todayBookings.map((booking) => (
+									<div
+										key={booking.id}
+										className="flex items-center justify-between rounded-lg border p-3"
+									>
+										<div className="flex flex-col gap-1">
+											<span className="text-sm font-medium">
+												{booking.event.title}
+											</span>
+											<span className="text-xs text-muted-foreground">
+												{booking.event.time} &middot; {booking.event.duration}
+												min
+											</span>
+										</div>
+										<Badge
+											variant="secondary"
+											className={`text-xs ${typeColors[booking.event.type] ?? ""}`}
+										>
+											{booking.event.type.replace("_", " ")}
+										</Badge>
+									</div>
+								))}
+							</div>
+						)}
 						<Button variant="outline" className="mt-4">
 							<Link href="/booking" className="cursor-pointer">
 								Book a Slot

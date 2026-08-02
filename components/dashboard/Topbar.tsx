@@ -112,18 +112,20 @@ export function Topbar() {
 	const Icon = themeIcons[(theme ?? "system") as keyof typeof themeIcons];
 
 	return (
-		<header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
-			<SidebarTrigger className="cursor-pointer" />
+		<header className="sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
+			<SidebarTrigger className="cursor-pointer shrink-0" />
 			<div className="h-4 w-px shrink-0 bg-border" />
-			<Breadcrumb>
-				<BreadcrumbList>
+			<Breadcrumb className="min-w-0">
+				<BreadcrumbList className="flex-nowrap">
 					{crumbs.map((crumb, idx) => {
 						const isLast = idx === crumbs.length - 1;
 						return (
 							<Fragment key={crumb.label}>
 								<BreadcrumbItem>
 									{isLast || !crumb.href ? (
-										<BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+										<BreadcrumbPage className="truncate">
+											{crumb.label}
+										</BreadcrumbPage>
 									) : (
 										<BreadcrumbLink
 											render={
