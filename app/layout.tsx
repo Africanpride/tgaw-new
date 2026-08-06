@@ -3,13 +3,9 @@
 // THE LAYOUT FOR THE AUTHENTICATION PAGES IS IN app/auth/layout.tsx
 
 import {
+	Bebas_Neue,
 	Geist_Mono,
-	Instrument_Sans,
-	Inter,
-	JetBrains_Mono,
-	Outfit,
-	Oxanium,
-	Roboto_Slab,
+	Open_Sans,
 } from "next/font/google";
 
 import "./globals.css";
@@ -17,31 +13,20 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-const oxaniumHeading = Oxanium({
+const openSans = Open_Sans({
 	subsets: ["latin"],
-	variable: "--font-heading",
+	variable: "--font-opensans",
 });
 
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
+const bebasNeue = Bebas_Neue({
+	weight: "400",
+	subsets: ["latin"],
+	variable: "--font-bebas",
+});
 
 const fontMono = Geist_Mono({
 	subsets: ["latin"],
 	variable: "--font-mono",
-});
-
-const instrumentSans = Instrument_Sans({
-	subsets: ["latin"],
-	variable: "--font-instrument-sans",
-});
-
-const robotoSlab = Roboto_Slab({
-	subsets: ["latin"],
-	variable: "--font-roboto-slab",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-	subsets: ["latin"],
-	variable: "--font-jetbrains-mono",
 });
 
 export default function RootLayout({
@@ -55,13 +40,10 @@ export default function RootLayout({
 			suppressHydrationWarning
 			className={cn(
 				"antialiased",
+				openSans.variable,
+				bebasNeue.variable,
 				fontMono.variable,
-				instrumentSans.variable,
-				robotoSlab.variable,
-				jetbrainsMono.variable,
 				"font-sans",
-				outfit.variable,
-				oxaniumHeading.variable,
 			)}
 		>
 			<body>

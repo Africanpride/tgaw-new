@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -70,11 +69,9 @@ export function NavMain({
 								>
 									{item.icon}
 									<span>{item.title}</span>
-									<HugeiconsIcon
-										icon={ArrowRight01Icon}
-										strokeWidth={2}
-										className="ml-auto transition-transform duration-200 group-data-[open]/collapsible:rotate-90"
-									/>
+								<ChevronRight
+									className="ml-auto transition-transform duration-200 group-data-[open]/collapsible:rotate-90"
+								/>
 								</CollapsibleTrigger>
 								<CollapsibleContent>
 									<SidebarMenuSub>

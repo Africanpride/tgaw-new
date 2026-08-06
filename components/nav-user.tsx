@@ -1,11 +1,6 @@
 "use client";
 
-import {
-	LogoutIcon,
-	UnfoldMoreIcon,
-	UserCircleIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { LogOut, ChevronsUpDown, CircleUser } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -66,9 +61,7 @@ export function NavUser() {
 							<span className="truncate font-medium">{name}</span>
 							<span className="truncate text-xs capitalize">{role}</span>
 						</div>
-						<HugeiconsIcon
-							icon={UnfoldMoreIcon}
-							strokeWidth={2}
+						<ChevronsUpDown
 							className="ml-auto size-4"
 						/>
 					</DropdownMenuTrigger>
@@ -95,13 +88,13 @@ export function NavUser() {
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
 							<DropdownMenuItem onClick={() => router.push("/settings")}>
-								<HugeiconsIcon icon={UserCircleIcon} strokeWidth={2} />
-								Profile
+							<CircleUser />
+							Profile
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem onClick={handleSignOut}>
-							<HugeiconsIcon icon={LogoutIcon} strokeWidth={2} />
+							<LogOut />
 							Sign out
 						</DropdownMenuItem>
 					</DropdownMenuContent>

@@ -1,22 +1,21 @@
 "use client";
 
 import {
-	Book02Icon,
-	BookOpen01Icon,
-	Calendar03Icon,
-	Chat01Icon,
-	ChurchIcon,
-	Home02Icon,
-	Message02Icon,
-	MusicNote02Icon,
-	PenTool01Icon,
-	Settings05Icon,
-	Shield01Icon,
-	ShieldUserIcon,
-	UserIcon,
-	UserSettings01Icon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+	Home,
+	BookOpen,
+	Calendar,
+	Book,
+	Music,
+	MessageCircle,
+	PenTool,
+	MessageSquare,
+	Users,
+	Settings,
+	Shield,
+	ShieldCheck,
+	UserCog,
+	Church,
+} from "lucide-react";
 import type * as React from "react";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -32,66 +31,66 @@ const navData = [
 	{
 		title: "Overview",
 		url: "/overview",
-		icon: <HugeiconsIcon icon={Home02Icon} strokeWidth={2} />,
+		icon: <Home />,
 	},
 	{
 		title: "Devotion",
 		url: "#",
-		icon: <HugeiconsIcon icon={BookOpen01Icon} strokeWidth={2} />,
+		icon: <BookOpen />,
 		items: [
 			{
 				title: "Calendar",
 				url: "/calendar",
-				icon: <HugeiconsIcon icon={Calendar03Icon} strokeWidth={1.8} />,
+				icon: <Calendar className="size-4" />,
 			},
 			{
 				title: "Bible Reading",
 				url: "/bible",
-				icon: <HugeiconsIcon icon={Book02Icon} strokeWidth={1.8} />,
+				icon: <Book className="size-4" />,
 			},
 			{
 				title: "Prayer",
 				url: "/prayer",
-				icon: <HugeiconsIcon icon={ChurchIcon} strokeWidth={1.8} />,
+				icon: <Church className="size-4" />,
 			},
 			{
 				title: "Praise & Worship",
 				url: "/worship",
-				icon: <HugeiconsIcon icon={MusicNote02Icon} strokeWidth={1.8} />,
+				icon: <Music className="size-4" />,
 			},
 		],
 	},
 	{
 		title: "Community",
 		url: "#",
-		icon: <HugeiconsIcon icon={Chat01Icon} strokeWidth={2} />,
+		icon: <MessageCircle />,
 		items: [
 			{
 				title: "Feed",
 				url: "/feed",
-				icon: <HugeiconsIcon icon={PenTool01Icon} strokeWidth={1.8} />,
+				icon: <PenTool className="size-4" />,
 			},
 			{
 				title: "Messages",
 				url: "/messages",
-				icon: <HugeiconsIcon icon={Message02Icon} strokeWidth={1.8} />,
+				icon: <MessageSquare className="size-4" />,
 			},
 			{
 				title: "Groups",
 				url: "/groups",
-				icon: <HugeiconsIcon icon={UserIcon} strokeWidth={1.8} />,
+				icon: <Users className="size-4" />,
 			},
 		],
 	},
 	{
 		title: "Account",
 		url: "#",
-		icon: <HugeiconsIcon icon={Settings05Icon} strokeWidth={2} />,
+		icon: <Settings />,
 		items: [
 			{
 				title: "Settings",
 				url: "/settings",
-				icon: <HugeiconsIcon icon={Settings05Icon} strokeWidth={1.8} />,
+				icon: <Settings className="size-4" />,
 			},
 		],
 	},
@@ -101,18 +100,18 @@ const adminItems = [
 	{
 		title: "Admin",
 		url: "#",
-		icon: <HugeiconsIcon icon={Shield01Icon} strokeWidth={2} />,
+		icon: <Shield />,
 		items: [
 			{
 				title: "Admin Portal",
 				url: "/admin",
-				icon: <HugeiconsIcon icon={Shield01Icon} strokeWidth={1.8} />,
+				icon: <Shield className="size-4" />,
 				minRole: "moderator",
 			},
 			{
 				title: "User Management",
 				url: "/admin/users",
-				icon: <HugeiconsIcon icon={UserSettings01Icon} strokeWidth={1.8} />,
+				icon: <UserCog className="size-4" />,
 				minRole: "admin",
 			},
 		],
@@ -130,11 +129,9 @@ export function AppSidebar({
 		<Sidebar collapsible="icon" {...props}>
 			<SidebarHeader>
 				<div className="flex items-center gap-2 px-2 py-1.5">
-					<HugeiconsIcon
-						icon={ShieldUserIcon}
-						strokeWidth={2}
-						className="size-6"
-					/>
+				<ShieldCheck
+					className="size-6"
+				/>
 					<span className="truncate text-lg font-semibold group-data-[collapsible=icon]:hidden">
 						TGAW
 					</span>

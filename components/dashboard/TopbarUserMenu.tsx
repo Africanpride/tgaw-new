@@ -1,11 +1,6 @@
 "use client";
 
-import {
-	LogoutIcon,
-	Settings05Icon,
-	UserCircleIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { LogOut, Settings, CircleUser } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -77,22 +72,14 @@ export function TopbarUserMenu() {
 						className="cursor-pointer gap-2 p-2 text-sm font-medium"
 						onClick={() => router.push("/settings")}
 					>
-						<HugeiconsIcon
-							icon={UserCircleIcon}
-							strokeWidth={2}
-							className="size-5"
-						/>
+						<CircleUser className="size-5" />
 						<span>My Profile</span>
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						className="cursor-pointer gap-2 p-2 text-sm font-medium"
 						onClick={() => router.push("/settings")}
 					>
-						<HugeiconsIcon
-							icon={Settings05Icon}
-							strokeWidth={2}
-							className="size-5"
-						/>
+						<Settings className="size-5" />
 						<span>Settings</span>
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
@@ -104,7 +91,7 @@ export function TopbarUserMenu() {
 					className="cursor-pointer gap-2 p-2 text-sm font-medium"
 					onClick={handleSignOut}
 				>
-					<HugeiconsIcon icon={LogoutIcon} strokeWidth={2} className="size-5" />
+					<LogOut className="size-5" />
 					<span>Sign out</span>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

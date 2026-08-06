@@ -13,11 +13,10 @@ export default function UnauthorizedPage() {
 					<p className="text-muted-foreground">
 						Your account role does not have permission to view this page.
 					</p>
-					<Button
-						nativeButton={false}
-						render={<Link href="/overview" className="cursor-pointer" />}
-					>
-						Return to Dashboard
+					<Button asChild>
+						<Link href="/overview" className="cursor-pointer">
+							Return to Dashboard
+						</Link>
 					</Button>
 				</CardContent>
 			</Card>

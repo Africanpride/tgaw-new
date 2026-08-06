@@ -101,9 +101,11 @@ export default function FeedPage() {
 			<div className="flex items-center justify-between">
 				<h2 className="text-2xl font-bold">Community Feed</h2>
 				<Dialog open={open} onOpenChange={setOpen}>
-					<DialogTrigger render={<Button className="cursor-pointer" />}>
-						<PenSquare className="mr-2 size-4" />
-						New Post
+					<DialogTrigger asChild>
+						<Button className="cursor-pointer">
+							<PenSquare className="mr-2 size-4" />
+							New Post
+						</Button>
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader>

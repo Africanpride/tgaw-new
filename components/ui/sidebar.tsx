@@ -2,8 +2,7 @@
 
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { SidebarLeftIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { PanelLeft } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
@@ -271,7 +270,7 @@ function SidebarTrigger({
 			}}
 			{...props}
 		>
-			<HugeiconsIcon icon={SidebarLeftIcon} strokeWidth={2} />
+			<PanelLeft />
 			<span className="sr-only">Toggle Sidebar</span>
 		</Button>
 	);
