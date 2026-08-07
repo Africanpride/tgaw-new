@@ -6,14 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { AuthBrand, AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
@@ -39,24 +33,23 @@ function ResetPasswordForm() {
 
 	if (!token) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-background p-4">
-				<Card className="w-full max-w-md text-center">
-					<CardHeader>
-						<CardTitle className="text-2xl font-bold">Invalid link</CardTitle>
-						<CardDescription>
-							This password reset link is invalid or has expired.
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Link
-							href="/forgot-password"
-							className="cursor-pointer text-primary hover:underline"
-						>
-							Request a new link
-						</Link>
-					</CardContent>
-				</Card>
-			</div>
+			<AuthShell>
+				<AuthBrand />
+				<h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">
+					Invalid link
+				</h1>
+				<p className="mt-2 text-sm text-muted-foreground">
+					This password reset link is invalid or has expired.
+				</p>
+				<div className="mt-8">
+					<Link
+						href="/forgot-password"
+						className="cursor-pointer text-sm font-medium text-primary hover:text-primary/80"
+					>
+						Request a new link
+					</Link>
+				</div>
+			</AuthShell>
 		);
 	}
 
@@ -75,55 +68,67 @@ function ResetPasswordForm() {
 
 	if (success) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-background p-4">
-				<Card className="w-full max-w-md text-center">
-					<CardHeader>
-						<CardTitle className="text-2xl font-bold">Password reset</CardTitle>
-						<CardDescription>
-							Your password has been reset successfully.
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Link
-							href="/login"
-							className="cursor-pointer text-primary hover:underline"
-						>
-							Sign in
-						</Link>
-					</CardContent>
-				</Card>
-			</div>
+			<AuthShell>
+				<AuthBrand />
+				<h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">
+					Password reset
+				</h1>
+				<p className="mt-2 text-sm text-muted-foreground">
+					Your password has been reset successfully.
+				</p>
+				<div className="mt-8">
+					<Link
+						href="/login"
+						className="cursor-pointer text-sm font-medium text-primary hover:text-primary/80"
+					>
+						Sign in
+					</Link>
+				</div>
+			</AuthShell>
 		);
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-background p-4">
-			<Card className="w-full max-w-md">
-				<CardHeader className="text-center">
-					<CardTitle className="text-2xl font-bold">Reset password</CardTitle>
-					<CardDescription>Enter your new password</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<form
-						onSubmit={handleSubmit(onSubmit)}
-						className="flex flex-col gap-4"
-					>
-						{error && (
-							<div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-								{error}
-							</div>
-						)}
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="password">New password</Label>
-							<Input id="password" type="password" {...register("password")} />
-						</div>
-						<Button type="submit" disabled={isSubmitting} className="w-full">
-							{isSubmitting ? "Resetting..." : "Reset password"}
-						</Button>
-					</form>
-				</CardContent>
-			</Card>
-		</div>
+		<AuthShell>
+			<AuthBrand />
+
+			<h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">
+				Reset password
+			</h1>
+			<p className="mt-2 text-sm text-muted-foreground">
+				Enter your new password
+			</p>
+
+			<form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
+				{error && (
+					<div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+						{error}
+					</div>
+				)}
+				<div className="space-y-2">
+					<Label htmlFor="password" className="text-sm text-muted-foreground">
+						New password<span className="text-muted-foreground/60">*</span>
+					</Label>
+					<Input
+						id="password"
+						type="password"
+						autoComplete="new-password"
+						placeholder="At least 8 characters"
+						required
+						className="h-11 border-input bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
+						{...register("password")}
+					/>
+				</div>
+
+				<Button
+					type="submit"
+					disabled={isSubmitting}
+					className="h-11 w-full cursor-pointer rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+				>
+					{isSubmitting ? "Resetting..." : "Reset password"}
+				</Button>
+			</form>
+		</AuthShell>
 	);
 }
 

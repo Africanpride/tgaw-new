@@ -4,7 +4,7 @@ import { Bell, Monitor, Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment } from "react";
-import { TopbarUserMenu } from "@/components/dashboard/TopbarUserMenu";
+import { NavUser } from "@/components/nav-user";
 import { useTheme } from "@/components/theme-provider";
 import {
 	Breadcrumb,
@@ -155,7 +155,7 @@ export function Topbar() {
 						<Bell className="size-5" />
 					</Link>
 				</Button>
-				<TopbarUserMenu />
+				<NavUser />
 			</div>
 		</header>
 	);

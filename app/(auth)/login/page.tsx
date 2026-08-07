@@ -6,14 +6,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+	AuthBrand,
+	AuthShell,
+	GithubIcon,
+	GoogleIcon,
+} from "@/components/auth/auth-shell";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
@@ -64,81 +64,122 @@ export default function LoginPage() {
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-background p-4">
-			<Card className="w-full max-w-md">
-				<CardHeader className="text-center">
-					<CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-					<CardDescription>Continue your faith journey</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<form
-						onSubmit={handleSubmit(onSubmit)}
-						className="flex flex-col gap-4"
+		<AuthShell>
+			<AuthBrand />
+
+			<h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">
+				Welcome back
+			</h1>
+			<p className="mt-2 text-sm text-muted-foreground">
+				Don&apos;t have an account?{" "}
+				<Link
+					href="/signup"
+					className="cursor-pointer font-medium text-primary hover:text-primary/80"
+				>
+					Sign up for free
+				</Link>
+			</p>
+
+			<form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
+				{error && (
+					<div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+						{error}
+					</div>
+				)}
+				<div className="space-y-2">
+					<Label htmlFor="email" className="text-sm text-muted-foreground">
+						Email<span className="text-muted-foreground/60">*</span>
+					</Label>
+					<Input
+						id="email"
+						type="email"
+						inputMode="email"
+						autoComplete="email"
+						placeholder="you@example.com"
+						required
+						className="h-11 border-input bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
+						{...register("email")}
+					/>
+				</div>
+
+				<div className="space-y-2">
+					<Label htmlFor="password" className="text-sm text-muted-foreground">
+						Password<span className="text-muted-foreground/60">*</span>
+					</Label>
+					<Input
+						id="password"
+						type="password"
+						autoComplete="current-password"
+						placeholder="Enter your password"
+						required
+						className="h-11 border-input bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
+						{...register("password")}
+					/>
+				</div>
+
+				<div className="flex flex-wrap items-center justify-between gap-3">
+					<div className="flex items-center gap-2">
+						<Checkbox
+							id="remember"
+							className="border-border data-[checked]:bg-primary data-[checked]:text-primary-foreground"
+						/>
+						<Label
+							htmlFor="remember"
+							className="text-sm font-normal text-muted-foreground"
+						>
+							Remember this device
+						</Label>
+					</div>
+					<Link
+						href="/forgot-password"
+						className="cursor-pointer text-sm font-medium text-primary hover:text-primary/80"
 					>
-						{error && (
-							<div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-								{error}
-							</div>
-						)}
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="email">Email</Label>
-							<Input id="email" type="email" {...register("email")} />
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="password">Password</Label>
-							<Input id="password" type="password" {...register("password")} />
-						</div>
-						<div className="text-right">
-							<Link
-								href="/forgot-password"
-								className="cursor-pointer text-sm text-muted-foreground hover:underline"
-							>
-								Forgot password?
-							</Link>
-						</div>
-						<Button type="submit" disabled={isSubmitting} className="w-full">
-							{isSubmitting ? "Signing in..." : "Sign In"}
-						</Button>
-					</form>
-					<div className="my-4 flex items-center gap-2">
-						<div className="h-px flex-1 bg-border" />
-						<span className="text-xs text-muted-foreground">
-							or continue with
-						</span>
-						<div className="h-px flex-1 bg-border" />
-					</div>
-					<div className="flex flex-col gap-2">
-						<Button
-							variant="outline"
-							className="w-full cursor-pointer"
-							onClick={handleGoogle}
-						>
-							Continue with Google
-						</Button>
-						<Button
-							variant="outline"
-							className="w-full cursor-pointer"
-							onClick={handleGithub}
-						>
-							Continue with GitHub
-						</Button>
-					</div>
-					<p className="mt-4 text-center text-sm text-muted-foreground">
-						Don&apos;t have an account?{" "}
-						<Link
-							href="/signup"
-							className="cursor-pointer text-primary hover:underline"
-						>
-							Create one free
-						</Link>
-					</p>
-					<p className="mt-2 text-center text-sm text-muted-foreground">
-						<Link href="/" className="cursor-pointer hover:underline">
-							Back to home
-						</Link>
-					</p>
-				</CardContent>
-			</Card>
-		</div>
+						Forgot password?
+					</Link>
+				</div>
+
+				<Button
+					type="submit"
+					disabled={isSubmitting}
+					className="h-11 w-full rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+				>
+					{isSubmitting ? "Signing in..." : "Log in"}
+				</Button>
+			</form>
+
+			<p className="mt-6 text-center text-sm text-muted-foreground">
+				or sign in with
+			</p>
+
+			<div className="mt-4 grid grid-cols-2 gap-3">
+				<Button
+					variant="outline"
+					type="button"
+					onClick={handleGoogle}
+					className="h-11 w-full cursor-pointer justify-center gap-2 border-input bg-background text-foreground hover:bg-accent"
+				>
+					<GoogleIcon />
+					Sign in with Google
+				</Button>
+				<Button
+					variant="outline"
+					type="button"
+					onClick={handleGithub}
+					className="h-11 w-full cursor-pointer justify-center gap-2 border-input bg-background text-foreground hover:bg-accent"
+				>
+					<GithubIcon />
+					Sign in with Github
+				</Button>
+			</div>
+
+			<p className="mt-6 text-center text-sm text-muted-foreground">
+				<Link
+					href="/"
+					className="cursor-pointer font-medium text-primary hover:text-primary/80"
+				>
+					Back to home
+				</Link>
+			</p>
+		</AuthShell>
 	);
 }

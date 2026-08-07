@@ -5,14 +5,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+	AuthBrand,
+	AuthShell,
+	GithubIcon,
+	GoogleIcon,
+} from "@/components/auth/auth-shell";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
@@ -66,98 +65,127 @@ export default function SignUpPage() {
 
 	if (success) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-background p-4">
-				<Card className="w-full max-w-md text-center">
-					<CardHeader>
-						<CardTitle className="text-2xl font-bold">
-							Check your email
-						</CardTitle>
-						<CardDescription>
-							We sent a verification link to your email address.
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Link
-							href="/login"
-							className="cursor-pointer text-primary hover:underline"
-						>
-							Back to login
-						</Link>
-					</CardContent>
-				</Card>
-			</div>
+			<AuthShell>
+				<AuthBrand />
+				<h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">
+					Check your email
+				</h1>
+				<p className="mt-2 text-sm text-muted-foreground">
+					We sent a verification link to your email address.
+				</p>
+				<div className="mt-8">
+					<Link
+						href="/login"
+						className="cursor-pointer text-sm font-medium text-primary hover:text-primary/80"
+					>
+						Back to login
+					</Link>
+				</div>
+			</AuthShell>
 		);
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-background p-4">
-			<Card className="w-full max-w-md">
-				<CardHeader className="text-center">
-					<CardTitle className="text-2xl font-bold">
-						Create an account
-					</CardTitle>
-					<CardDescription>Join the global community</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<form
-						onSubmit={handleSubmit(onSubmit)}
-						className="flex flex-col gap-4"
-					>
-						{error && (
-							<div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-								{error}
-							</div>
-						)}
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="name">Name</Label>
-							<Input id="name" {...register("name")} />
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="email">Email</Label>
-							<Input id="email" type="email" {...register("email")} />
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="password">Password</Label>
-							<Input id="password" type="password" {...register("password")} />
-						</div>
-						<Button type="submit" disabled={isSubmitting} className="w-full">
-							{isSubmitting ? "Creating account..." : "Sign Up"}
-						</Button>
-					</form>
-					<div className="my-4 flex items-center gap-2">
-						<div className="h-px flex-1 bg-border" />
-						<span className="text-xs text-muted-foreground">
-							or continue with
-						</span>
-						<div className="h-px flex-1 bg-border" />
+		<AuthShell>
+			<AuthBrand />
+
+			<h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">
+				Create an account
+			</h1>
+			<p className="mt-2 text-sm text-muted-foreground">
+				Already have an account?{" "}
+				<Link
+					href="/login"
+					className="cursor-pointer font-medium text-primary hover:text-primary/80"
+				>
+					Sign in
+				</Link>
+			</p>
+
+			<form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
+				{error && (
+					<div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+						{error}
 					</div>
-					<div className="flex flex-col gap-2">
-						<Button
-							variant="outline"
-							className="w-full cursor-pointer"
-							onClick={handleGoogle}
-						>
-							Continue with Google
-						</Button>
-						<Button
-							variant="outline"
-							className="w-full cursor-pointer"
-							onClick={handleGithub}
-						>
-							Continue with GitHub
-						</Button>
-					</div>
-					<p className="mt-4 text-center text-sm text-muted-foreground">
-						Already have an account?{" "}
-						<Link
-							href="/login"
-							className="cursor-pointer text-primary hover:underline"
-						>
-							Sign in
-						</Link>
-					</p>
-				</CardContent>
-			</Card>
-		</div>
+				)}
+				<div className="space-y-2">
+					<Label htmlFor="name" className="text-sm text-muted-foreground">
+						Name<span className="text-muted-foreground/60">*</span>
+					</Label>
+					<Input
+						id="name"
+						autoComplete="name"
+						placeholder="Your full name"
+						required
+						className="h-11 border-input bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
+						{...register("name")}
+					/>
+				</div>
+
+				<div className="space-y-2">
+					<Label htmlFor="email" className="text-sm text-muted-foreground">
+						Email<span className="text-muted-foreground/60">*</span>
+					</Label>
+					<Input
+						id="email"
+						type="email"
+						inputMode="email"
+						autoComplete="email"
+						placeholder="you@example.com"
+						required
+						className="h-11 border-input bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
+						{...register("email")}
+					/>
+				</div>
+
+				<div className="space-y-2">
+					<Label htmlFor="password" className="text-sm text-muted-foreground">
+						Password<span className="text-muted-foreground/60">*</span>
+					</Label>
+					<Input
+						id="password"
+						type="password"
+						autoComplete="new-password"
+						placeholder="At least 8 characters"
+						required
+						className="h-11 border-input bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
+						{...register("password")}
+					/>
+				</div>
+
+				<Button
+					type="submit"
+					disabled={isSubmitting}
+					className="h-11 w-full cursor-pointer rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+				>
+					{isSubmitting ? "Creating account..." : "Sign up"}
+				</Button>
+			</form>
+
+			<p className="mt-6 text-center text-sm text-muted-foreground">
+				or continue with
+			</p>
+
+			<div className="mt-4 grid grid-cols-2 gap-3">
+				<Button
+					variant="outline"
+					type="button"
+					onClick={handleGoogle}
+					className="h-11 w-full cursor-pointer justify-center gap-2 border-input bg-background text-foreground hover:bg-accent"
+				>
+					<GoogleIcon />
+					Continue with Google
+				</Button>
+				<Button
+					variant="outline"
+					type="button"
+					onClick={handleGithub}
+					className="h-11 w-full cursor-pointer justify-center gap-2 border-input bg-background text-foreground hover:bg-accent"
+				>
+					<GithubIcon />
+					Continue with Github
+				</Button>
+			</div>
+		</AuthShell>
 	);
 }

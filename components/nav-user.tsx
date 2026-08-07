@@ -1,12 +1,6 @@
 "use client";
 
-import {
-	ChevronsUpDown,
-	CircleUser,
-	Globe,
-	LogOut,
-	Settings,
-} from "lucide-react";
+import { CircleUser, Globe, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,12 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem,
-	useSidebar,
-} from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/sidebar";
 import { signOut, useSession } from "@/lib/auth-client";
 
 export function NavUser() {
@@ -49,72 +38,65 @@ export function NavUser() {
 	};
 
 	return (
-		<SidebarMenu>
-			<SidebarMenuItem>
-				<DropdownMenu>
-					<DropdownMenuTrigger
-						render={
-							<SidebarMenuButton
-								size="lg"
-								className="data-[state=open]:bg-sidebar-accent"
-							/>
-						}
-					>
-						<Avatar className="size-8">
-							<AvatarImage src={user?.image ?? undefined} alt={name} />
-							<AvatarFallback>{initials}</AvatarFallback>
-						</Avatar>
-						<div className="grid flex-1 text-left text-sm leading-tight">
-							<span className="truncate font-medium">{name}</span>
-							<span className="truncate text-xs capitalize">{role}</span>
+		<DropdownMenu>
+			<DropdownMenuTrigger className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
+				<Avatar className="size-9">
+					<AvatarImage src={user?.image ?? undefined} alt={name} />
+					<AvatarFallback>{initials}</AvatarFallback>
+				</Avatar>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent
+				className="w-72 rounded-lg"
+				side={isMobile ? "bottom" : "right"}
+				align="end"
+				sideOffset={8}
+			>
+				<DropdownMenuGroup>
+					<DropdownMenuLabel className="p-0 font-normal">
+						<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+							<Avatar className="size-8">
+								<AvatarImage src={user?.image ?? undefined} alt={name} />
+								<AvatarFallback>{initials}</AvatarFallback>
+							</Avatar>
+							<div className="grid flex-1 text-left text-sm leading-tight">
+								<span className="truncate font-medium">{name}</span>
+								<span className="flex items-center gap-1.5 text-xs">
+									<span className="rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium capitalize text-muted-foreground">
+										{role}
+									</span>
+									<span className="truncate">{email}</span>
+								</span>
+							</div>
 						</div>
-						<ChevronsUpDown className="ml-auto size-4" />
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-						side={isMobile ? "bottom" : "right"}
-						align="end"
-						sideOffset={4}
+					</DropdownMenuLabel>
+				</DropdownMenuGroup>
+				<DropdownMenuSeparator />
+				<DropdownMenuGroup>
+					<DropdownMenuItem
+						className="cursor-pointer"
+						onClick={() => router.push("/settings")}
 					>
-						<DropdownMenuGroup>
-							<DropdownMenuLabel className="p-0 font-normal">
-								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-									<Avatar className="size-8">
-										<AvatarImage src={user?.image ?? undefined} alt={name} />
-										<AvatarFallback>{initials}</AvatarFallback>
-									</Avatar>
-									<div className="grid flex-1 text-left text-sm leading-tight">
-										<span className="truncate font-medium">{name}</span>
-										<span className="truncate text-xs">{email}</span>
-									</div>
-								</div>
-							</DropdownMenuLabel>
-						</DropdownMenuGroup>
-						<DropdownMenuSeparator />
-						<DropdownMenuGroup>
-							<DropdownMenuItem onClick={() => router.push("/settings")}>
-								<CircleUser />
-								Profile
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => router.push("/settings")}>
-								<Settings />
-								Settings
-							</DropdownMenuItem>
-						</DropdownMenuGroup>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem
-							render={<Link href="/" className="cursor-pointer" />}
-						>
-							<Globe />
-							Back to Website
-						</DropdownMenuItem>
-						<DropdownMenuItem onClick={handleSignOut}>
-							<LogOut />
-							Sign out
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</SidebarMenuItem>
-		</SidebarMenu>
+						<CircleUser />
+						Profile
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						className="cursor-pointer"
+						onClick={() => router.push("/settings")}
+					>
+						<Settings />
+						Settings
+					</DropdownMenuItem>
+				</DropdownMenuGroup>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem render={<Link href="/" className="cursor-pointer" />}>
+					<Globe />
+					Back to Website
+				</DropdownMenuItem>
+				<DropdownMenuItem className="cursor-pointer" onClick={handleSignOut}>
+					<LogOut />
+					Sign out
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 }
