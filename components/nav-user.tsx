@@ -1,14 +1,14 @@
 "use client";
 
 import {
-	LogOut,
 	ChevronsUpDown,
 	CircleUser,
-	Settings,
 	Globe,
+	LogOut,
+	Settings,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -68,9 +68,7 @@ export function NavUser() {
 							<span className="truncate font-medium">{name}</span>
 							<span className="truncate text-xs capitalize">{role}</span>
 						</div>
-						<ChevronsUpDown
-							className="ml-auto size-4"
-						/>
+						<ChevronsUpDown className="ml-auto size-4" />
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
 						className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
@@ -104,7 +102,9 @@ export function NavUser() {
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem render={<Link href="/" className="cursor-pointer" />}>
+						<DropdownMenuItem
+							render={<Link href="/" className="cursor-pointer" />}
+						>
 							<Globe />
 							Back to Website
 						</DropdownMenuItem>

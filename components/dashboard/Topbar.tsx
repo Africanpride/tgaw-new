@@ -127,13 +127,11 @@ export function Topbar() {
 											{crumb.label}
 										</BreadcrumbPage>
 									) : (
-									<BreadcrumbLink
-										asChild
-									>
-										<Link href={crumb.href} className="cursor-pointer">
-											{crumb.label}
-										</Link>
-									</BreadcrumbLink>
+										<BreadcrumbLink asChild>
+											<Link href={crumb.href} className="cursor-pointer">
+												{crumb.label}
+											</Link>
+										</BreadcrumbLink>
 									)}
 								</BreadcrumbItem>
 								{!isLast && crumb.href && <BreadcrumbSeparator />}
@@ -152,11 +150,7 @@ export function Topbar() {
 				>
 					<Icon className="size-5" />
 				</Button>
-				<Button
-					variant="ghost"
-					size="icon"
-					asChild
-				>
+				<Button variant="ghost" size="icon" asChild>
 					<Link href="/notifications" className="cursor-pointer">
 						<Bell className="size-5" />
 					</Link>

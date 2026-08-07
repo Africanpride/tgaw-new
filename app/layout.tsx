@@ -2,11 +2,7 @@
 // THE LAYOUT FOR THE DASHBOARD IS IN app/dashboard/layout.tsx
 // THE LAYOUT FOR THE AUTHENTICATION PAGES IS IN app/auth/layout.tsx
 
-import {
-	Bebas_Neue,
-	Geist_Mono,
-	Open_Sans,
-} from "next/font/google";
+import { Bebas_Neue, Geist_Mono, Open_Sans } from "next/font/google";
 
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";

@@ -2,7 +2,7 @@
 
 import { Bell } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface Notification {
@@ -20,7 +20,7 @@ export default function NotificationsPage() {
 	const [notifications, setNotifications] = useState<Notification[]>([]);
 	const [loading, setLoading] = useState(true);
 
-	async function fetchNotifications() {
+	const fetchNotifications = useCallback(async function fetchNotifications() {
 		try {
 			const res = await fetch("/api/v1/notifications");
 			const data = await res.json();
@@ -28,11 +28,11 @@ export default function NotificationsPage() {
 		} finally {
 			setLoading(false);
 		}
-	}
+	}, []);
 
 	useEffect(() => {
 		fetchNotifications();
-	}, []);
+	}, [fetchNotifications]);
 
 	async function markRead(id: string) {
 		await fetch(`/api/v1/notifications/${id}`, {
@@ -78,6 +78,7 @@ export default function NotificationsPage() {
 									</div>
 									{!n.isRead && (
 										<button
+											type="button"
 											onClick={() => markRead(n.id)}
 											className="cursor-pointer text-xs text-primary hover:underline"
 										>

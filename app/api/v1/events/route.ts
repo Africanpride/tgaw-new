@@ -29,8 +29,11 @@ export async function GET(req: NextRequest) {
 	});
 	const hasMore = events.length > take;
 	const data = hasMore ? events.slice(0, take) : events;
-	return NextResponse.json({ success: true, data, nextCursor: hasMore ? data[data.length - 1]?.id : null });
-
+	return NextResponse.json({
+		success: true,
+		data,
+		nextCursor: hasMore ? data[data.length - 1]?.id : null,
+	});
 }
 
 export async function POST(req: NextRequest) {

@@ -2,8 +2,8 @@
 
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { PanelLeft } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { PanelLeft } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -283,6 +283,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
 		<button
 			data-sidebar="rail"
 			data-slot="sidebar-rail"
+			type="button"
 			aria-label="Toggle Sidebar"
 			tabIndex={-1}
 			onClick={toggleSidebar}

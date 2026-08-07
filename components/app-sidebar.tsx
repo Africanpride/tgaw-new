@@ -1,19 +1,19 @@
 "use client";
 
 import {
-	Home,
+	Book,
 	BookOpen,
 	Calendar,
-	Book,
-	Music,
+	Church,
+	Home,
 	MessageCircle,
-	PenTool,
 	MessageSquare,
-	Users,
+	Music,
+	PenTool,
 	Shield,
 	ShieldCheck,
 	UserCog,
-	Church,
+	Users,
 } from "lucide-react";
 import type * as React from "react";
 import { NavMain } from "@/components/nav-main";
@@ -107,16 +107,13 @@ export function AppSidebar({
 	role,
 	...props
 }: React.ComponentProps<typeof Sidebar> & { role?: string }) {
-	const filteredAdminItems =
-		role === "admin" ? adminItems : [];
+	const filteredAdminItems = role === "admin" ? adminItems : [];
 
 	return (
 		<Sidebar collapsible="icon" {...props}>
 			<SidebarHeader>
 				<div className="flex items-center gap-2 px-2 py-1.5">
-				<ShieldCheck
-					className="size-6"
-				/>
+					<ShieldCheck className="size-6" />
 					<span className="truncate text-lg font-semibold group-data-[collapsible=icon]:hidden">
 						TGAW
 					</span>

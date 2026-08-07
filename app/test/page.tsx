@@ -50,6 +50,7 @@ export default function Page(props: Props) {
 				</div>
 				<div className="flex justify-center gap-3 lg:justify-start">
 					<button
+						type="button"
 						data-slot="button"
 						data-variant="default"
 						data-size="lg"
@@ -58,6 +59,7 @@ export default function Page(props: Props) {
 						Get Started
 					</button>
 					<button
+						type="button"
 						data-slot="button"
 						data-variant="outline"
 						data-size="lg"

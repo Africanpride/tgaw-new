@@ -152,15 +152,11 @@ function ToastIcon({ type }: { type: string | undefined }) {
 	}
 
 	if (type === "error") {
-		icon = (
-			<XCircle className="text-destructive" aria-hidden="true" />
-		);
+		icon = <XCircle className="text-destructive" aria-hidden="true" />;
 	}
 
 	if (type === "loading") {
-		icon = (
-			<Loader2 className="animate-spin" aria-hidden="true" />
-		);
+		icon = <Loader2 className="animate-spin" aria-hidden="true" />;
 	}
 
 	if (!icon) {
