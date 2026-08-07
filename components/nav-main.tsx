@@ -16,6 +16,7 @@ import {
 	SidebarMenuSub,
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
+	useSidebar,
 } from "@/components/ui/sidebar";
 
 export function NavMain({
@@ -34,6 +35,11 @@ export function NavMain({
 	}[];
 }) {
 	const pathname = usePathname();
+	const { setOpenMobile } = useSidebar();
+
+	const closeOnNavigate = () => {
+		setOpenMobile(false);
+	};
 
 	return (
 		<SidebarGroup>
@@ -46,7 +52,13 @@ export function NavMain({
 						return (
 							<SidebarMenuItem key={item.title}>
 								<SidebarMenuButton
-									render={<Link href={item.url} className="cursor-pointer" />}
+									render={
+										<Link
+											href={item.url}
+											className="cursor-pointer"
+											onClick={closeOnNavigate}
+										/>
+									}
 									isActive={pathname === item.url}
 									tooltip={item.title}
 								>
@@ -69,9 +81,7 @@ export function NavMain({
 								>
 									{item.icon}
 									<span>{item.title}</span>
-								<ChevronRight
-									className="ml-auto transition-transform duration-200 group-data-[open]/collapsible:rotate-90"
-								/>
+									<ChevronRight className="ml-auto transition-transform duration-200 group-data-[open]/collapsible:rotate-90" />
 								</CollapsibleTrigger>
 								<CollapsibleContent>
 									<SidebarMenuSub>
@@ -82,6 +92,7 @@ export function NavMain({
 														<Link
 															href={subItem.url}
 															className="cursor-pointer"
+															onClick={closeOnNavigate}
 														/>
 													}
 													isActive={pathname === subItem.url}

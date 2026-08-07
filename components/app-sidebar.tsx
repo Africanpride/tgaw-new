@@ -10,7 +10,6 @@ import {
 	PenTool,
 	MessageSquare,
 	Users,
-	Settings,
 	Shield,
 	ShieldCheck,
 	UserCog,
@@ -82,18 +81,6 @@ const navData = [
 			},
 		],
 	},
-	{
-		title: "Account",
-		url: "#",
-		icon: <Settings />,
-		items: [
-			{
-				title: "Settings",
-				url: "/settings",
-				icon: <Settings className="size-4" />,
-			},
-		],
-	},
 ];
 
 const adminItems = [
@@ -106,13 +93,11 @@ const adminItems = [
 				title: "Admin Portal",
 				url: "/admin",
 				icon: <Shield className="size-4" />,
-				minRole: "moderator",
 			},
 			{
 				title: "User Management",
 				url: "/admin/users",
 				icon: <UserCog className="size-4" />,
-				minRole: "admin",
 			},
 		],
 	},
@@ -123,7 +108,7 @@ export function AppSidebar({
 	...props
 }: React.ComponentProps<typeof Sidebar> & { role?: string }) {
 	const filteredAdminItems =
-		role && ["moderator", "admin"].includes(role) ? adminItems : [];
+		role === "admin" ? adminItems : [];
 
 	return (
 		<Sidebar collapsible="icon" {...props}>

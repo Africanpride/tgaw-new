@@ -16,8 +16,7 @@ const PROTECTED_PATHS = [
 	"/booking",
 ];
 
-const ADMIN_ONLY_PATHS = ["/admin/users"];
-const MODERATOR_PATHS = ["/admin"];
+const ADMIN_ONLY_PATHS = ["/admin"];
 
 export async function proxy(req: NextRequest) {
 	const path = req.nextUrl.pathname;
@@ -32,13 +31,6 @@ export async function proxy(req: NextRequest) {
 	const role = (session.user.role as string) || "member";
 
 	if (ADMIN_ONLY_PATHS.some((p) => path.startsWith(p)) && role !== "admin") {
-		return NextResponse.redirect(new URL("/unauthorized", req.url));
-	}
-
-	if (
-		MODERATOR_PATHS.some((p) => path.startsWith(p)) &&
-		!["moderator", "admin"].includes(role)
-	) {
 		return NextResponse.redirect(new URL("/unauthorized", req.url));
 	}
 

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FooterSectionTwo from "@/components/blocks/footer/footer-section-two";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +21,7 @@ export default function LandingPage() {
 					TGA<span className="text-red-500">W</span>
 				</span>
 				<div className="flex items-center gap-4">
+					<ThemeToggle />
 					{isLoggedIn ? (
 						<>
 							<Link href="/overview" className="cursor-pointer">

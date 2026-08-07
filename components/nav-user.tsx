@@ -1,7 +1,14 @@
 "use client";
 
-import { LogOut, ChevronsUpDown, CircleUser } from "lucide-react";
+import {
+	LogOut,
+	ChevronsUpDown,
+	CircleUser,
+	Settings,
+	Globe,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -88,11 +95,19 @@ export function NavUser() {
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
 							<DropdownMenuItem onClick={() => router.push("/settings")}>
-							<CircleUser />
-							Profile
+								<CircleUser />
+								Profile
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => router.push("/settings")}>
+								<Settings />
+								Settings
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
+						<DropdownMenuItem render={<Link href="/" className="cursor-pointer" />}>
+							<Globe />
+							Back to Website
+						</DropdownMenuItem>
 						<DropdownMenuItem onClick={handleSignOut}>
 							<LogOut />
 							Sign out
