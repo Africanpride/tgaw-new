@@ -20,21 +20,40 @@ interface DispatchParams {
 	link?: string;
 }
 
+interface NotificationPrefs {
+	email?: Record<string, boolean>;
+	push?: Record<string, boolean>;
+}
+
+function isEnabled(prefs: NotificationPrefs | null, channel: "email" | "push", type: string) {
+	const map = prefs?.[channel];
+	if (!map) return true;
+	const value = map[type];
+	return value === undefined ? true : value;
+}
+
 export async function dispatchNotification(params: DispatchParams) {
 	const { userId, type, title, body, link } = params;
+
+	const user = await prisma.user.findUnique({ where: { id: userId } });
+	if (!user) return;
+
+	const prefs = (user.notificationPrefs ?? null) as NotificationPrefs | null;
 
 	await prisma.notification.create({
 		data: { userId, type, channel: "EMAIL", title, body, link },
 	});
 
-	const user = await prisma.user.findUnique({ where: { id: userId } });
-	if (!user?.email) return;
-
-	try {
-		await sendEmail(user.email, title, `<p>${body}</p>`);
-	} catch {
-		console.error(`[ERROR] Failed to send email to ${user.email}`);
+	if (!isEnabled(prefs, "email", type)) return;
+	if (user.email) {
+		try {
+			await sendEmail(user.email, title, `<p>${body}</p>`);
+		} catch {
+			console.error(`[ERROR] Failed to send email to ${user.email}`);
+		}
 	}
+
+	if (!isEnabled(prefs, "push", type)) return;
 
 	const subscriptions = await prisma.pushSubscription.findMany({
 		where: { userId },

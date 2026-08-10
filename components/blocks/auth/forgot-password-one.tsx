@@ -16,7 +16,7 @@ export default function ForgotPasswordOne() {
 						/>
 					</div>
 					<div>
-						<h1 className="text-xl font-semibold tracking-tight">
+						<h1 className="text-xl">
 							Forgot your password?
 						</h1>
 						<p className="mt-1.5 text-sm text-muted-foreground">

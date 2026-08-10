@@ -49,7 +49,7 @@ export default function NotificationsPage() {
 		<div className="flex flex-col gap-6">
 			<div className="flex items-center gap-2">
 				<Bell className="size-6" />
-				<h2 className="text-2xl font-bold">Notifications</h2>
+				<h2 className="text-2xl">Notifications</h2>
 			</div>
 
 			<Card>

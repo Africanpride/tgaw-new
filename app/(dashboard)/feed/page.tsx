@@ -99,7 +99,7 @@ export default function FeedPage() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="flex items-center justify-between">
-				<h2 className="text-2xl font-bold">Community Feed</h2>
+				<h2 className="text-2xl">Community Feed</h2>
 				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
 						<Button className="cursor-pointer">

@@ -305,7 +305,7 @@ export function CalendarView({
 									Today
 								</Button>
 							</div>
-							<h1 className="text-2xl font-semibold">
+							<h1 className="text-2xl">
 								{format(visibleMonth, "MMMM yyyy")}
 							</h1>
 						</div>

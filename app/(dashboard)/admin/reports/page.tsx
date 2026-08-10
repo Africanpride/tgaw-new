@@ -55,7 +55,7 @@ export default function ModerationQueuePage() {
 		<div className="flex flex-col gap-6">
 			<div className="flex items-center gap-2">
 				<Shield className="size-6" />
-				<h2 className="text-2xl font-bold">Moderation Queue</h2>
+				<h2 className="text-2xl">Moderation Queue</h2>
 			</div>
 
 			<Card>

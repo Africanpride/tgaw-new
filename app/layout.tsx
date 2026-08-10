@@ -1,17 +1,16 @@
-// THIS IS THE LAYOUT FOR THE LANDING PAGE
-// THE LAYOUT FOR THE DASHBOARD IS IN app/dashboard/layout.tsx
-// THE LAYOUT FOR THE AUTHENTICATION PAGES IS IN app/auth/layout.tsx
+// THIS IS THE ROOT LAYOUT (LANDING + AUTH)
+// THE DASHBOARD LAYOUT IS IN app/(dashboard)/layout.tsx
 
-import { Bebas_Neue, Geist_Mono, Open_Sans } from "next/font/google";
+import { Bebas_Neue, Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-const openSans = Open_Sans({
+const geistSans = Geist({
 	subsets: ["latin"],
-	variable: "--font-opensans",
+	variable: "--font-geist-sans",
 });
 
 const bebasNeue = Bebas_Neue({
@@ -36,7 +35,7 @@ export default function RootLayout({
 			suppressHydrationWarning
 			className={cn(
 				"antialiased",
-				openSans.variable,
+				geistSans.variable,
 				bebasNeue.variable,
 				fontMono.variable,
 				"font-sans",

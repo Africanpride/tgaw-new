@@ -25,6 +25,18 @@ Your goal is to create a Christian Community Social Media App called "The Global
 - Achieve end-to-end type safety with **MongoDB Atlas + Prisma ORM + Zod schema validation**.
 - Protect all dashboard routes with server-side authentication and **Role-Based Access Control (RBAC)** using **Better Auth** (configured in `lib/auth.ts`) enforcing three explicit roles: `member` (default), `moderator`, and `admin`.
 
+### Premium Quality Bar (Apple App Store / Google Play Store):
+
+TGAW is a **premium consumer product** built to a standard worthy of Apple App Store and Google Play Store review. This is a hard quality gate on all work — no demos, no "Coming Soon" stubs on shipped screens:
+
+1. **Refined visual design**: consistent spacing rhythm, alignment, hierarchy, and motion. Use shadcn semantic tokens (`bg-background`, `bg-card`, `border-border`, `bg-muted`, `text-muted-foreground`, `bg-primary`) — never ad-hoc hex colors.
+2. **Thoughtful micro-interactions**: tasteful transitions between states (tab switches, dialog opens, list items, buttons) using `motion/react`. Animate for meaning and delight, never noise. Respect `prefers-reduced-motion`.
+3. **Empty, loading, and error states everywhere**: skeletons for async content, illustrated empty states with a clear CTA, and friendly inline errors.
+4. **Mobile-first responsiveness**: every layout works from 360px phones to desktop. Touch targets ≥ 44px, thumb-friendly, no horizontal overflow.
+5. **Accessibility (a11y)**: semantic HTML, ARIA labels, keyboard navigable, visible focus rings, sufficient contrast. Every `<svg>`/Lucide icon is `aria-hidden="true"` or has a `<title>`.
+6. **Performance**: smooth 60fps interactions, `next/image` for raster media, no CLS, minimal client bundles.
+7. **Consistency**: reuse the shadcn primitive set; when a composed variant exists (e.g. `@shadcn-space/*`), prefer it over bespoke hand-rolled controls. Add primitives via `bunx --bun shadcn@latest add <item>`.
+
 ---
 
 ## 1. Tech Stack & Architecture

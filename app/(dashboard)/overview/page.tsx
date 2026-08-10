@@ -50,7 +50,7 @@ export default async function OverviewPage() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div>
-				<h2 className="text-2xl font-bold">
+				<h2 className="text-2xl">
 					{greeting}, {firstName}
 				</h2>
 				<p className="text-muted-foreground">

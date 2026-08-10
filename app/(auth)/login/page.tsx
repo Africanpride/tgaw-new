@@ -67,7 +67,7 @@ export default function LoginPage() {
 		<AuthShell>
 			<AuthBrand />
 
-			<h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">
+			<h1 className="text-2xl text-card-foreground sm:text-3xl">
 				Welcome back
 			</h1>
 			<p className="mt-2 text-sm text-muted-foreground">

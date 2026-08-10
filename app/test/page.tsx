@@ -38,7 +38,7 @@ export default function Page(props: Props) {
 					2.0 version is here
 				</span>
 				<div className="mx-auto max-w-xl space-y-4 text-center lg:mx-0 lg:text-start">
-					<h1 className="text-4xl leading-tight font-bold lg:text-5xl">
+					<h1 className="text-4xl leading-tight lg:text-5xl">
 						<span>Welcome to the</span> <br />
 						<span className="text-muted-foreground italic">innovation</span>
 						<span className="text-muted-foreground not-italic"> oasis</span>

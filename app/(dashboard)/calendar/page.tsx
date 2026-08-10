@@ -36,7 +36,7 @@ export default function CalendarPage() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div>
-				<h1 className="text-2xl font-bold tracking-tight">Calendar</h1>
+				<h1 className="text-2xl">Calendar</h1>
 				<p className="text-muted-foreground">Manage your schedule and events</p>
 			</div>
 

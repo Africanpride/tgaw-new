@@ -61,7 +61,7 @@ export default function UserManagementPage() {
 		<div className="flex flex-col gap-6">
 			<div className="flex items-center gap-2">
 				<Users className="size-6" />
-				<h2 className="text-2xl font-bold">User Management</h2>
+				<h2 className="text-2xl">User Management</h2>
 			</div>
 
 			<Card>

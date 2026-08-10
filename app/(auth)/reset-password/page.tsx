@@ -35,7 +35,7 @@ function ResetPasswordForm() {
 		return (
 			<AuthShell>
 				<AuthBrand />
-				<h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">
+				<h1 className="text-2xl text-card-foreground sm:text-3xl">
 					Invalid link
 				</h1>
 				<p className="mt-2 text-sm text-muted-foreground">
@@ -70,7 +70,7 @@ function ResetPasswordForm() {
 		return (
 			<AuthShell>
 				<AuthBrand />
-				<h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">
+				<h1 className="text-2xl text-card-foreground sm:text-3xl">
 					Password reset
 				</h1>
 				<p className="mt-2 text-sm text-muted-foreground">
@@ -92,7 +92,7 @@ function ResetPasswordForm() {
 		<AuthShell>
 			<AuthBrand />
 
-			<h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">
+			<h1 className="text-2xl text-card-foreground sm:text-3xl">
 				Reset password
 			</h1>
 			<p className="mt-2 text-sm text-muted-foreground">
