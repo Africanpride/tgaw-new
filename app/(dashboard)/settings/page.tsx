@@ -1050,9 +1050,9 @@ export default function SettingsPage() {
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button
-                                    variant="outline"
+                                    variant="destructive"
                                     size="sm"
-                                    className="hover:text-destructive-foreground border-destructive/40 text-xs text-destructive hover:bg-destructive"
+                                    className="text-xs"
                                   >
                                     Log out other devices
                                   </Button>
@@ -1136,9 +1136,9 @@ export default function SettingsPage() {
                                       <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                           <Button
-                                            variant="ghost"
+                                            variant="destructive"
                                             size="sm"
-                                            className="h-7 text-xs text-destructive hover:bg-destructive/10"
+                                            className="h-7 text-xs"
                                           >
                                             Revoke
                                           </Button>
@@ -1312,9 +1312,9 @@ export default function SettingsPage() {
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button
-                                  variant="outline"
+                                  variant="destructive"
                                   size="sm"
-                                  className="hover:text-destructive-foreground mt-4 cursor-pointer border-destructive/40 text-destructive hover:bg-destructive"
+                                  className="mt-4 cursor-pointer"
                                 >
                                   Delete account
                                 </Button>

@@ -1,0 +1,77 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e2]:
+    - generic [ref=f7e5]:
+      - generic [ref=f7e6]: TGAW
+      - list [ref=f7e14]:
+        - listitem [ref=f7e15]:
+          - link "Overview" [ref=f7e16] [cursor=pointer]:
+            - /url: /overview
+        - listitem [ref=f7e22]:
+          - button "Devotion" [expanded] [ref=f7e23]
+          - list [ref=f7e30]:
+            - listitem [ref=f7e31]:
+              - link "Calendar" [ref=f7e32] [cursor=pointer]:
+                - /url: /calendar
+            - listitem [ref=f7e36]:
+              - link "Bible Reading" [ref=f7e37] [cursor=pointer]:
+                - /url: /bible
+            - listitem [ref=f7e41]:
+              - link "Prayer" [ref=f7e42] [cursor=pointer]:
+                - /url: /prayer
+            - listitem [ref=f7e48]:
+              - link "Praise & Worship" [ref=f7e49] [cursor=pointer]:
+                - /url: /worship
+        - listitem [ref=f7e56]:
+          - button "Community" [expanded] [ref=f7e57]
+          - list [ref=f7e64]:
+            - listitem [ref=f7e65]:
+              - link "Feed" [ref=f7e66] [cursor=pointer]:
+                - /url: /feed
+            - listitem [ref=f7e73]:
+              - link "Messages" [ref=f7e74] [cursor=pointer]:
+                - /url: /messages
+            - listitem [ref=f7e78]:
+              - link "Groups" [ref=f7e79] [cursor=pointer]:
+                - /url: /groups
+      - generic [ref=f7e86]:
+        - list [ref=f7e87]:
+          - listitem [ref=f7e88]:
+            - link "Help & Support" [ref=f7e89] [cursor=pointer]:
+              - /url: https://tgaw.app/help
+        - list [ref=f7e94]:
+          - listitem [ref=f7e95]:
+            - link "Documentation" [ref=f7e96] [cursor=pointer]:
+              - /url: https://tgaw.app/docs
+      - button "Toggle Sidebar" [ref=f7e101]
+    - generic [ref=f7e102]:
+      - banner [ref=f7e103]:
+        - button "Toggle Sidebar" [ref=f7e104] [cursor=pointer]
+        - navigation "breadcrumb" [ref=f7e107]:
+          - list [ref=f7e108]:
+            - listitem [ref=f7e109]:
+              - link "Dashboard" [ref=f7e110] [cursor=pointer]:
+                - /url: /overview
+            - listitem [ref=f7e111]
+            - listitem [ref=f7e114]:
+              - link "Account" [disabled] [ref=f7e115]
+            - listitem [ref=f7e116]:
+              - link "Settings" [disabled] [ref=f7e117]
+        - generic [ref=f7e118]:
+          - button "Toggle theme" [ref=f7e119] [cursor=pointer]
+          - link [ref=f7e120] [cursor=pointer]:
+            - /url: /notifications
+          - button "U" [ref=f7e121] [cursor=pointer]
+      - main [ref=f7e124]:
+        - generic [ref=f7e125]:
+          - generic [ref=f7e126]:
+            - heading "Settings" [level=1] [ref=f7e127]
+            - paragraph [ref=f7e128]: Manage your profile, preferences, and security.
+          - complementary [ref=f7e131]:
+            - navigation "Settings sections" [ref=f7e132]:
+              - tablist [ref=f7e133]:
+                - tab "Profile" [selected] [ref=f7e134] [cursor=pointer]
+                - tab "Notifications" [ref=f7e137] [cursor=pointer]
+                - tab "Appearance" [ref=f7e139] [cursor=pointer]
+                - tab "Security" [ref=f7e141] [cursor=pointer]
+                - tab "Account" [ref=f7e143] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f7e156] [cursor=pointer]

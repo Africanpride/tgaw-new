@@ -6,6 +6,7 @@ import { Bebas_Neue, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
 const geistSans = Geist({
@@ -44,6 +45,7 @@ export default function RootLayout({
 			<body>
 				<ThemeProvider>
 					<TooltipProvider>{children}</TooltipProvider>
+					<Toaster />
 				</ThemeProvider>
 			</body>
 		</html>

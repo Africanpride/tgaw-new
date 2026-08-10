@@ -9,6 +9,9 @@ const db = client.db();
 const options = {
 	appName: "TGAW",
 	database: mongodbAdapter(db, { client }),
+	session: {
+		freshAge: 0,
+	},
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: true,
