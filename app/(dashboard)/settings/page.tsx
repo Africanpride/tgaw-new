@@ -144,9 +144,9 @@ function ToggleRow({
   onCheckedChange: (checked: boolean) => void
 }) {
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="flex items-center justify-between gap-5">
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border bg-muted/50">
+        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
           <Icon className="size-4" aria-hidden="true" />
         </span>
         <div className="space-y-0.5">
@@ -174,13 +174,13 @@ function SectionHeader({
   icon: typeof UserRound
 }) {
   return (
-    <div className="flex items-start gap-3">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
+    <div className="flex items-start gap-4">
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl border bg-muted/50">
         <Icon className="size-5" aria-hidden="true" />
       </span>
       <div className="space-y-0.5">
-        <h3 className="text-base">{title}</h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <h3 className="text-base font-semibold">{title}</h3>
+        <p className="text-sm font-medium text-muted-foreground/80">{description}</p>
       </div>
     </div>
   )
@@ -536,10 +536,10 @@ export default function SettingsPage() {
     .slice(0, 2)
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl">Settings</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-2xl font-light tracking-tight">Settings</h1>
+        <p className="text-sm leading-relaxed text-muted-foreground">
           Manage your profile, preferences, and security.
         </p>
       </div>
@@ -551,7 +551,7 @@ export default function SettingsPage() {
         className="w-full"
       >
         <div className="flex w-full flex-col gap-6 lg:flex-row lg:gap-10">
-          <aside className="w-full shrink-0 lg:w-60">
+          <aside className="w-full shrink-0 lg:w-64">
             <nav aria-label="Settings sections">
               <TabsList className="flex w-full flex-col items-stretch gap-1.5 rounded-none border-none bg-transparent p-0">
                 {tabs.map((tab) => {
@@ -562,7 +562,7 @@ export default function SettingsPage() {
                       key={tab.id}
                       value={tab.id}
                       className={cn(
-                        "relative flex cursor-pointer items-center gap-3 rounded-lg px-3.5 py-3 text-left text-sm font-medium transition-all outline-none",
+                        "relative flex cursor-pointer items-center gap-3.5 rounded-xl px-4 py-3.5 text-left text-sm font-medium transition-all duration-200 outline-none",
                         "hover:bg-muted/60 hover:text-foreground",
                         "data-[state=active]:bg-transparent data-[state=active]:text-foreground",
                         "shadow-none ring-0 after:hidden data-[state=active]:shadow-none data-[state=active]:ring-0",
@@ -582,7 +582,7 @@ export default function SettingsPage() {
                       {isActive && (
                         <motion.span
                           layoutId="settings-active-indicator"
-                          className="absolute inset-0 rounded-lg bg-muted"
+                          className="absolute inset-0 rounded-xl bg-muted shadow-sm"
                           transition={{
                             type: "spring",
                             stiffness: 300,
@@ -606,7 +606,7 @@ export default function SettingsPage() {
                 animate={{ y: 0, opacity: 1 }}
                 exit={directional}
                 transition={transition}
-                className="rounded-xl border border-border bg-card p-5 sm:p-7"
+                className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8 lg:p-10"
               >
                 {isPending && activeTab === "profile" ? (
                   <div className="space-y-4" aria-busy="true">
@@ -626,7 +626,7 @@ export default function SettingsPage() {
                         <Separator />
                         <form
                           onSubmit={handleSubmit(handleSaveProfile)}
-                          className="flex flex-col gap-5"
+                          className="flex flex-col gap-6"
                         >
                           <div className="flex items-center gap-4">
                             <Avatar className="size-14 border">
@@ -658,7 +658,7 @@ export default function SettingsPage() {
                             </Button>
                           </div>
 
-                          <div className="grid gap-5 sm:grid-cols-2">
+                          <div className="grid gap-6 sm:grid-cols-2">
                             <div className="space-y-2">
                               <Label
                                 htmlFor="name"
@@ -669,7 +669,7 @@ export default function SettingsPage() {
                               <Input
                                 id="name"
                                 autoComplete="name"
-                                className="h-11"
+                                className="h-12"
                                 aria-invalid={!!errors.name}
                                 {...register("name")}
                               />
@@ -710,7 +710,7 @@ export default function SettingsPage() {
                             </Label>
                             <Input
                               id="timezone"
-                              className="h-11"
+                              className="h-12"
                               {...register("timezone")}
                             />
                             <p className="text-xs text-muted-foreground">
@@ -888,9 +888,9 @@ export default function SettingsPage() {
                         <Separator />
 
                         {/* Two factor card */}
-                        <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/30 p-4">
+                        <div className="flex items-center justify-between gap-4 rounded-xl border bg-muted/30 p-5 shadow-xs">
                           <div className="flex items-start gap-3">
-                            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-background">
+                            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-background">
                               <Shield className="size-4" aria-hidden="true" />
                             </span>
                             <div className="space-y-0.5">
@@ -965,7 +965,7 @@ export default function SettingsPage() {
                               id="current-password"
                               type="password"
                               autoComplete="current-password"
-                              className="h-11"
+                              className="h-12"
                               aria-invalid={!!pwErrors.currentPassword}
                               {...registerPw("currentPassword")}
                             />
@@ -987,7 +987,7 @@ export default function SettingsPage() {
                                 id="new-password"
                                 type="password"
                                 autoComplete="new-password"
-                                className="h-11"
+                                className="h-12"
                                 aria-invalid={!!pwErrors.newPassword}
                                 {...registerPw("newPassword")}
                               />
@@ -1008,7 +1008,7 @@ export default function SettingsPage() {
                                 id="confirm-password"
                                 type="password"
                                 autoComplete="new-password"
-                                className="h-11"
+                                className="h-12"
                                 aria-invalid={!!pwErrors.confirmPassword}
                                 {...registerPw("confirmPassword")}
                               />
@@ -1104,10 +1104,10 @@ export default function SettingsPage() {
                                 return (
                                   <div
                                     key={sessionItem.id}
-                                    className="flex items-center justify-between rounded-xl border bg-muted/10 p-3.5 text-xs"
+                                    className="flex items-center justify-between rounded-2xl border bg-muted/10 p-4 text-xs"
                                   >
                                     <div className="flex items-start gap-3">
-                                      <span className="mt-0.5 flex size-8 items-center justify-center rounded-lg border bg-muted/40">
+                                      <span className="mt-0.5 flex size-9 items-center justify-center rounded-xl border bg-muted/40">
                                         <Laptop className="size-4 text-muted-foreground" />
                                       </span>
                                       <div className="space-y-0.5">
@@ -1189,9 +1189,9 @@ export default function SettingsPage() {
                         <Separator />
                         <div className="flex flex-col gap-5">
                           {/* iCal card */}
-                          <div className="flex items-center justify-between gap-4 rounded-lg border p-4">
+                          <div className="flex items-center justify-between gap-4 rounded-xl border p-5 shadow-xs">
                             <div className="flex items-start gap-3">
-                              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-muted/50">
+                              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
                                 <KeyRound
                                   className="size-4"
                                   aria-hidden="true"
@@ -1220,9 +1220,9 @@ export default function SettingsPage() {
                           </div>
 
                           {/* GDPR Data Export card */}
-                          <div className="flex items-center justify-between gap-4 rounded-lg border p-4">
+                          <div className="flex items-center justify-between gap-4 rounded-xl border p-5 shadow-xs">
                             <div className="flex items-start gap-3">
-                              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-muted/50">
+                              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
                                 <Download
                                   className="size-4"
                                   aria-hidden="true"
@@ -1264,9 +1264,9 @@ export default function SettingsPage() {
                           </div>
 
                           {/* Sign out */}
-                          <div className="rounded-lg border p-4">
+                          <div className="rounded-xl border p-5 shadow-xs">
                             <div className="flex items-start gap-3">
-                              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-muted/50">
+                              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
                                 <XCircle
                                   className="size-4"
                                   aria-hidden="true"
@@ -1290,9 +1290,9 @@ export default function SettingsPage() {
                           </div>
 
                           {/* Danger Zone / Deletion */}
-                          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+                          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 shadow-xs">
                             <div className="flex items-start gap-3">
-                              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-destructive/30 bg-background">
+                              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-destructive/30 bg-background">
                                 <XCircle
                                   className="size-4 text-destructive"
                                   aria-hidden="true"
@@ -1406,7 +1406,7 @@ export default function SettingsPage() {
 
       {/* 2FA Enable Wizard Dialog */}
       <Dialog open={is2FAModalOpen} onOpenChange={setIs2FAModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Enable Two-Factor Authentication</DialogTitle>
             <DialogDescription>
@@ -1452,7 +1452,7 @@ export default function SettingsPage() {
               <div className="flex flex-col items-center justify-center gap-5 sm:flex-row sm:justify-start">
                 {/* Render QR code from free instant zero-dependency QR code API */}
                 {totpURI && (
-                  <div className="shrink-0 rounded-xl border bg-white p-2.5 shadow-xs">
+                  <div className="shrink-0 rounded-2xl border bg-white p-3 shadow-sm">
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(totpURI)}`}
                       alt="Two Factor QR Code"
@@ -1584,7 +1584,7 @@ export default function SettingsPage() {
 
       {/* 2FA Disable Dialog */}
       <Dialog open={isDisableModalOpen} onOpenChange={setIsDisableModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-destructive">
               Disable Two-Factor Authentication
