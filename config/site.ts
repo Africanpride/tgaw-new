@@ -2,11 +2,11 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-	name: "The Non-Stop Series",
-	shortName: "The Non-Stop Series",
+	name: "The Global Altar Watch",
+	shortName: "TGAW",
 	description:
-		"Strategic Voting, Voting Strategies, Election Strategy, Territorial Vision, Leadership Development, Governance, Sustainable Institutions, National Development, Economic Growth, Political Participation, Civic Engagement, Community Building, Social Responsibility, Ethical Leadership, Spiritual Leadership, God's Mission, Dominance Mandate, Ruling with God, Strategic Stewardship, Kingship, Priesthood, Visionary Leadership, Effective Governance, Responsible Leadership, Political Engagement, Social Impact, Community Impact, Economic Impact",
-	author: "Pius Opoku-Fofie",
+		"A Christian community platform for daily devotion, prayer, Bible reading, praise and worship, fellowship, and faith growth.",
+	author: "TGAW",
 	year: new Date().getFullYear(),
 	navItems: [
 		{
@@ -22,11 +22,9 @@ export const siteConfig = {
 	],
 
 	links: {
-		github: "https://github.com/nextui-org/nextui",
-		twitter: "https://twitter.com/getnextui",
+		github: "https://github.com",
+		twitter: "https://twitter.com",
 		facebook: "https://www.facebook.com",
-		discord: "https://discord.gg/9b6yyZKmH4",
-		sponsor: "https://patreon.com/jrgarciadev",
 	},
 };
 
@@ -44,36 +42,17 @@ export const quickLinks = [
 		href: "/cookies",
 	},
 ];
-export const affiliateMenu = [
-	{
-		label: "COSTrAD",
-		href: "https://www.costrad.org",
-	},
-	{
-		label: "GAPNET",
-		href: "https://www.gapnetwork.org",
-	},
-	{
-		label: "Logos-Rhema Foundation",
-		href: "https://www.logosrhema.org",
-	},
-];
+
 export const menuItems = [
-	{ number: "01", label: "Welcome", href: "/" },
-	{ number: "02", label: "The Book", href: "/the-book" },
-	{ number: "03", label: "The Author", href: "/the-author" },
-	{
-		number: "04",
-		label: "Strategic Voter 101",
-		href: "/strategic-voter-101",
-	},
-	// { number: '05', label: 'Events & Webinars', href: '/events-and-webinar' },
-	{ number: "05", label: "contact", href: "/contact" },
+	{ number: "01", label: "Home", href: "/" },
+	{ number: "02", label: "About", href: "/about" },
+	{ number: "03", label: "Dashboard", href: "/dashboard" },
+	{ number: "04", label: "Sign In", href: "/login" },
 ];
 
 export const shareSocial = {
-	url: "https://www.costrad.org",
-	title: "COSTrAD - By: Dr. Abu Bako",
+	url: "https://tgaw.app",
+	title: "The Global Altar Watch",
 };
 
 export const getBaseUrl = () => {
@@ -85,7 +64,6 @@ export const getBaseUrl = () => {
 	return process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 };
 
-export const email: string = "info@thenonstop.org";
-export const phone: string = "+233200201334";
-export const address: string =
-	"C/O Logos-Rhema Foundation, Behind Trade Fair, La. Accra.";
+export const email: string = "info@tgaw.app";
+export const phone: string = "";
+export const address: string = "";
