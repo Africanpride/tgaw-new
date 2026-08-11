@@ -61,7 +61,7 @@ export function NavUser() {
 							<div className="grid flex-1 text-left text-sm leading-tight">
 								<span className="truncate font-medium">{name}</span>
 								<span className="flex items-center gap-1.5 text-xs">
-									<span className="rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium capitalize text-muted-foreground">
+									<span className="rounded-sm bg-muted px-1.5 py-0.5 text-xs font-medium capitalize text-muted-foreground">
 										{role}
 									</span>
 									<span className="truncate">{email}</span>

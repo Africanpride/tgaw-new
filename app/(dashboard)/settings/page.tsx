@@ -150,7 +150,7 @@ function ToggleRow({
           <Icon className="size-4" aria-hidden="true" />
         </span>
         <div className="space-y-0.5">
-          <p className="text-sm font-medium">{title}</p>
+          <h6 className="text-sm font-medium">{title}</h6>
           <p className="text-xs text-muted-foreground">{description}</p>
         </div>
       </div>
@@ -180,7 +180,9 @@ function SectionHeader({
       </span>
       <div className="space-y-0.5">
         <h3 className="text-base font-semibold">{title}</h3>
-        <p className="text-sm font-medium text-muted-foreground/80">{description}</p>
+        <p className="text-sm font-medium text-muted-foreground/80">
+          {description}
+        </p>
       </div>
     </div>
   )
@@ -562,7 +564,7 @@ export default function SettingsPage() {
                       key={tab.id}
                       value={tab.id}
                       className={cn(
-                        "relative flex cursor-pointer items-center gap-3.5 rounded-xl px-4 py-3.5 text-left text-sm font-medium transition-all duration-200 outline-none",
+                        "relative flex cursor-pointer items-center justify-start gap-3.5 rounded-xl px-4 py-3.5 text-left text-sm font-medium transition-all duration-200 outline-none",
                         "hover:bg-muted/60 hover:text-foreground",
                         "data-[state=active]:bg-transparent data-[state=active]:text-foreground",
                         "shadow-none ring-0 after:hidden data-[state=active]:shadow-none data-[state=active]:ring-0",
@@ -606,7 +608,7 @@ export default function SettingsPage() {
                 animate={{ y: 0, opacity: 1 }}
                 exit={directional}
                 transition={transition}
-                className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8 lg:p-10"
+                className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-6 lg:p-10"
               >
                 {isPending && activeTab === "profile" ? (
                   <div className="space-y-4" aria-busy="true">
@@ -637,13 +639,13 @@ export default function SettingsPage() {
                               <AvatarFallback>{initials}</AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col gap-1">
-                              <p className="text-sm font-medium">{name}</p>
+                              <h6 className="text-sm font-medium">{name}</h6>
                               <p className="text-xs text-muted-foreground">
                                 {email}
                               </p>
                               <Badge
                                 variant="secondary"
-                                className="mt-0.5 w-fit text-[10px] capitalize"
+                                className="mt-0.5 w-fit text-xs capitalize"
                               >
                                 {role}
                               </Badge>
@@ -741,9 +743,9 @@ export default function SettingsPage() {
                         <Separator />
                         <div className="flex flex-col gap-5">
                           <div>
-                            <p className="mb-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                            <h6 className="mb-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                               Email
-                            </p>
+                            </h6>
                             <div className="flex flex-col gap-5">
                               <ToggleRow
                                 id="email-new-message"
@@ -788,9 +790,9 @@ export default function SettingsPage() {
                           </div>
                           <Separator />
                           <div>
-                            <p className="mb-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                            <h6 className="mb-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                               Browser push
-                            </p>
+                            </h6>
                             <div className="flex flex-col gap-5">
                               <ToggleRow
                                 id="push-new-message"
@@ -894,9 +896,9 @@ export default function SettingsPage() {
                               <Shield className="size-4" aria-hidden="true" />
                             </span>
                             <div className="space-y-0.5">
-                              <p className="text-sm font-medium">
+                              <h6 className="text-sm font-medium">
                                 Two-factor authentication
-                              </p>
+                              </h6>
                               <p className="text-xs text-muted-foreground">
                                 Add an extra layer of security with an
                                 authenticator app.
@@ -1039,9 +1041,7 @@ export default function SettingsPage() {
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
-                              <h4 className="text-sm">
-                                Active Sessions
-                              </h4>
+                              <h4 className="text-sm">Active Sessions</h4>
                               <p className="text-xs text-muted-foreground">
                                 Devices currently logged into TGAW.
                               </p>
@@ -1116,12 +1116,12 @@ export default function SettingsPage() {
                                             {device} • {browser}
                                           </span>
                                           {isCurrent && (
-                                            <Badge className="h-4 border-none bg-primary/10 px-1 py-0 text-[9px] text-primary">
+                                            <Badge className="h-4 border-none bg-primary/10 px-1 py-0 text-xs text-primary">
                                               Current
                                             </Badge>
                                           )}
                                         </div>
-                                        <p className="text-[10px] text-muted-foreground">
+                                        <p className="text-xs text-muted-foreground">
                                           IP:{" "}
                                           {sessionItem.ipAddress ||
                                             "Unknown IP"}{" "}
@@ -1198,9 +1198,9 @@ export default function SettingsPage() {
                                 />
                               </span>
                               <div className="space-y-0.5">
-                                <p className="text-sm font-medium">
+                                <h6 className="text-sm font-medium">
                                   iCal calendar feed
-                                </p>
+                                </h6>
                                 <p className="text-xs text-muted-foreground">
                                   Regenerate your private feed token to log out
                                   all calendar apps.
@@ -1229,9 +1229,9 @@ export default function SettingsPage() {
                                 />
                               </span>
                               <div className="space-y-0.5">
-                                <p className="text-sm font-medium">
+                                <h6 className="text-sm font-medium">
                                   Download your data
-                                </p>
+                                </h6>
                                 <p className="text-xs text-muted-foreground">
                                   Get a full copy of your posts, messages,
                                   bookmarks, and calendar bookings.
@@ -1273,7 +1273,9 @@ export default function SettingsPage() {
                                 />
                               </span>
                               <div className="space-y-0.5">
-                                <p className="text-sm font-medium">Sign out</p>
+                                <h6 className="text-sm font-medium">
+                                  Sign out
+                                </h6>
                                 <p className="text-xs text-muted-foreground">
                                   Sign out of TGAW on this browser session.
                                 </p>
@@ -1299,9 +1301,9 @@ export default function SettingsPage() {
                                 />
                               </span>
                               <div className="space-y-0.5">
-                                <p className="text-sm font-medium text-destructive">
+                                <h6 className="text-sm font-medium text-destructive">
                                   Delete account
-                                </p>
+                                </h6>
                                 <p className="text-xs text-muted-foreground">
                                   Permanently remove your account and all
                                   associated data from TGAW.

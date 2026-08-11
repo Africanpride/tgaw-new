@@ -70,7 +70,7 @@ export default function NotificationsPage() {
 									}`}
 								>
 									<div className="flex-1">
-										<p className="text-sm font-medium">{n.title}</p>
+										<h6 className="text-sm font-medium">{n.title}</h6>
 										<p className="text-xs text-muted-foreground">{n.body}</p>
 										<p className="mt-1 text-xs text-muted-foreground">
 											{new Date(n.createdAt).toLocaleDateString()}

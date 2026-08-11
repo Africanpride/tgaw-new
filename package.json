@@ -4,7 +4,7 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
-		"dev": "tsx --env-file=.env server.ts",
+		"dev": "NODE_OPTIONS='--dns-result-order=ipv4first' tsx --env-file=.env server.ts",
 		"build": "next build",
 		"start": "NODE_ENV=production tsx server.ts",
 		"lint": "eslint",

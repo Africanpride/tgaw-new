@@ -168,7 +168,7 @@ export default function TabsScrollSwitch() {
                           </h3>
                         </div>
                       </div>
-                      <span className="text-[11px] text-muted-foreground font-mono border border-border rounded px-2 py-0.5 mt-0.5 shrink-0">
+                      <span className="text-xs text-muted-foreground font-mono border border-border rounded px-2 py-0.5 mt-0.5 shrink-0">
                         {tab.status}
                       </span>
                     </div>
@@ -180,7 +180,7 @@ export default function TabsScrollSwitch() {
                       {tab.stats.map((s) => (
                         <div key={s.label}>
                           <div className="text-2xl font-bold tracking-tight text-foreground tabular-nums">{s.value}</div>
-                          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mt-1 font-medium">{s.label}</div>
+                          <div className="text-xs uppercase tracking-wide text-muted-foreground mt-1 font-medium">{s.label}</div>
                         </div>
                       ))}
                     </div>

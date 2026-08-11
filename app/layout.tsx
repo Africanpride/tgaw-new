@@ -1,6 +1,7 @@
 // THIS IS THE ROOT LAYOUT (LANDING + AUTH)
 // THE DASHBOARD LAYOUT IS IN app/(dashboard)/layout.tsx
 
+import type { Metadata } from "next";
 import { Bebas_Neue, Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
@@ -8,6 +9,14 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+
+export const metadata: Metadata = {
+	title: "The Global Altar Watch",
+	description: "8 Gates of Society — Isaiah 19 Highway",
+	icons: {
+		icon: "/images/logo.png",
+	},
+};
 
 const geistSans = Geist({
 	subsets: ["latin"],
