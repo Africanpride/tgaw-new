@@ -49,7 +49,38 @@ export async function changePassword(input: {
 		return { success: true as const };
 	} catch (err) {
 		const message =
-			err instanceof Error ? err.message : "Could not update password";
+			err instanceof Error ? err.message : "Could not delete account";
+		return { success: false as const, error: message };
+	}
+}
+
+const setPasswordSchema = z.object({
+	newPassword: z.string().min(8, "Use at least 8 characters"),
+});
+
+export async function setPassword(input: { newPassword: string }) {
+	const validation = setPasswordSchema.safeParse(input);
+	if (!validation.success) {
+		return {
+			success: false as const,
+			error: validation.error.issues[0]?.message || "Validation failed",
+		};
+	}
+
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (!session?.user) return { success: false as const, error: "Unauthorised" };
+
+	try {
+		await auth.api.setPassword({
+			body: {
+				newPassword: validation.data.newPassword,
+			},
+			headers: await headers(),
+		});
+		return { success: true as const };
+	} catch (err) {
+		const message =
+			err instanceof Error ? err.message : "Could not set password";
 		return { success: false as const, error: message };
 	}
 }

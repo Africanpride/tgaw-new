@@ -65,6 +65,7 @@ import {
   revokeOtherSessions,
   revokeSession,
   saveNotificationPrefs,
+  setPassword,
 } from "@/lib/actions/settingsActions"
 
 const profileSchema = z.object({
@@ -229,6 +230,7 @@ export default function SettingsPage() {
   const email = user?.email ?? ""
   const role = (user?.role as string) ?? "member"
   const twoFactorEnabled = !!(user as any)?.twoFactorEnabled
+  const hasPassword = !!(user as any)?.hasPassword
 
   const [activeTab, setActiveTab] = useState<TabId>("profile")
   const [direction, setDirection] = useState(1)
@@ -266,6 +268,11 @@ export default function SettingsPage() {
   const [deletePassword, setDeleteAccountPassword] = useState("")
   const [deleteConfirmation, setDeleteConfirmation] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Set password state (for OAuth users without a password)
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmNewPassword, setConfirmNewPassword] = useState("")
+  const [isSettingPassword, setIsSettingPassword] = useState(false)
 
   const reduceMotion = useReducedMotion()
   const { theme, setTheme } = useTheme()
@@ -366,6 +373,28 @@ export default function SettingsPage() {
       toast.success("Password changed successfully")
     } else {
       toast.error(res.error || "Failed to update password")
+    }
+  }
+
+  const handleSetPassword = async () => {
+    if (newPassword !== confirmNewPassword) {
+      toast.error("Passwords do not match")
+      return
+    }
+    if (newPassword.length < 8) {
+      toast.error("Use at least 8 characters")
+      return
+    }
+    setIsSettingPassword(true)
+    const res = await setPassword({ newPassword })
+    setIsSettingPassword(false)
+    if (res.success) {
+      toast.success("Password set successfully")
+      setNewPassword("")
+      setConfirmNewPassword("")
+      refetchSession()
+    } else {
+      toast.error(res.error || "Failed to set password")
     }
   }
 
@@ -951,89 +980,150 @@ export default function SettingsPage() {
                           </div>
                         </div>
 
-                        {/* Change Password form */}
-                        <form
-                          onSubmit={handleSubmitPw(handleChangePassword)}
-                          className="flex flex-col gap-5"
-                        >
-                          <div className="space-y-2">
-                            <Label
-                              htmlFor="current-password"
-                              className="text-sm text-muted-foreground"
-                            >
-                              Current password
-                            </Label>
-                            <Input
-                              id="current-password"
-                              type="password"
-                              autoComplete="current-password"
-                              className="h-12"
-                              aria-invalid={!!pwErrors.currentPassword}
-                              {...registerPw("currentPassword")}
-                            />
-                            {pwErrors.currentPassword && (
-                              <p className="text-xs text-destructive">
-                                {pwErrors.currentPassword.message}
+                        {/* Password form — Set or Change */}
+                        {hasPassword ? (
+                          <form
+                            onSubmit={handleSubmitPw(handleChangePassword)}
+                            className="flex flex-col gap-5"
+                          >
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="current-password"
+                                className="text-sm text-muted-foreground"
+                              >
+                                Current password
+                              </Label>
+                              <Input
+                                id="current-password"
+                                type="password"
+                                autoComplete="current-password"
+                                className="h-12"
+                                aria-invalid={!!pwErrors.currentPassword}
+                                {...registerPw("currentPassword")}
+                              />
+                              {pwErrors.currentPassword && (
+                                <p className="text-xs text-destructive">
+                                  {pwErrors.currentPassword.message}
+                                </p>
+                              )}
+                            </div>
+                            <div className="grid gap-5 sm:grid-cols-2">
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="new-password"
+                                  className="text-sm text-muted-foreground"
+                                >
+                                  New password
+                                </Label>
+                                <Input
+                                  id="new-password"
+                                  type="password"
+                                  autoComplete="new-password"
+                                  className="h-12"
+                                  aria-invalid={!!pwErrors.newPassword}
+                                  {...registerPw("newPassword")}
+                                />
+                                {pwErrors.newPassword && (
+                                  <p className="text-xs text-destructive">
+                                    {pwErrors.newPassword.message}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="confirm-password"
+                                  className="text-sm text-muted-foreground"
+                                >
+                                  Confirm new password
+                                </Label>
+                                <Input
+                                  id="confirm-password"
+                                  type="password"
+                                  autoComplete="new-password"
+                                  className="h-12"
+                                  aria-invalid={!!pwErrors.confirmPassword}
+                                  {...registerPw("confirmPassword")}
+                                />
+                                {pwErrors.confirmPassword && (
+                                  <p className="text-xs text-destructive">
+                                    {pwErrors.confirmPassword.message}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex justify-end">
+                              <Button
+                                type="submit"
+                                variant="outline"
+                                disabled={isSubmittingPw}
+                                className="cursor-pointer"
+                              >
+                                {isSubmittingPw
+                                  ? "Updating..."
+                                  : "Update password"}
+                              </Button>
+                            </div>
+                          </form>
+                        ) : (
+                          <div className="flex flex-col gap-5">
+                            <div className="rounded-xl border border-dashed border-muted-foreground/25 bg-muted/30 p-4">
+                              <p className="text-sm text-muted-foreground">
+                                You signed in with an OAuth provider and
+                                don&apos;t have a password yet. Set one so you
+                                can also log in with email and password.
                               </p>
-                            )}
-                          </div>
-                          <div className="grid gap-5 sm:grid-cols-2">
-                            <div className="space-y-2">
-                              <Label
-                                htmlFor="new-password"
-                                className="text-sm text-muted-foreground"
-                              >
-                                New password
-                              </Label>
-                              <Input
-                                id="new-password"
-                                type="password"
-                                autoComplete="new-password"
-                                className="h-12"
-                                aria-invalid={!!pwErrors.newPassword}
-                                {...registerPw("newPassword")}
-                              />
-                              {pwErrors.newPassword && (
-                                <p className="text-xs text-destructive">
-                                  {pwErrors.newPassword.message}
-                                </p>
-                              )}
                             </div>
-                            <div className="space-y-2">
-                              <Label
-                                htmlFor="confirm-password"
-                                className="text-sm text-muted-foreground"
+                            <div className="grid gap-5 sm:grid-cols-2">
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="set-new-password"
+                                  className="text-sm text-muted-foreground"
+                                >
+                                  New password
+                                </Label>
+                                <Input
+                                  id="set-new-password"
+                                  type="password"
+                                  autoComplete="new-password"
+                                  className="h-12"
+                                  value={newPassword}
+                                  onChange={(e) => setNewPassword(e.target.value)}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label
+                                  htmlFor="set-confirm-password"
+                                  className="text-sm text-muted-foreground"
+                                >
+                                  Confirm new password
+                                </Label>
+                                <Input
+                                  id="set-confirm-password"
+                                  type="password"
+                                  autoComplete="new-password"
+                                  className="h-12"
+                                  value={confirmNewPassword}
+                                  onChange={(e) =>
+                                    setConfirmNewPassword(e.target.value)
+                                  }
+                                />
+                              </div>
+                            </div>
+                            <div className="flex justify-end">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                disabled={isSettingPassword}
+                                className="cursor-pointer"
+                                onClick={handleSetPassword}
                               >
-                                Confirm new password
-                              </Label>
-                              <Input
-                                id="confirm-password"
-                                type="password"
-                                autoComplete="new-password"
-                                className="h-12"
-                                aria-invalid={!!pwErrors.confirmPassword}
-                                {...registerPw("confirmPassword")}
-                              />
-                              {pwErrors.confirmPassword && (
-                                <p className="text-xs text-destructive">
-                                  {pwErrors.confirmPassword.message}
-                                </p>
-                              )}
+                                {isSettingPassword
+                                  ? "Setting..."
+                                  : "Set password"}
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex justify-end">
-                            <Button
-                              type="submit"
-                              variant="outline"
-                              disabled={isSubmittingPw}
-                              className="cursor-pointer"
-                            >
-                              {isSubmittingPw
-                                ? "Updating..."
-                                : "Update password"}
-                            </Button>
-                          </div>
-                        </form>
+                        )}
 
                         <Separator />
 

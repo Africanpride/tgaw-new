@@ -54,6 +54,7 @@ export const auth = betterAuth({
         user: {
           ...user,
           image: user.image ?? null,
+          hasPassword: !!(user as any).passwordHash,
         },
         session,
       }
