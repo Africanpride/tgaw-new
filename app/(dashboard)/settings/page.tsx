@@ -622,7 +622,7 @@ export default function SettingsPage() {
                       <div className="flex flex-col gap-6">
                         <SectionHeader
                           title="Profile"
-                          description="This is how other members see you."
+                          description="Update your display name and photo — this is what other community members see when they interact with you in groups, messages, and posts."
                           icon={UserRound}
                         />
                         <Separator />
@@ -737,7 +737,7 @@ export default function SettingsPage() {
                       <div className="flex flex-col gap-6">
                         <SectionHeader
                           title="Notifications"
-                          description="Control which notifications you receive."
+                          description="Choose how and when TGAW reaches you — pick between email alerts and browser push notifications for new messages, prayer updates, and important community broadcasts."
                           icon={Bell}
                         />
                         <Separator />
@@ -839,7 +839,7 @@ export default function SettingsPage() {
                       <div className="flex flex-col gap-6">
                         <SectionHeader
                           title="Appearance"
-                          description="Choose how TGAW looks on this device."
+                          description="Switch between light, dark, or system-default theme to match your preference or device settings."
                           icon={Palette}
                         />
                         <Separator />
@@ -884,7 +884,7 @@ export default function SettingsPage() {
                       <div className="flex flex-col gap-6">
                         <SectionHeader
                           title="Security"
-                          description="Keep your account safe and secure."
+                          description="Change your password, enable two-factor authentication for extra protection, and manage the devices currently signed into your account."
                           icon={ShieldCheck}
                         />
                         <Separator />
@@ -1183,7 +1183,7 @@ export default function SettingsPage() {
                       <div className="flex flex-col gap-6">
                         <SectionHeader
                           title="Account"
-                          description="Manage your account data and sign out."
+                          description="Export your data, manage your calendar feed, or permanently delete your account and all associated information."
                           icon={CircleUserRound}
                         />
                         <Separator />

@@ -51,7 +51,7 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 		function onKeyDown(e: KeyboardEvent) {
 			if (e.defaultPrevented || e.repeat || e.metaKey || e.ctrlKey || e.altKey)
 				return;
-			if (e.key.toLowerCase() !== "d") return;
+			if (e.key?.toLowerCase() !== "d") return;
 			if (isTypingTarget(e.target)) return;
 			setThemeState((prev) => {
 				const next = resolvedTheme === "dark" ? "light" : "dark";

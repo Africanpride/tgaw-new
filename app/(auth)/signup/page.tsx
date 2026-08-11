@@ -8,8 +8,8 @@ import { z } from "zod";
 import {
 	AuthBrand,
 	AuthShell,
-	GithubIcon,
 	GoogleIcon,
+	MicrosoftIcon,
 } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,9 +49,9 @@ export default function SignUpPage() {
 		}
 	}
 
-	async function handleGithub() {
+	async function handleMicrosoft() {
 		await authClient.signIn.social({
-			provider: "github",
+			provider: "microsoft",
 			callbackURL: "/overview",
 		});
 	}
@@ -179,11 +179,11 @@ export default function SignUpPage() {
 				<Button
 					variant="outline"
 					type="button"
-					onClick={handleGithub}
+					onClick={handleMicrosoft}
 					className="h-11 w-full cursor-pointer justify-center gap-2 border-input bg-background text-foreground hover:bg-accent"
 				>
-					<GithubIcon />
-					Continue with Github
+					<MicrosoftIcon />
+					Continue with Microsoft
 				</Button>
 			</div>
 		</AuthShell>
