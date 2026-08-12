@@ -355,27 +355,23 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
           >
             <Label
               htmlFor="sex-male"
-              className={`cursor-pointer relative flex w-full flex-col items-center gap-3 rounded-md border p-5 shadow-xs transition hover:bg-accent ${sex === "male" ? "border-primary bg-primary/10 ring-2 ring-primary/20" : "border-input"}`}
+              className={`cursor-pointer relative flex w-full flex-col items-center gap-3 rounded-md border-2 p-5 shadow-xs transition-all duration-200 ${sex === "male" ? "border-primary bg-primary/5 shadow-primary/10" : "border-border hover:border-primary/50"}`}
             >
               <div className="w-full flex items-center justify-between">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={sex === "male" ? "text-primary" : "text-muted-foreground"} aria-hidden="true"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="16"/><path d="M12 16l4 4"/><path d="M16 20h4v-4"/></svg>
-                <div className="bg-background p-px rounded-full">
-                  <RadioGroupItem value="male" id="sex-male" />
-                </div>
+                <RadioGroupItem value="male" id="sex-male" className={sex === "male" ? "border-primary bg-primary data-checked:border-primary data-checked:bg-primary" : ""} />
               </div>
-              <span className={`text-base font-medium ${sex === "male" ? "text-primary" : ""}`}>Male</span>
+              <span className={`text-base font-medium ${sex === "male" ? "text-primary" : "text-foreground"}`}>Male</span>
             </Label>
             <Label
               htmlFor="sex-female"
-              className={`cursor-pointer relative flex w-full flex-col items-center gap-3 rounded-md border p-5 shadow-xs transition hover:bg-accent ${sex === "female" ? "border-primary bg-primary/10 ring-2 ring-primary/20" : "border-input"}`}
+              className={`cursor-pointer relative flex w-full flex-col items-center gap-3 rounded-md border-2 p-5 shadow-xs transition-all duration-200 ${sex === "female" ? "border-primary bg-primary/5 shadow-primary/10" : "border-border hover:border-primary/50"}`}
             >
               <div className="w-full flex items-center justify-between">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={sex === "female" ? "text-pink-500" : "text-muted-foreground"} aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-                <div className="bg-background p-px rounded-full">
-                  <RadioGroupItem value="female" id="sex-female" />
-                </div>
+                <RadioGroupItem value="female" id="sex-female" className={sex === "female" ? "border-primary bg-primary data-checked:border-primary data-checked:bg-primary" : ""} />
               </div>
-              <span className={`text-base font-medium ${sex === "female" ? "text-primary" : ""}`}>Female</span>
+              <span className={`text-base font-medium ${sex === "female" ? "text-primary" : "text-foreground"}`}>Female</span>
             </Label>
           </RadioGroup>
           {formState.errors.sex && (
