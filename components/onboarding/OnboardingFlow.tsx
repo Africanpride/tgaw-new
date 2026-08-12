@@ -78,9 +78,9 @@ export function OnboardingFlow({
 
   return (
     <div className="bg-background">
-      <div className="grid min-h-screen md:grid-cols-2">
+      <div className="grid min-h-screen md:grid-cols-5">
         {/* Cover panel */}
-        <div className="relative hidden overflow-hidden md:block">
+        <div className="relative hidden overflow-hidden md:col-span-2 md:block">
           <Image
             src="/onboarding.jpg"
             alt="Community fellowship"
@@ -101,7 +101,7 @@ export function OnboardingFlow({
         </div>
 
         {/* Form panel */}
-        <div className="flex flex-col">
+        <div className="flex flex-col md:col-span-3">
           {/* Mobile brand bar */}
           <div className="flex items-center gap-2 border-b px-6 py-4 md:hidden">
             <div className="flex size-7 items-center justify-center rounded-md bg-primary/10">
