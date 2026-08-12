@@ -28,6 +28,9 @@ const options = {
       enabled: true,
     },
   },
+  onAPIError: {
+    errorURL: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/auth/error`,
+  },
   socialProviders: {
     microsoft: {
       clientId: process.env.MICROSOFT_CLIENT_ID as string,

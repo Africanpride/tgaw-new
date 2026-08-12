@@ -12,7 +12,12 @@ import {
 } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 
-export default async function BannedPage() {
+export default async function BannedPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ reason?: string }>;
+}) {
+	const sp = await searchParams;
 	const session = await auth.api.getSession({ headers: await headers() });
 
 	const user = session?.user as
@@ -25,7 +30,9 @@ export default async function BannedPage() {
 		| undefined;
 
 	const banReason =
-		user?.banReason ?? "Your account has been banned by an administrator.";
+		sp.reason ??
+		user?.banReason ??
+		"Your account has been banned by an administrator.";
 
 	let banExpiresText: string | null = null;
 	if (user?.banExpires) {
