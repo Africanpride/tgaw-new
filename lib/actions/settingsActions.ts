@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { authClient } from "@/lib/auth-client";
 import { prisma } from "@/lib/db/prisma";
 
 const notificationPrefsSchema = z.object({
@@ -220,4 +221,84 @@ export async function deleteAccount(input: { password: string }) {
 		}
 		return { success: false as const, error: message };
 	}
+}
+
+const updateProfileSchema = z.object({
+	name: z.string().min(2, "Name must be at least 2 characters"),
+	phone: z
+		.string()
+		.min(7, "Enter a valid phone number")
+		.regex(/^\+?[0-9\s-]+$/, "Digits only, may start with +"),
+	country: z.string().min(1, "Select a country"),
+	sex: z.enum(["male", "female"], { message: "Select an option" }),
+	ageRange: z.enum(
+		["under-18", "18-24", "25-34", "35-44", "45-54", "55-64", "65-plus"],
+		{ message: "Select an age range" }
+	),
+	timezone: z.string().min(1, "Select your time zone"),
+});
+
+export type UpdateProfileValues = z.infer<typeof updateProfileSchema>;
+
+export async function getProfile() {
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (!session?.user) return { success: false as const, error: "Unauthorised" };
+
+	const profile = await prisma.userProfile.findUnique({
+		where: { userId: session.user.id! },
+	});
+
+	return {
+		success: true as const,
+		name: session.user.name ?? "",
+		profile: profile
+			? {
+					phone: profile.phone,
+					country: profile.country,
+					sex: profile.sex as "male" | "female",
+					ageRange: profile.ageRange as UpdateProfileValues["ageRange"],
+					timezone: profile.timezone,
+				}
+			: null,
+	};
+}
+
+export async function updateProfile(input: UpdateProfileValues) {
+	const validation = updateProfileSchema.safeParse(input);
+	if (!validation.success) {
+		return {
+			success: false as const,
+			error: validation.error.issues[0]?.message || "Validation failed",
+		};
+	}
+
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (!session?.user) return { success: false as const, error: "Unauthorised" };
+
+	const userId = session.user.id!;
+	const { name, phone, country, sex, ageRange, timezone } = validation.data;
+
+	try {
+		await authClient.updateUser({ name });
+	} catch {
+		// OAuth users may not have a Prisma User record — continue
+	}
+
+	const existing = await prisma.userProfile.findUnique({
+		where: { userId },
+	});
+
+	if (existing) {
+		await prisma.userProfile.update({
+			where: { userId },
+			data: { phone, country, sex, ageRange, timezone },
+		});
+	} else {
+		await prisma.userProfile.create({
+			data: { userId, phone, country, sex, ageRange, timezone },
+		});
+	}
+
+	revalidatePath("/settings");
+	return { success: true as const };
 }

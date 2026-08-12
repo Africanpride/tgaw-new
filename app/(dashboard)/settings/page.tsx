@@ -35,6 +35,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { authClient, signOut, useSession } from "@/lib/auth-client"
@@ -61,16 +68,28 @@ import {
   changePassword,
   deleteAccount,
   getNotificationPrefs,
+  getProfile,
   listSessions,
   revokeOtherSessions,
   revokeSession,
   saveNotificationPrefs,
   setPassword,
+  updateProfile,
 } from "@/lib/actions/settingsActions"
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Enter a valid email address"),
+  phone: z
+    .string()
+    .min(7, "Enter a valid phone number")
+    .regex(/^\+?[0-9\s-]+$/, "Digits only, may start with +"),
+  country: z.string().min(1, "Select a country"),
+  sex: z.enum(["male", "female"], { message: "Select an option" }),
+  ageRange: z.enum(
+    ["under-18", "18-24", "25-34", "35-44", "45-54", "55-64", "65-plus"],
+    { message: "Select an age range" }
+  ),
   timezone: z.string().min(1, "Select a timezone"),
 })
 
@@ -88,6 +107,46 @@ const passwordSchema = z
   })
 
 type PasswordForm = z.infer<typeof passwordSchema>
+
+const COUNTRIES = [
+  "Ghana",
+  "Nigeria",
+  "United States",
+  "United Kingdom",
+  "South Africa",
+  "Kenya",
+  "Other",
+]
+
+const TIMEZONE_OPTIONS = [
+  { value: "Pacific/Honolulu", label: "(GMT-10:00) Honolulu" },
+  { value: "America/Los_Angeles", label: "(GMT-08:00) Los Angeles" },
+  { value: "America/Denver", label: "(GMT-07:00) Denver" },
+  { value: "America/Chicago", label: "(GMT-06:00) Chicago" },
+  { value: "America/New_York", label: "(GMT-05:00) New York" },
+  { value: "UTC", label: "(GMT+00:00) UTC" },
+  { value: "Europe/London", label: "(GMT+00:00) London" },
+  { value: "Africa/Accra", label: "(GMT+00:00) Accra" },
+  { value: "Africa/Lagos", label: "(GMT+01:00) Lagos" },
+  { value: "Europe/Berlin", label: "(GMT+01:00) Berlin" },
+  { value: "Africa/Johannesburg", label: "(GMT+02:00) Johannesburg" },
+  { value: "Africa/Nairobi", label: "(GMT+03:00) Nairobi" },
+  { value: "Asia/Dubai", label: "(GMT+04:00) Dubai" },
+  { value: "Asia/Kolkata", label: "(GMT+05:30) Kolkata" },
+  { value: "Asia/Singapore", label: "(GMT+08:00) Singapore" },
+  { value: "Asia/Tokyo", label: "(GMT+09:00) Tokyo" },
+  { value: "Australia/Sydney", label: "(GMT+10:00) Sydney" },
+]
+
+const AGE_RANGES = [
+  "under-18",
+  "18-24",
+  "25-34",
+  "35-44",
+  "45-54",
+  "55-64",
+  "65-plus",
+] as const
 
 type TabId = "profile" | "notifications" | "appearance" | "security" | "account"
 
@@ -274,8 +333,30 @@ export default function SettingsPage() {
   const [confirmNewPassword, setConfirmNewPassword] = useState("")
   const [isSettingPassword, setIsSettingPassword] = useState(false)
 
+  // Profile data from UserProfile
+  const [profileData, setProfileData] = useState<{
+    phone: string
+    country: string
+    sex: "male" | "female"
+    ageRange: "under-18" | "18-24" | "25-34" | "35-44" | "45-54" | "55-64" | "65-plus"
+    timezone: string
+  } | null>(null)
+  const [isProfileLoading, setIsProfileLoading] = useState(true)
+
   const reduceMotion = useReducedMotion()
   const { theme, setTheme } = useTheme()
+
+  // Load profile data on mount
+  useEffect(() => {
+    setIsProfileLoading(true)
+    getProfile()
+      .then((res) => {
+        if (res.success && res.profile) {
+          setProfileData(res.profile)
+        }
+      })
+      .finally(() => setIsProfileLoading(false))
+  }, [])
 
   // Load preferences and sessions on tab change / mount
   useEffect(() => {
@@ -307,11 +388,29 @@ export default function SettingsPage() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name, email, timezone: "UTC" },
-    values: { name, email, timezone: "UTC" },
+    defaultValues: {
+      name,
+      email,
+      phone: "",
+      country: "",
+      sex: "male",
+      ageRange: "25-34",
+      timezone: "UTC",
+    },
+    values: {
+      name,
+      email,
+      phone: profileData?.phone ?? "",
+      country: profileData?.country ?? "",
+      sex: profileData?.sex ?? "male",
+      ageRange: profileData?.ageRange ?? "25-34",
+      timezone: profileData?.timezone ?? "UTC",
+    },
   })
 
   const {
@@ -332,11 +431,20 @@ export default function SettingsPage() {
 
   const handleSaveProfile = async (data: ProfileForm) => {
     try {
-      await authClient.updateUser({
+      const res = await updateProfile({
         name: data.name,
+        phone: data.phone,
+        country: data.country,
+        sex: data.sex,
+        ageRange: data.ageRange,
+        timezone: data.timezone,
       })
-      await refetchSession()
-      toast.success("Profile updated")
+      if (res.success) {
+        await refetchSession()
+        toast.success("Profile updated")
+      } else {
+        toast.error(res.error || "Failed to update profile")
+      }
     } catch (err) {
       toast.error("Failed to update profile details")
     }
@@ -735,6 +843,131 @@ export default function SettingsPage() {
                             </div>
                           </div>
 
+                          <div className="grid gap-6 sm:grid-cols-2">
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="phone"
+                                className="text-sm text-muted-foreground"
+                              >
+                                Phone number
+                              </Label>
+                              <Input
+                                id="phone"
+                                type="tel"
+                                autoComplete="tel"
+                                placeholder="+233 20 000 0000"
+                                className="h-12"
+                                aria-invalid={!!errors.phone}
+                                {...register("phone")}
+                              />
+                              {errors.phone && (
+                                <p className="text-xs text-destructive">
+                                  {errors.phone.message}
+                                </p>
+                              )}
+                            </div>
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="country"
+                                className="text-sm text-muted-foreground"
+                              >
+                                Country
+                              </Label>
+                              <Select
+                                value={watch("country") ?? ""}
+                                onValueChange={(v) => {
+                                  if (v) setValue("country", v, { shouldValidate: true })
+                                }}
+                              >
+                                <SelectTrigger
+                                  id="country"
+                                  className="h-12"
+                                  aria-invalid={!!errors.country}
+                                >
+                                  <SelectValue placeholder="Select your country" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {COUNTRIES.map((c) => (
+                                    <SelectItem key={c} value={c}>
+                                      {c}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              {errors.country && (
+                                <p className="text-xs text-destructive">
+                                  {errors.country.message}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="grid gap-6 sm:grid-cols-2">
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">
+                                Sex
+                              </Label>
+                              <Select
+                                value={watch("sex")}
+                                onValueChange={(v) =>
+                                  setValue("sex", v as "male" | "female", {
+                                    shouldValidate: true,
+                                  })
+                                }
+                              >
+                                <SelectTrigger
+                                  className="h-12"
+                                  aria-invalid={!!errors.sex}
+                                >
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="male">Male</SelectItem>
+                                  <SelectItem value="female">Female</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {errors.sex && (
+                                <p className="text-xs text-destructive">
+                                  {errors.sex.message}
+                                </p>
+                              )}
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">
+                                Age range
+                              </Label>
+                              <Select
+                                value={watch("ageRange")}
+                                onValueChange={(v) =>
+                                  setValue(
+                                    "ageRange",
+                                    v as ProfileForm["ageRange"],
+                                    { shouldValidate: true }
+                                  )
+                                }
+                              >
+                                <SelectTrigger
+                                  className="h-12"
+                                  aria-invalid={!!errors.ageRange}
+                                >
+                                  <SelectValue placeholder="Select age range" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {AGE_RANGES.map((r) => (
+                                    <SelectItem key={r} value={r}>
+                                      {r.replace("-", "\u2013")}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              {errors.ageRange && (
+                                <p className="text-xs text-destructive">
+                                  {errors.ageRange.message}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
                           <div className="space-y-2">
                             <Label
                               htmlFor="timezone"
@@ -742,14 +975,35 @@ export default function SettingsPage() {
                             >
                               Timezone
                             </Label>
-                            <Input
-                              id="timezone"
-                              className="h-12"
-                              {...register("timezone")}
-                            />
+                            <Select
+                              value={watch("timezone") ?? ""}
+                              onValueChange={(v) => {
+                                if (v) setValue("timezone", v, { shouldValidate: true })
+                              }}
+                            >
+                              <SelectTrigger
+                                id="timezone"
+                                className="h-12"
+                                aria-invalid={!!errors.timezone}
+                              >
+                                <SelectValue placeholder="Select your time zone" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {TIMEZONE_OPTIONS.map((tz) => (
+                                  <SelectItem key={tz.value} value={tz.value}>
+                                    {tz.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <p className="text-xs text-muted-foreground">
                               Used for slot reminders and the calendar.
                             </p>
+                            {errors.timezone && (
+                              <p className="text-xs text-destructive">
+                                {errors.timezone.message}
+                              </p>
+                            )}
                           </div>
 
                           <div className="flex justify-end">
