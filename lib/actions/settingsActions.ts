@@ -258,7 +258,7 @@ export async function getProfile() {
 
 	return {
 		success: true as const,
-		name: session.user.name ?? "",
+		name: profile?.name ?? session.user.name ?? "",
 		profile: profile
 			? {
 					phone: profile.phone,
@@ -299,11 +299,11 @@ export async function updateProfile(input: UpdateProfileValues) {
 	if (existing) {
 		await prisma.userProfile.update({
 			where: { userId },
-			data: { phone, country, sex, ageRange, timezone },
+			data: { name, phone, country, sex, ageRange, timezone },
 		});
 	} else {
 		await prisma.userProfile.create({
-			data: { userId, phone, country, sex, ageRange, timezone },
+			data: { userId, name, phone, country, sex, ageRange, timezone },
 		});
 	}
 
