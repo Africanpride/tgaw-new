@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { useForm, type UseFormReturn, Controller } from "react-hook-form"
+import { useForm, type UseFormReturn } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Check, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react"
 
@@ -333,7 +333,8 @@ function ContactStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
 }
 
 function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
-  const { control, watch, setValue, formState } = form
+  const { watch, setValue, formState } = form
+  const sex = watch("sex")
   return (
     <div className="space-y-5">
       <div>
@@ -347,30 +348,26 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
           <Label>
             Sex <span className="text-destructive">*</span>
           </Label>
-          <Controller
-            control={control}
-            name="sex"
-            render={({ field }) => (
-              <RadioGroup
-                value={field.value}
-                onValueChange={field.onChange}
-                className="flex gap-4"
-              >
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="male" id="sex-male" />
-                  <Label htmlFor="sex-male" className="font-normal">
-                    Male
-                  </Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="female" id="sex-female" />
-                  <Label htmlFor="sex-female" className="font-normal">
-                    Female
-                  </Label>
-                </div>
-              </RadioGroup>
-            )}
-          />
+          <RadioGroup
+            value={sex}
+            onValueChange={(v) => setValue("sex", v as "male" | "female", { shouldValidate: true })}
+            className="flex gap-4"
+          >
+            <Label
+              htmlFor="sex-male"
+              className="flex cursor-pointer items-center gap-2 rounded-md border border-input px-4 py-2.5 transition-colors hover:bg-accent has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:text-primary"
+            >
+              <RadioGroupItem value="male" id="sex-male" />
+              Male
+            </Label>
+            <Label
+              htmlFor="sex-female"
+              className="flex cursor-pointer items-center gap-2 rounded-md border border-input px-4 py-2.5 transition-colors hover:bg-accent has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:text-primary"
+            >
+              <RadioGroupItem value="female" id="sex-female" />
+              Female
+            </Label>
+          </RadioGroup>
           {formState.errors.sex && (
             <p className="text-sm text-destructive">
               {formState.errors.sex.message}
