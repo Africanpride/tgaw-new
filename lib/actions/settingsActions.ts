@@ -20,7 +20,7 @@ const changePasswordSchema = z.object({
 });
 
 const deleteAccountSchema = z.object({
-	password: z.string().min(1, "Enter your password to confirm"),
+	password: z.string().optional(),
 });
 
 export async function changePassword(input: {
@@ -150,12 +150,12 @@ export async function saveNotificationPrefs(input: NotificationPrefs) {
 	return { success: true as const };
 }
 
-export async function deleteAccount(input: { password: string }) {
+export async function deleteAccount(input: { password?: string }) {
 	const validation = deleteAccountSchema.safeParse(input);
 	if (!validation.success) {
 		return {
 			success: false as const,
-			error: "Enter your password to confirm deletion",
+			error: "Invalid input",
 		};
 	}
 
@@ -206,6 +206,7 @@ export async function deleteAccount(input: { password: string }) {
 			});
 			await tx.post.deleteMany({ where: { authorId: userId } });
 			await tx.message.deleteMany({ where: { senderId: userId } });
+			await tx.userProfile.deleteMany({ where: { userId } });
 		});
 	} catch (err) {
 		console.error("[ERROR] Failed to clean up account data", err);
@@ -217,7 +218,7 @@ export async function deleteAccount(input: { password: string }) {
 
 	try {
 		await auth.api.deleteUser({
-			body: { password: validation.data.password },
+			body: { password: validation.data.password ?? "" },
 			headers: await headers(),
 		});
 		return { success: true as const };

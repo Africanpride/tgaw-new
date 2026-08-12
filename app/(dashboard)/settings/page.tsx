@@ -1682,20 +1682,28 @@ export default function SettingsPage() {
                                 </AlertDialogHeader>
 
                                 <div className="space-y-4 py-2 text-xs">
-                                  <div className="space-y-2">
-                                    <Label htmlFor="delete-confirm-password">
-                                      Confirm your password
-                                    </Label>
-                                    <Input
-                                      id="delete-confirm-password"
-                                      type="password"
-                                      value={deletePassword}
-                                      placeholder="Enter current password"
-                                      onChange={(e) =>
-                                        setDeleteAccountPassword(e.target.value)
-                                      }
-                                    />
-                                  </div>
+                                  {hasPassword && (
+                                    <div className="space-y-2">
+                                      <Label htmlFor="delete-confirm-password">
+                                        Confirm your password
+                                      </Label>
+                                      <Input
+                                        id="delete-confirm-password"
+                                        type="password"
+                                        value={deletePassword}
+                                        placeholder="Enter current password"
+                                        onChange={(e) =>
+                                          setDeleteAccountPassword(e.target.value)
+                                        }
+                                      />
+                                    </div>
+                                  )}
+                                  {!hasPassword && (
+                                    <p className="text-muted-foreground">
+                                      You signed in with OAuth, so no password is
+                                      required for deletion.
+                                    </p>
+                                  )}
 
                                   <div className="space-y-2">
                                     <Label htmlFor="delete-typed-confirm">
@@ -1730,7 +1738,7 @@ export default function SettingsPage() {
                                     disabled={
                                       isDeleting ||
                                       deleteConfirmation !== "DELETE" ||
-                                      !deletePassword
+                                      (hasPassword && !deletePassword)
                                     }
                                     onClick={handleDeleteAccount}
                                   >
