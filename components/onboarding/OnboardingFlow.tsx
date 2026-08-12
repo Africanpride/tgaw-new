@@ -67,7 +67,7 @@ export function OnboardingFlow({
     if (!valid) return
 
     if (isLastContentStep) {
-      onComplete(form.getValues())
+      await onComplete(form.getValues())
     }
     setStepIndex((i) => Math.min(i + 1, ONBOARDING_STEPS.length - 1))
   }
