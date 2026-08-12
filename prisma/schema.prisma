@@ -281,6 +281,21 @@ enum Role {
   admin
 }
 
+model UserProfile {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone     String
+  country   String
+  sex       String
+  ageRange  String
+  timezone  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_profile")
+}
+
 model User {
   id            String    @id @map("_id")
   email         String    @unique
@@ -298,6 +313,8 @@ model User {
   emailVerified Boolean
   image         String?
   notificationPrefs Json?
+  onboardingComplete Boolean @default(false)
+  userProfile        UserProfile?
   sessions      Session[]
   accounts      Account[]
 
