@@ -165,49 +165,55 @@ export async function deleteAccount(input: { password?: string }) {
 	const userId = session.user.id!;
 
 	try {
-		await prisma.$transaction(async (tx) => {
-			await tx.pushSubscription.deleteMany({ where: { userId } });
-			await tx.notification.deleteMany({ where: { userId } });
-			await tx.report.deleteMany({ where: { reporterId: userId } });
-			await tx.follow.deleteMany({
-				where: { OR: [{ followerId: userId }, { followingId: userId }] },
-			});
-			await tx.eventBooking.deleteMany({ where: { userId } });
-			await tx.event.deleteMany({ where: { userId } });
-
-			const ownedGroups = await tx.group.findMany({
-				where: { ownerId: userId },
-				select: { id: true },
-			});
-			const ownedGroupIds = ownedGroups.map((g) => g.id);
-			await tx.conversation.deleteMany({
-				where: { groupId: { in: ownedGroupIds } },
-			});
-			await tx.group.deleteMany({ where: { id: { in: ownedGroupIds } } });
-
-			await tx.groupMember.deleteMany({ where: { userId } });
-
-			const memberConversations = await tx.conversation.findMany({
-				where: { memberIds: { has: userId } },
-				select: { id: true, memberIds: true },
-			});
-			for (const conv of memberConversations) {
-				await tx.conversation.update({
-					where: { id: conv.id },
-					data: { memberIds: conv.memberIds.filter((id) => id !== userId) },
+		await prisma.$transaction(
+			async (tx) => {
+				await tx.pushSubscription.deleteMany({ where: { userId } });
+				await tx.notification.deleteMany({ where: { userId } });
+				await tx.report.deleteMany({ where: { reporterId: userId } });
+				await tx.follow.deleteMany({
+					where: { OR: [{ followerId: userId }, { followingId: userId }] },
 				});
-			}
+				await tx.eventBooking.deleteMany({ where: { userId } });
+				await tx.event.deleteMany({ where: { userId } });
 
-			await tx.comment.deleteMany({ where: { authorId: userId } });
-			await tx.like.deleteMany({ where: { userId } });
-			await tx.pollOption.deleteMany({ where: { voterIds: { has: userId } } });
-			await tx.poll.deleteMany({
-				where: { post: { authorId: userId } },
-			});
-			await tx.post.deleteMany({ where: { authorId: userId } });
-			await tx.message.deleteMany({ where: { senderId: userId } });
-			await tx.userProfile.deleteMany({ where: { userId } });
-		});
+				const ownedGroups = await tx.group.findMany({
+					where: { ownerId: userId },
+					select: { id: true },
+				});
+				const ownedGroupIds = ownedGroups.map((g) => g.id);
+				await tx.conversation.deleteMany({
+					where: { groupId: { in: ownedGroupIds } },
+				});
+				await tx.group.deleteMany({ where: { id: { in: ownedGroupIds } } });
+
+				await tx.groupMember.deleteMany({ where: { userId } });
+
+				const memberConversations = await tx.conversation.findMany({
+					where: { memberIds: { has: userId } },
+					select: { id: true, memberIds: true },
+				});
+				for (const conv of memberConversations) {
+					await tx.conversation.update({
+						where: { id: conv.id },
+						data: { memberIds: conv.memberIds.filter((id) => id !== userId) },
+					});
+				}
+
+				await tx.comment.deleteMany({ where: { authorId: userId } });
+				await tx.like.deleteMany({ where: { userId } });
+				await tx.pollOption.deleteMany({ where: { voterIds: { has: userId } } });
+				await tx.poll.deleteMany({
+					where: { post: { authorId: userId } },
+				});
+				await tx.post.deleteMany({ where: { authorId: userId } });
+				await tx.message.deleteMany({ where: { senderId: userId } });
+				await tx.userProfile.deleteMany({ where: { userId } });
+			},
+			{
+				timeout: 20000,
+				maxWait: 20000,
+			}
+		);
 	} catch (err) {
 		console.error("[ERROR] Failed to clean up account data", err);
 		return {
