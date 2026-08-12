@@ -21,7 +21,7 @@ const ADMIN_ONLY_PATHS = ["/admin"];
 
 const AUTH_PAGES = ["/login", "/signup", "/forgot-password", "/reset-password"];
 
-const ONBOARDING_PATH = "/setup";
+const ONBOARDING_PATH = "/onboarding";
 
 export async function proxy(req: NextRequest) {
 	const path = req.nextUrl.pathname;

@@ -126,16 +126,19 @@ export function OnboardingFlow({
 
               {!isCompleteStep && (
                 <div className="mt-8 flex items-center justify-between border-t border-border/50 pt-6">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={goBack}
-                    disabled={stepIndex === 0}
-                    className="gap-1.5 text-muted-foreground hover:text-foreground"
-                  >
-                    <ChevronLeft className="size-4" aria-hidden="true" />
-                    Back
-                  </Button>
+                  {stepIndex > 0 ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={goBack}
+                      className="gap-1.5 text-muted-foreground hover:text-foreground"
+                    >
+                      <ChevronLeft className="size-4" aria-hidden="true" />
+                      Back
+                    </Button>
+                  ) : (
+                    <div />
+                  )}
                   <Button type="button" onClick={goNext} className="gap-1.5 px-6">
                     {isLastContentStep ? "Finish" : "Next"}
                     <ChevronRight className="size-4" aria-hidden="true" />
