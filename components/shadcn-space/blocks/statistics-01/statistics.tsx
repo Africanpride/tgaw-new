@@ -72,13 +72,13 @@ const Statistics = ({
   secondaryStats = secondaryStatsData,
 }: StatisticsBlock01Props) => {
   return (
-    <div className="w-full py-4">
+    <div className="w-full py-2">
       <div className="mx-auto w-full">
-        <div className="grid h-full grid-cols-12 gap-6">
+        <div className="grid h-full grid-cols-12 gap-4">
           <div className="col-span-12 h-full shadow-xs xl:col-span-6">
             <Card className="relative h-full rounded-xl border p-0! ring-0">
               <CardContent className="p-0!">
-                <div className="flex flex-col justify-between gap-9 py-4 ps-6">
+                <div className="flex flex-col justify-between gap-5 py-3 ps-5">
                   <div>
                     <h6 className="text-lg font-medium text-card-foreground">
                       {mainDashboard.title}
@@ -88,11 +88,11 @@ const Statistics = ({
                     </p>
                   </div>
 
-                  <div className="xs:flex-nowrap flex flex-wrap gap-6">
+                  <div className="xs:flex-nowrap flex flex-wrap gap-4">
                     {mainDashboard.metrics.map((metric, index) => (
                       <div
                         key={index}
-                        className="flex w-full items-center gap-6 sm:w-auto"
+                        className="flex w-full items-center gap-4 sm:w-auto"
                       >
                         <div>
                           <p className="text-xs font-normal text-muted-foreground">
@@ -141,10 +141,10 @@ const Statistics = ({
               key={index}
               className="col-span-12 sm:col-span-6 xl:col-span-3"
             >
-              <Card className="rounded-xl border p-6! shadow-xs ring-0">
+              <Card className="rounded-xl border p-4! shadow-xs ring-0">
                 <CardContent className="flex items-start justify-between p-0!">
-                  <div className="flex flex-col justify-between gap-5">
-                    <div className="flex flex-col gap-1">
+                  <div className="flex flex-col justify-between gap-3">
+                    <div className="flex flex-col gap-0.5">
                       <h6 className="text-lg font-medium text-card-foreground">
                         {stat.title}
                       </h6>

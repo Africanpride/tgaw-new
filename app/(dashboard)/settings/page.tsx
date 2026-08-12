@@ -571,7 +571,10 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-light tracking-tight">Settings</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Manage your profile, preferences, and security.
+          Update your display name and photo, choose how you receive
+          notifications, switch between light and dark theme, change your
+          password, enable two-factor authentication, manage active sessions,
+          export your data, or delete your account — all in one place.
         </p>
       </div>
 

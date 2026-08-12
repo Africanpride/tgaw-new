@@ -4,7 +4,7 @@ import { haveIBeenPwned } from "better-auth/plugins"
 import { admin, customSession, twoFactor } from "better-auth/plugins"
 import { MongoClient } from "mongodb"
 
-const client = new MongoClient(process.env.DATABASE_URL!)
+const client = new MongoClient(process.env.DATABASE_URL as string)
 const db = client.db()
 
 const options = {

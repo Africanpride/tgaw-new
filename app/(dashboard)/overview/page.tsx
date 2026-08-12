@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
-import Statistics from "@/components/shadcn-space/blocks/statistics-01/statistics"
 
 export default async function OverviewPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -71,7 +70,6 @@ export default async function OverviewPage() {
           )}
         </p>
       </div>
-      <Statistics />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Day Streak"
