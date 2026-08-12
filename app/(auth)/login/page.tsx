@@ -43,6 +43,14 @@ export default function LoginPage() {
       password: data.password,
     })
     if (result.error) {
+      // Banned users get a BANNED_USER / FORBIDDEN response
+      const code =
+        (result.error as { code?: string }).code ??
+        (result.error as { status?: number }).status
+      if (code === "BANNED_USER" || result.error.status === 403) {
+        router.push("/banned")
+        return
+      }
       setError(result.error.message || "Invalid credentials")
     } else {
       router.push("/overview")
