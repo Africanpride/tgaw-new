@@ -1,4 +1,4 @@
-import { BookOpen, Clock } from "lucide-react"
+import { BookOpen, CalendarPlus, Clock, Flame, MessageSquare, Timer } from "lucide-react"
 import { headers } from "next/headers"
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -70,32 +70,36 @@ export default async function OverviewPage() {
           )}
         </p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Day Streak"
-          value={0}
-          description="Keep it going!"
-          className="border-l-4 border-l-orange-500"
-        />
-        <StatCard
-          title="Chapters Read"
-          value="—"
-          description="This month"
-          className="border-l-4 border-l-purple-500"
-        />
-        <StatCard
-          title="Prayer Sessions"
-          value="—"
-          description="This month"
-          className="border-l-4 border-l-red-500"
-        />
-        <StatCard
-          title="Total Time"
-          value="—"
-          description="Hours invested"
-          className="border-l-4 border-l-blue-500"
-        />
-      </div>
+		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<StatCard
+				title="Day Streak"
+				value={0}
+				description="Keep it going!"
+				icon={Flame}
+				className="border-l-4 border-l-orange-500"
+			/>
+			<StatCard
+				title="Chapters Read"
+				value="—"
+				description="This month"
+				icon={BookOpen}
+				className="border-l-4 border-l-purple-500"
+			/>
+			<StatCard
+				title="Prayer Sessions"
+				value="—"
+				description="This month"
+				icon={Timer}
+				className="border-l-4 border-l-red-500"
+			/>
+			<StatCard
+				title="Total Time"
+				value="—"
+				description="Hours invested"
+				icon={Clock}
+				className="border-l-4 border-l-blue-500"
+			/>
+		</div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -136,11 +140,12 @@ export default async function OverviewPage() {
                 ))}
               </div>
             )}
-            <Button variant="outline" className="mt-4">
-              <Link href="/booking" className="cursor-pointer">
-                Book a Slot
-              </Link>
-            </Button>
+			<Button variant="outline" className="mt-4 gap-2">
+				<CalendarPlus className="size-4" />
+				<Link href="/booking" className="cursor-pointer">
+					Book a Slot
+				</Link>
+			</Button>
           </CardContent>
         </Card>
 
@@ -170,22 +175,25 @@ export default async function OverviewPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Messages</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No recent messages.{" "}
-            <Link
-              href="/messages"
-              className="cursor-pointer text-primary hover:underline"
-            >
-              View Messages
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
+		<Card>
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<MessageSquare className="size-5" />
+					Recent Messages
+				</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<p className="text-sm text-muted-foreground">
+					No recent messages.{" "}
+					<Link
+						href="/messages"
+						className="cursor-pointer text-primary hover:underline"
+					>
+						View Messages
+					</Link>
+				</p>
+			</CardContent>
+		</Card>
     </div>
   )
 }

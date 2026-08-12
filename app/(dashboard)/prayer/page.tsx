@@ -1,4 +1,4 @@
-import { Church, Clock } from "lucide-react";
+import { Church, Clock, Flame, Timer } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -9,16 +9,19 @@ export default function PrayerPage() {
 				<StatCard
 					title="Sessions This Month"
 					value="0"
+					icon={Church}
 					className="border-l-4 border-l-red-500"
 				/>
 				<StatCard
 					title="Total Prayer Time"
 					value="0h"
+					icon={Timer}
 					className="border-l-4 border-l-orange-500"
 				/>
 				<StatCard
 					title="Consistency Rate"
 					value="0%"
+					icon={Flame}
 					className="border-l-4 border-l-green-500"
 				/>
 			</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Users } from "lucide-react";
+import { Users, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -20,7 +20,10 @@ export default function GroupsPage() {
 						Create or join groups for Bible study, prayer circles, and community
 						fellowship.
 					</p>
-					<Button className="cursor-pointer">Create Group</Button>
+					<Button className="cursor-pointer gap-2">
+						<UserPlus className="size-4" />
+						Create Group
+					</Button>
 				</CardContent>
 			</Card>
 		</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -20,7 +20,10 @@ export default function MessagesPage() {
 						Start a conversation with fellow believers. Direct messages and
 						group chats will appear here.
 					</p>
-					<Button className="cursor-pointer">Start Conversation</Button>
+					<Button className="cursor-pointer gap-2">
+						<MessageSquarePlus className="size-4" />
+						Start Conversation
+					</Button>
 				</CardContent>
 			</Card>
 		</div>

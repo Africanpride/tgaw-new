@@ -1,5 +1,15 @@
 "use client";
 
+import {
+	ArrowRight,
+	BookOpen,
+	Church,
+	Heart,
+	LogIn,
+	ShieldCheck,
+	UserPlus,
+	Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FooterSectionTwo from "@/components/blocks/footer/footer-section-two";
@@ -17,21 +27,25 @@ export default function LandingPage() {
 	return (
 		<div className="flex flex-col min-h-screen">
 			<nav className="flex items-center justify-between border-b px-6 py-4">
-				<span className="text-xl font-bold">
-					TGA<span className="text-red-500">W</span>
-				</span>
+				<div className="flex items-center gap-2">
+					<ShieldCheck className="size-6" />
+					<span className="text-xl font-bold">
+						TGA<span className="text-red-500">W</span>
+					</span>
+				</div>
 				<div className="flex items-center gap-4">
 					<ThemeToggle />
 					{isLoggedIn ? (
 						<>
 							<Link href="/overview" className="cursor-pointer">
-								<Button variant="ghost" className="cursor-pointer">
+								<Button variant="ghost" className="cursor-pointer gap-2">
+									<ArrowRight className="size-4" />
 									Dashboard
 								</Button>
 							</Link>
 							<Button
 								variant="outline"
-								className="cursor-pointer"
+								className="cursor-pointer gap-2"
 								onClick={async () => {
 									await signOut();
 									router.push("/");
@@ -43,12 +57,16 @@ export default function LandingPage() {
 					) : (
 						<>
 							<Link href="/login" className="cursor-pointer">
-								<Button variant="ghost" className="cursor-pointer">
+								<Button variant="ghost" className="cursor-pointer gap-2">
+									<LogIn className="size-4" />
 									Sign In
 								</Button>
 							</Link>
 							<Link href="/signup" className="cursor-pointer">
-								<Button className="cursor-pointer">Get Started</Button>
+								<Button className="cursor-pointer gap-2">
+									<UserPlus className="size-4" />
+									Get Started
+								</Button>
 							</Link>
 						</>
 					)}
@@ -68,14 +86,16 @@ export default function LandingPage() {
 					<div className="flex gap-4">
 						{isLoggedIn ? (
 							<Link href="/overview" className="cursor-pointer">
-								<Button size="lg" className="cursor-pointer">
+								<Button size="lg" className="cursor-pointer gap-2">
+									<ArrowRight className="size-4" />
 									Go to Dashboard
 								</Button>
 							</Link>
 						) : (
 							<>
 								<Link href="/signup" className="cursor-pointer">
-									<Button size="lg" className="cursor-pointer">
+									<Button size="lg" className="cursor-pointer gap-2">
+										<UserPlus className="size-4" />
 										Get Started Free
 									</Button>
 								</Link>
@@ -83,8 +103,9 @@ export default function LandingPage() {
 									<Button
 										size="lg"
 										variant="outline"
-										className="cursor-pointer"
+										className="cursor-pointer gap-2"
 									>
+										<LogIn className="size-4" />
 										Sign In
 									</Button>
 								</Link>
@@ -93,38 +114,42 @@ export default function LandingPage() {
 					</div>
 				</section>
 
-				<section className="border-t bg-muted/50 px-6 py-16">
-					<div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
-						<Card>
-							<CardContent className="flex flex-col items-center gap-2 pt-6 text-center">
-								<div className="text-3xl font-bold">50K+</div>
-								<p className="text-sm text-muted-foreground">
-									Active Believers
-								</p>
-							</CardContent>
-						</Card>
-						<Card>
-							<CardContent className="flex flex-col items-center gap-2 pt-6 text-center">
-								<div className="text-3xl font-bold">1.2M</div>
-								<p className="text-sm text-muted-foreground">Prayer Sessions</p>
-							</CardContent>
-						</Card>
-						<Card>
-							<CardContent className="flex flex-col items-center gap-2 pt-6 text-center">
-								<div className="text-3xl font-bold">66</div>
-								<p className="text-sm text-muted-foreground">Books Covered</p>
-							</CardContent>
-						</Card>
-						<Card>
-							<CardContent className="flex flex-col items-center gap-2 pt-6 text-center">
-								<div className="text-3xl font-bold">98%</div>
-								<p className="text-sm text-muted-foreground">
-									Member Satisfaction
-								</p>
-							</CardContent>
-						</Card>
-					</div>
-				</section>
+			<section className="border-t bg-muted/50 px-6 py-16">
+				<div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
+					<Card>
+						<CardContent className="flex flex-col items-center gap-2 pt-6 text-center">
+							<Users className="size-8 text-muted-foreground" aria-hidden="true" />
+							<div className="text-3xl font-bold">50K+</div>
+							<p className="text-sm text-muted-foreground">
+								Active Believers
+							</p>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardContent className="flex flex-col items-center gap-2 pt-6 text-center">
+							<Church className="size-8 text-muted-foreground" aria-hidden="true" />
+							<div className="text-3xl font-bold">1.2M</div>
+							<p className="text-sm text-muted-foreground">Prayer Sessions</p>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardContent className="flex flex-col items-center gap-2 pt-6 text-center">
+							<BookOpen className="size-8 text-muted-foreground" aria-hidden="true" />
+							<div className="text-3xl font-bold">66</div>
+							<p className="text-sm text-muted-foreground">Books Covered</p>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardContent className="flex flex-col items-center gap-2 pt-6 text-center">
+							<Heart className="size-8 text-muted-foreground" aria-hidden="true" />
+							<div className="text-3xl font-bold">98%</div>
+							<p className="text-sm text-muted-foreground">
+								Member Satisfaction
+							</p>
+						</CardContent>
+					</Card>
+				</div>
+			</section>
 			</main>
 
 			<FooterSectionTwo />

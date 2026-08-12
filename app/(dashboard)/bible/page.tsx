@@ -1,4 +1,4 @@
-import { BookOpen, Clock } from "lucide-react";
+import { BookOpen, CalendarDays, Clock, Timer } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -9,16 +9,19 @@ export default function BiblePage() {
 				<StatCard
 					title="Sessions This Week"
 					value="0"
+					icon={CalendarDays}
 					className="border-l-4 border-l-purple-500"
 				/>
 				<StatCard
 					title="Total Reading Time"
 					value="0h"
+					icon={Timer}
 					className="border-l-4 border-l-blue-500"
 				/>
 				<StatCard
 					title="Chapters Completed"
 					value="0"
+					icon={BookOpen}
 					className="border-l-4 border-l-green-500"
 				/>
 			</div>

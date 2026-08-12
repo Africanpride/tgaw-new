@@ -1,4 +1,4 @@
-import { Shield } from "lucide-react";
+import { CalendarCheck, Flag, Megaphone, Shield } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -60,14 +60,14 @@ export default async function AdminPage() {
 						title: "Open Reports",
 						value: String(openReports),
 						percentage: "",
-						icon: Shield,
+						icon: Flag,
 						isPositive: openReports === 0,
 					},
 					{
 						title: "Active Bookings",
 						value: String(totalBookings),
 						percentage: "",
-						icon: Shield,
+						icon: CalendarCheck,
 						isPositive: true,
 					},
 				]}
@@ -77,23 +77,29 @@ export default async function AdminPage() {
 				<StatCard
 					title="Total Members"
 					value={totalMembers}
+					icon={Shield}
 					className="border-l-4 border-l-blue-500"
 				/>
 				<StatCard
 					title="Published Announcements"
 					value={totalPosts}
+					icon={Megaphone}
 					className="border-l-4 border-l-green-500"
 				/>
 				<StatCard
 					title="Flagged Content"
 					value={openReports}
+					icon={Flag}
 					className="border-l-4 border-l-red-500"
 				/>
 			</div>
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Broadcast Message</CardTitle>
+					<CardTitle className="flex items-center gap-2">
+						<Megaphone className="size-5" />
+						Broadcast Message
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<p className="text-sm text-muted-foreground">
