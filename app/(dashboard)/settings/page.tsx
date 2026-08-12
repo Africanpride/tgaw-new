@@ -836,9 +836,9 @@ export default function SettingsPage() {
                                 type="email"
                                 autoComplete="email"
                                 disabled
+                                value={email}
+                                readOnly
                                 className="h-11 cursor-not-allowed bg-muted/20 opacity-60"
-                                aria-invalid={!!errors.email}
-                                {...register("email")}
                               />
                               <p className="text-xs text-muted-foreground">
                                 To change your email, please contact support.
