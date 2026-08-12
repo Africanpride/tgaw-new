@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { useForm, type UseFormReturn } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -80,16 +79,8 @@ export function OnboardingFlow({
     <div className="bg-background">
       <div className="grid min-h-screen md:grid-cols-2">
         {/* Cover panel */}
-        <div className="relative hidden overflow-hidden md:block">
-          <Image
-            src="/onboarding-cover.jpg"
-            alt=""
-            fill
-            sizes="50vw"
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/30" />
+        <div className="relative hidden overflow-hidden bg-gradient-to-br from-primary/20 via-primary/5 to-background md:block">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           <div className="absolute top-8 left-8 flex items-center gap-2.5 lg:top-10 lg:left-10">
             <div className="flex size-8 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25 backdrop-blur-sm">
               <ShieldCheck className="size-4 text-white" aria-hidden="true" />
@@ -107,7 +98,9 @@ export function OnboardingFlow({
             <div className="flex size-7 items-center justify-center rounded-md bg-primary/10">
               <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
             </div>
-            <span className="text-sm font-semibold">The Global Altar Watch</span>
+            <span className="text-sm font-semibold">
+              The Global Altar Watch
+            </span>
           </div>
 
           <div className="flex flex-1 flex-col justify-center px-6 py-10 sm:px-10 lg:px-16">
@@ -160,7 +153,10 @@ function Stepper({ stepIndex }: { stepIndex: number }) {
           const isComplete = i < stepIndex
           const isActive = i === stepIndex
           return (
-            <div key={s.id} className="relative flex flex-1 flex-col items-center">
+            <div
+              key={s.id}
+              className="relative flex flex-1 flex-col items-center"
+            >
               {i > 0 && (
                 <div
                   className={cn(
@@ -173,7 +169,8 @@ function Stepper({ stepIndex }: { stepIndex: number }) {
                 className={cn(
                   "relative z-10 flex size-10 items-center justify-center rounded-full text-sm font-semibold transition-all",
                   isComplete && "bg-primary text-primary-foreground",
-                  isActive && "bg-primary text-primary-foreground ring-4 ring-primary/20",
+                  isActive &&
+                    "bg-primary text-primary-foreground ring-4 ring-primary/20",
                   !isComplete && !isActive && "bg-muted text-muted-foreground"
                 )}
               >
@@ -186,7 +183,9 @@ function Stepper({ stepIndex }: { stepIndex: number }) {
               <span
                 className={cn(
                   "mt-2 text-center text-xs font-medium",
-                  isComplete || isActive ? "text-foreground" : "text-muted-foreground"
+                  isComplete || isActive
+                    ? "text-foreground"
+                    : "text-muted-foreground"
                 )}
               >
                 {s.label}
@@ -239,7 +238,11 @@ function NameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
           <Label htmlFor="firstName">
             First name <span className="text-destructive">*</span>
           </Label>
-          <Input id="firstName" placeholder="Kwame" {...register("firstName")} />
+          <Input
+            id="firstName"
+            placeholder="Kwame"
+            {...register("firstName")}
+          />
           {formState.errors.firstName && (
             <p className="text-sm text-destructive">
               {formState.errors.firstName.message}
@@ -277,7 +280,11 @@ function ContactStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
           <Label htmlFor="phone">
             Phone number <span className="text-destructive">*</span>
           </Label>
-          <Input id="phone" placeholder="+233 20 000 0000" {...register("phone")} />
+          <Input
+            id="phone"
+            placeholder="+233 20 000 0000"
+            {...register("phone")}
+          />
           {formState.errors.phone && (
             <p className="text-sm text-destructive">
               {formState.errors.phone.message}

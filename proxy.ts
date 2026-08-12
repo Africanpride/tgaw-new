@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db/prisma";
 
 const PROTECTED_PATHS = [
 	"/overview",
@@ -31,8 +32,11 @@ export async function proxy(req: NextRequest) {
 	const session = await auth.api.getSession({ headers: req.headers });
 
 	if (isAuthPage && session) {
-		const onboardingComplete = (session.user as any).onboardingComplete;
-		if (!onboardingComplete) {
+		// Check if onboarding is complete by looking for a UserProfile
+		const profile = await prisma.userProfile.findUnique({
+			where: { userId: session.user.id! },
+		});
+		if (!profile) {
 			return NextResponse.redirect(new URL(ONBOARDING_PATH, req.url));
 		}
 		return NextResponse.redirect(new URL("/overview", req.url));
@@ -44,9 +48,11 @@ export async function proxy(req: NextRequest) {
 		return NextResponse.redirect(new URL("/login", req.url));
 	}
 
-	// Onboarding guard — redirect to /setup if profile incomplete
-	const onboardingComplete = (session.user as any).onboardingComplete;
-	if (!onboardingComplete && !isOnboardingPath) {
+	// Onboarding guard — redirect to /setup if no UserProfile exists
+	const profile = await prisma.userProfile.findUnique({
+		where: { userId: session.user.id! },
+	});
+	if (!profile && !isOnboardingPath) {
 		return NextResponse.redirect(new URL(ONBOARDING_PATH, req.url));
 	}
 

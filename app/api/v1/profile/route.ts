@@ -25,25 +25,22 @@ export async function POST(req: Request) {
   const { firstName, lastName, phone, country, sex, ageRange, timezone } =
     validation.data
 
-  await prisma.$transaction([
-    prisma.userProfile.create({
-      data: {
-        userId: session.user.id!,
-        phone,
-        country,
-        sex,
-        ageRange,
-        timezone,
-      },
-    }),
-    prisma.user.update({
-      where: { id: session.user.id! },
-      data: {
-        name: `${firstName} ${lastName}`,
-        onboardingComplete: true,
-      },
-    }),
-  ])
+  const userId = session.user.id!
+
+  // Create the onboarding profile
+  await prisma.userProfile.create({
+    data: { userId, phone, country, sex, ageRange, timezone },
+  })
+
+  // Also update name in our User table if the record exists
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { name: `${firstName} ${lastName}` },
+    })
+  } catch {
+    // OAuth user — Prisma User record may not exist, that's fine
+  }
 
   return NextResponse.json({ success: true })
 }
