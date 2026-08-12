@@ -50,6 +50,7 @@ export async function GET(req: Request) {
 			email: u.email,
 			role: u.role ?? "member",
 			banned: u.banned ?? false,
+			banReason: (u as { banReason?: string | null }).banReason ?? null,
 			image: u.image ?? null,
 			createdAt: u.createdAt ?? null,
 		}))

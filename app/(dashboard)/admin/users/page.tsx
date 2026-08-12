@@ -16,14 +16,32 @@ import {
   useTable,
   type SortingState,
 } from "@tanstack/react-table"
-import { ChevronLeft, ChevronRight, Users } from "lucide-react"
+import {
+  Ban,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
+  Trash2,
+  Unlock,
+  Users,
+} from "lucide-react"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -39,7 +57,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { authClient } from "@/lib/auth-client"
+import { authClient, useSession } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
 
 const features = tableFeatures({
@@ -61,10 +79,13 @@ interface User {
   email: string
   role: string
   banned: boolean | null
+  banReason?: string | null
   image?: string | null
 }
 
 const EMPTY_USERS: User[] = []
+
+type ActionTarget = "ban" | "delete" | "unban" | null
 
 const roleColor: Record<string, string> = {
   admin: "bg-primary/15 text-primary",
@@ -84,11 +105,17 @@ function RoleBadge({ role }: { role: string }) {
 }
 
 export default function UserManagementPage() {
+  const { data: session } = useSession()
+  const currentUserId = session?.user?.id
   const [users, setUsers] = useState<User[]>(EMPTY_USERS)
   const [loading, setLoading] = useState(true)
   const [sorting, setSorting] = useState<SortingState>([])
   const [rowSelection, setRowSelection] = useState({})
   const [globalFilter, setGlobalFilter] = useState("")
+  const [targetUser, setTargetUser] = useState<User | null>(null)
+  const [actionTarget, setActionTarget] = useState<ActionTarget>(null)
+  const [banReason, setBanReason] = useState("")
+  const [isActing, setIsActing] = useState(false)
 
   const helper = createColumnHelper<typeof features, User>()
 
@@ -154,26 +181,74 @@ export default function UserManagementPage() {
     }),
     helper.display({
       id: "actions",
-      header: () => <div className="text-right">Change Role</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <Select
-            value={row.original.role}
-            onValueChange={(v) => {
-              if (v) setRole(row.original.id, v)
-            }}
-          >
-            <SelectTrigger className="h-8 w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="member">Member</SelectItem>
-              <SelectItem value="moderator">Moderator</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      ),
+      header: () => <div className="text-right">Actions</div>,
+      cell: ({ row }) => {
+        const user = row.original
+        const isSelf = user.id === currentUserId
+        return (
+          <div className="flex items-center justify-end gap-1.5">
+            <Select
+              value={user.role}
+              onValueChange={(v) => {
+                if (v) setRole(user.id, v)
+              }}
+            >
+              <SelectTrigger className="h-8 w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="member">Member</SelectItem>
+                <SelectItem value="moderator">Moderator</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+            {user.banned ? (
+              <Button
+                variant="outline"
+                size="icon-sm"
+                className="h-8 w-8 cursor-pointer"
+                aria-label="Unban user"
+                title="Unban user"
+                onClick={() => {
+                  setTargetUser(user)
+                  setActionTarget("unban")
+                }}
+              >
+                <Unlock className="size-4" aria-hidden="true" />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="icon-sm"
+                className="h-8 w-8 cursor-pointer text-destructive hover:text-destructive"
+                aria-label="Ban user"
+                title="Ban user"
+                disabled={isSelf}
+                onClick={() => {
+                  setTargetUser(user)
+                  setActionTarget("ban")
+                }}
+              >
+                <Ban className="size-4" aria-hidden="true" />
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="icon-sm"
+              className="h-8 w-8 cursor-pointer text-destructive hover:text-destructive"
+              aria-label="Delete user"
+              title="Delete user"
+              disabled={isSelf}
+              onClick={() => {
+                setTargetUser(user)
+                setActionTarget("delete")
+              }}
+            >
+              <Trash2 className="size-4" aria-hidden="true" />
+            </Button>
+          </div>
+        )
+      },
     }),
   ])
 
@@ -218,6 +293,66 @@ export default function UserManagementPage() {
         prev.map((u) => (u.id === userId ? { ...u, role } : u))
       )
     }
+  }
+
+  async function banUser(userId: string, banReason: string) {
+    setIsActing(true)
+    const result = await authClient.admin.banUser({
+      userId,
+      banReason: banReason || "Violation of community guidelines",
+    })
+    if (!result.error) {
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? { ...u, banned: true, banReason: banReason || null }
+            : u
+        )
+      )
+      toast.success("User banned")
+    } else {
+      toast.error(result.error?.message || "Failed to ban user")
+    }
+    setIsActing(false)
+    setTargetUser(null)
+    setActionTarget(null)
+    setBanReason("")
+  }
+
+  async function unbanUser(userId: string) {
+    setIsActing(true)
+    const result = await authClient.admin.unbanUser({
+      userId,
+    })
+    if (!result.error) {
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId ? { ...u, banned: false, banReason: null } : u
+        )
+      )
+      toast.success("User unbanned")
+    } else {
+      toast.error(result.error?.message || "Failed to unban user")
+    }
+    setIsActing(false)
+    setTargetUser(null)
+    setActionTarget(null)
+  }
+
+  async function deleteUser(userId: string) {
+    setIsActing(true)
+    const result = await authClient.admin.removeUser({
+      userId,
+    })
+    if (!result.error) {
+      setUsers((prev) => prev.filter((u) => u.id !== userId))
+      toast.success("User deleted")
+    } else {
+      toast.error(result.error?.message || "Failed to delete user")
+    }
+    setIsActing(false)
+    setTargetUser(null)
+    setActionTarget(null)
   }
 
   const pageCount = table.getPageCount()
@@ -370,6 +505,137 @@ export default function UserManagementPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Ban user dialog */}
+      <Dialog
+        open={actionTarget === "ban" && !!targetUser}
+        onOpenChange={(open) => {
+          if (!open && !isActing) {
+            setTargetUser(null)
+            setActionTarget(null)
+            setBanReason("")
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ban {targetUser?.name}</DialogTitle>
+            <DialogDescription>
+              This will immediately restrict {targetUser?.name ?? "this user"}{" "}
+              from accessing TGAW. You can unban them anytime.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="ban-reason">Reason</Label>
+            <Input
+              id="ban-reason"
+              value={banReason}
+              onChange={(e) => setBanReason(e.target.value)}
+              placeholder="Violation of community guidelines"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={isActing}
+              onClick={() => {
+                setTargetUser(null)
+                setActionTarget(null)
+                setBanReason("")
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={isActing}
+              onClick={() => targetUser && banUser(targetUser.id, banReason)}
+            >
+              {isActing ? "Banning..." : "Ban user"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Unban user dialog */}
+      <Dialog
+        open={actionTarget === "unban" && !!targetUser}
+        onOpenChange={(open) => {
+          if (!open && !isActing) {
+            setTargetUser(null)
+            setActionTarget(null)
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Unban {targetUser?.name}</DialogTitle>
+            <DialogDescription>
+              Restore {targetUser?.name ?? "this user"}'s access to TGAW?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={isActing}
+              onClick={() => {
+                setTargetUser(null)
+                setActionTarget(null)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={isActing}
+              onClick={() => targetUser && unbanUser(targetUser.id)}
+            >
+              <ShieldCheck className="mr-2 size-4" aria-hidden="true" />
+              {isActing ? "Unbanning..." : "Unban user"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete user dialog */}
+      <Dialog
+        open={actionTarget === "delete" && !!targetUser}
+        onOpenChange={(open) => {
+          if (!open && !isActing) {
+            setTargetUser(null)
+            setActionTarget(null)
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {targetUser?.name}</DialogTitle>
+            <DialogDescription>
+              This permanently deletes {targetUser?.name ?? "this user"} and all
+              of their data. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={isActing}
+              onClick={() => {
+                setTargetUser(null)
+                setActionTarget(null)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={isActing}
+              onClick={() => targetUser && deleteUser(targetUser.id)}
+            >
+              <Trash2 className="mr-2 size-4" aria-hidden="true" />
+              {isActing ? "Deleting..." : "Delete user"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
