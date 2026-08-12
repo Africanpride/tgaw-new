@@ -50,11 +50,15 @@ export const auth = betterAuth({
   plugins: [
     ...(options.plugins ?? []),
     customSession(async ({ user, session }) => {
+      const extendedUser = user as typeof user & {
+        onboardingComplete?: boolean
+      }
       return {
         user: {
           ...user,
           image: user.image ?? null,
           hasPassword: !!(user as any).passwordHash,
+          onboardingComplete: extendedUser.onboardingComplete ?? false,
         },
         session,
       }
