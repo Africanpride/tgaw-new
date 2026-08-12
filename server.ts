@@ -1,3 +1,7 @@
+// Force IPv4 DNS resolution before any imports
+import { setDefaultAutoSelectFamily } from "node:net";
+setDefaultAutoSelectFamily(true); // Force IPv4
+
 import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
