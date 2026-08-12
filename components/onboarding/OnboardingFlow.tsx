@@ -352,7 +352,7 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
             name="sex"
             render={({ field }) => (
               <RadioGroup
-                value={field.value ?? ""}
+                value={field.value}
                 onValueChange={field.onChange}
                 className="flex gap-4"
               >
