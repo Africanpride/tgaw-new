@@ -112,11 +112,11 @@ export function OnboardingFlow({
             </span>
           </div>
 
-          <div className="flex flex-1 flex-col justify-center px-6 py-10 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-md">
+          <div className="flex flex-1 flex-col justify-center px-6 py-10 sm:px-10 lg:px-16 xl:px-20">
+            <div className="mx-auto w-full max-w-lg">
               <Stepper stepIndex={stepIndex} />
 
-              <div className="mt-8 min-h-[320px]">
+              <div className="mt-10 min-h-[340px]">
                 {step.id === "name" && <NameStep form={form} />}
                 {step.id === "contact" && <ContactStep form={form} />}
                 {step.id === "about" && <AboutStep form={form} />}
@@ -125,18 +125,18 @@ export function OnboardingFlow({
               </div>
 
               {!isCompleteStep && (
-                <div className="mt-6 flex items-center justify-between border-t pt-5">
+                <div className="mt-8 flex items-center justify-between border-t border-border/50 pt-6">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     onClick={goBack}
                     disabled={stepIndex === 0}
-                    className="gap-1.5"
+                    className="gap-1.5 text-muted-foreground hover:text-foreground"
                   >
                     <ChevronLeft className="size-4" aria-hidden="true" />
                     Back
                   </Button>
-                  <Button type="button" onClick={goNext} className="gap-1.5">
+                  <Button type="button" onClick={goNext} className="gap-1.5 px-6">
                     {isLastContentStep ? "Finish" : "Next"}
                     <ChevronRight className="size-4" aria-hidden="true" />
                   </Button>
@@ -169,14 +169,14 @@ function Stepper({ stepIndex }: { stepIndex: number }) {
               {i > 0 && (
                 <div
                   className={cn(
-                    "absolute top-5 right-1/2 h-0.5 w-full -translate-y-1/2",
+                    "absolute top-5 right-1/2 h-0.5 w-full -translate-y-1/2 transition-colors duration-300",
                     i <= stepIndex ? "bg-primary" : "bg-border"
                   )}
                 />
               )}
               <div
                 className={cn(
-                  "relative z-10 flex size-10 items-center justify-center rounded-full text-sm font-semibold transition-all",
+                  "relative z-10 flex size-10 items-center justify-center rounded-full text-sm font-semibold transition-all duration-300",
                   isComplete && "bg-primary text-primary-foreground",
                   isActive &&
                     "bg-primary text-primary-foreground ring-4 ring-primary/20",
@@ -191,7 +191,7 @@ function Stepper({ stepIndex }: { stepIndex: number }) {
               </div>
               <span
                 className={cn(
-                  "mt-2 text-center text-xs font-medium",
+                  "mt-2.5 text-center text-xs font-medium transition-colors duration-300",
                   isComplete || isActive
                     ? "text-foreground"
                     : "text-muted-foreground"
