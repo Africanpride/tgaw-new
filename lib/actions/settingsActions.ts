@@ -4,7 +4,6 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { authClient } from "@/lib/auth-client";
 import { prisma } from "@/lib/db/prisma";
 
 const notificationPrefsSchema = z.object({
@@ -265,7 +264,7 @@ export async function getProfile() {
 
 	return {
 		success: true as const,
-		name: profile?.name ?? session.user.name ?? "",
+		name: session.user.name ?? "",
 		profile: profile
 			? {
 					phone: profile.phone,
@@ -293,11 +292,11 @@ export async function updateProfile(input: UpdateProfileValues) {
 	const userId = session.user.id!;
 	const { name, phone, country, sex, ageRange, timezone } = validation.data;
 
-	try {
-		await authClient.updateUser({ name });
-	} catch {
-		// OAuth users may not have a Prisma User record — continue
-	}
+	// Update the user's name through Better Auth (works for email & OAuth users)
+	await auth.api.updateUser({
+		body: { name },
+		headers: await headers(),
+	});
 
 	const existing = await prisma.userProfile.findUnique({
 		where: { userId },
@@ -306,11 +305,11 @@ export async function updateProfile(input: UpdateProfileValues) {
 	if (existing) {
 		await prisma.userProfile.update({
 			where: { userId },
-			data: { name, phone, country, sex, ageRange, timezone },
+			data: { phone, country, sex, ageRange, timezone },
 		});
 	} else {
 		await prisma.userProfile.create({
-			data: { userId, name, phone, country, sex, ageRange, timezone },
+			data: { userId, phone, country, sex, ageRange, timezone },
 		});
 	}
 

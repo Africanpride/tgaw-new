@@ -28,20 +28,16 @@ export async function POST(req: Request) {
   const userId = session.user.id!
   const fullName = `${firstName} ${lastName}`
 
-  // Create the onboarding profile (includes name for OAuth users)
+  // Create the onboarding profile
   await prisma.userProfile.create({
-    data: { userId, name: fullName, phone, country, sex, ageRange, timezone },
+    data: { userId, phone, country, sex, ageRange, timezone },
   })
 
-  // Also update name in our User table if the record exists
-  try {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { name: fullName },
-    })
-  } catch {
-    // OAuth user — Prisma User record may not exist, that's fine
-  }
+  // Update the user's name through Better Auth (works for email & OAuth users)
+  await auth.api.updateUser({
+    body: { name: fullName },
+    headers: await headers(),
+  })
 
   return NextResponse.json({ success: true })
 }
