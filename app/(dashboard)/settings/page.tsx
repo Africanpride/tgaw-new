@@ -644,6 +644,7 @@ export default function SettingsPage() {
 
     if (res.success) {
       toast.success("Account deleted successfully. Goodbye!")
+      await signOut()
       window.location.href = "/"
     } else {
       toast.error(res.error || "Account deletion failed")
