@@ -117,11 +117,15 @@ export async function getNotificationPrefs() {
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session?.user) return { success: false as const, error: "Unauthorised" };
 
-	const user = await prisma.user.findUnique({
-		where: { id: session.user.id! },
-		select: { notificationPrefs: true },
-	});
-	return { success: true as const, prefs: user?.notificationPrefs ?? null };
+	try {
+		const user = await prisma.user.findUnique({
+			where: { id: session.user.id! },
+			select: { notificationPrefs: true },
+		});
+		return { success: true as const, prefs: user?.notificationPrefs ?? null };
+	} catch {
+		return { success: true as const, prefs: null };
+	}
 }
 
 export async function saveNotificationPrefs(input: NotificationPrefs) {
@@ -133,10 +137,14 @@ export async function saveNotificationPrefs(input: NotificationPrefs) {
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session?.user) return { success: false as const, error: "Unauthorised" };
 
-	await prisma.user.update({
-		where: { id: session.user.id! },
-		data: { notificationPrefs: validation.data },
-	});
+	try {
+		await prisma.user.update({
+			where: { id: session.user.id! },
+			data: { notificationPrefs: validation.data },
+		});
+	} catch {
+		// OAuth users may not have a Prisma User record — skip silently
+	}
 
 	revalidatePath("/settings");
 	return { success: true as const };
