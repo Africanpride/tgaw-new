@@ -82,7 +82,7 @@ export function OnboardingFlow({
         {/* Cover panel */}
         <div className="relative hidden overflow-hidden md:block">
           <Image
-            src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=1200&q=80"
+            src="/onboarding.jpg"
             alt="Community fellowship"
             fill
             sizes="50vw"
@@ -348,7 +348,7 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
             Sex <span className="text-destructive">*</span>
           </Label>
           <RadioGroup
-            value={watch("sex")}
+            value={watch("sex") ?? ""}
             onValueChange={(v) =>
               setValue("sex", v as "male" | "female", { shouldValidate: true })
             }
