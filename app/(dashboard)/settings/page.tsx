@@ -341,6 +341,7 @@ export default function SettingsPage() {
     ageRange: "under-18" | "18-24" | "25-34" | "35-44" | "45-54" | "55-64" | "65-plus"
     timezone: string
   } | null>(null)
+  const [profileName, setProfileName] = useState("")
   const [isProfileLoading, setIsProfileLoading] = useState(true)
 
   const reduceMotion = useReducedMotion()
@@ -351,8 +352,9 @@ export default function SettingsPage() {
     setIsProfileLoading(true)
     getProfile()
       .then((res) => {
-        if (res.success && res.profile) {
-          setProfileData(res.profile)
+        if (res.success) {
+          if (res.profile) setProfileData(res.profile)
+          if (res.name) setProfileName(res.name)
         }
       })
       .finally(() => setIsProfileLoading(false))
@@ -394,7 +396,7 @@ export default function SettingsPage() {
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name,
+      name: profileName || name,
       email,
       phone: "",
       country: "",
@@ -403,7 +405,7 @@ export default function SettingsPage() {
       timezone: "UTC",
     },
     values: {
-      name,
+      name: profileName || name,
       email,
       phone: profileData?.phone ?? "",
       country: profileData?.country ?? "",
