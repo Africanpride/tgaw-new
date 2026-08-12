@@ -23,6 +23,11 @@ const options = {
       trustedProviders: ["google", "microsoft"],
     },
   },
+  user: {
+    deleteUser: {
+      enabled: true,
+    },
+  },
   socialProviders: {
     microsoft: {
       clientId: process.env.MICROSOFT_CLIENT_ID as string,
