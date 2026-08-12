@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { useForm, type UseFormReturn } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -79,8 +80,16 @@ export function OnboardingFlow({
     <div className="bg-background">
       <div className="grid min-h-screen md:grid-cols-2">
         {/* Cover panel */}
-        <div className="relative hidden overflow-hidden bg-gradient-to-br from-primary/20 via-primary/5 to-background md:block">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        <div className="relative hidden overflow-hidden md:block">
+          <Image
+            src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=1200&q=80"
+            alt="Community fellowship"
+            fill
+            sizes="50vw"
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/30" />
           <div className="absolute top-8 left-8 flex items-center gap-2.5 lg:top-10 lg:left-10">
             <div className="flex size-8 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25 backdrop-blur-sm">
               <ShieldCheck className="size-4 text-white" aria-hidden="true" />
@@ -99,7 +108,7 @@ export function OnboardingFlow({
               <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
             </div>
             <span className="text-sm font-semibold">
-              The Global Altar Watch
+              The Global Altar Watch 123
             </span>
           </div>
 
