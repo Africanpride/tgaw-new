@@ -351,21 +351,31 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
           <RadioGroup
             value={sex}
             onValueChange={(v) => setValue("sex", v as "male" | "female", { shouldValidate: true })}
-            className="flex gap-4"
+            className="grid w-full grid-cols-2 gap-3"
           >
             <Label
               htmlFor="sex-male"
-              className="flex cursor-pointer items-center gap-2 rounded-md border border-input px-4 py-2.5 transition-colors hover:bg-accent has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:text-primary"
+              className="cursor-pointer relative flex w-full flex-col items-center gap-3 rounded-md border border-input p-5 shadow-xs transition hover:bg-accent has-[:checked]:border-primary has-[:checked]:bg-primary/10"
             >
-              <RadioGroupItem value="male" id="sex-male" />
-              Male
+              <div className="w-full flex items-center justify-between">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary" aria-hidden="true"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="16"/><path d="M12 16l4 4"/><path d="M16 20h4v-4"/></svg>
+                <div className="bg-background p-px rounded-full">
+                  <RadioGroupItem value="male" id="sex-male" />
+                </div>
+              </div>
+              <span className="text-base font-medium">Male</span>
             </Label>
             <Label
               htmlFor="sex-female"
-              className="flex cursor-pointer items-center gap-2 rounded-md border border-input px-4 py-2.5 transition-colors hover:bg-accent has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:text-primary"
+              className="cursor-pointer relative flex w-full flex-col items-center gap-3 rounded-md border border-input p-5 shadow-xs transition hover:bg-accent has-[:checked]:border-primary has-[:checked]:bg-primary/10"
             >
-              <RadioGroupItem value="female" id="sex-female" />
-              Female
+              <div className="w-full flex items-center justify-between">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-pink-500" aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                <div className="bg-background p-px rounded-full">
+                  <RadioGroupItem value="female" id="sex-female" />
+                </div>
+              </div>
+              <span className="text-base font-medium">Female</span>
             </Label>
           </RadioGroup>
           {formState.errors.sex && (
