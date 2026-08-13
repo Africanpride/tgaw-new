@@ -1,6 +1,6 @@
 import { type BetterAuthOptions, betterAuth } from "better-auth"
 import { mongodbAdapter } from "better-auth/adapters/mongodb"
-import { haveIBeenPwned } from "better-auth/plugins"
+import { haveIBeenPwned, openAPI } from "better-auth/plugins"
 import { admin, customSession, twoFactor } from "better-auth/plugins"
 import { MongoClient } from "mongodb"
 import { sendEmail } from "@/lib/notifications/email"
@@ -60,6 +60,7 @@ const options = {
     },
   },
   plugins: [
+    openAPI(),
     admin({
       defaultRole: "member",
       adminRole: ["admin"],

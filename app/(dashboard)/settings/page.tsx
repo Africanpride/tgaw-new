@@ -274,11 +274,7 @@ function parseUA(uaString?: string) {
   return { device, browser }
 }
 
-function ThemePreview({
-  variant,
-}: {
-  variant: "light" | "dark" | "system"
-}) {
+function ThemePreview({ variant }: { variant: "light" | "dark" | "system" }) {
   if (variant === "system") {
     return (
       <div className="mb-2.5 w-full overflow-hidden rounded-md border">
@@ -778,7 +774,7 @@ export default function SettingsPage() {
         orientation="vertical"
         className="w-full"
       >
-        <div className="flex w-full flex-col gap-6 lg:flex-row lg:gap-10">
+        <div className="flex w-full flex-col gap-6 lg:flex-row">
           <aside className="w-full shrink-0 lg:w-64">
             <nav aria-label="Settings sections">
               <TabsList className="flex w-full flex-col items-stretch gap-1.5 rounded-none border-none bg-transparent p-0">
@@ -1244,12 +1240,18 @@ export default function SettingsPage() {
                                 >
                                   {isActive && (
                                     <div className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-foreground text-background">
-                                      <Check className="size-3" aria-hidden="true" />
+                                      <Check
+                                        className="size-3"
+                                        aria-hidden="true"
+                                      />
                                     </div>
                                   )}
                                   <ThemePreview variant={option.id} />
                                   <div className="flex items-center gap-2">
-                                    <Icon className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                                    <Icon
+                                      className="size-3.5 text-muted-foreground"
+                                      aria-hidden="true"
+                                    />
                                     <span className="text-sm font-medium">
                                       {option.label}
                                     </span>
@@ -2138,7 +2140,9 @@ export default function SettingsPage() {
             <div className="space-y-4 py-2">
               <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-500">
                 <Check className="size-5 shrink-0" />
-                <p className="text-sm font-semibold">Backup codes regenerated!</p>
+                <p className="text-sm font-semibold">
+                  Backup codes regenerated!
+                </p>
               </div>
               <p className="text-xs text-muted-foreground">
                 Save these recovery backup codes in a safe place. They will not
