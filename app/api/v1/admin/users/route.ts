@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { headers } from "next/headers"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/db/prisma"
 
 const listUsersSchema = z.object({
 	searchValue: z.string().optional(),
@@ -12,7 +13,7 @@ const listUsersSchema = z.object({
 export async function GET(req: Request) {
 	const session = await auth.api.getSession({ headers: await headers() })
 	const role = (session?.user as { role?: string } | undefined)?.role
-	if (!session?.user || role !== "admin") {
+	if (!session?.user || role !== "superadmin") {
 		return NextResponse.json(
 			{ success: false, error: "Unauthorised" },
 			{ status: 401 }
@@ -35,22 +36,42 @@ export async function GET(req: Request) {
 	const { searchValue, limit, offset } = parsed.data
 
 	try {
-		const res = await auth.api.listUsers({
-			query: {
-				...(searchValue ? { searchValue, searchField: "email" } : {}),
-				limit,
-				offset,
-			},
-			headers: await headers(),
-		})
+		const whereClause = searchValue
+			? {
+					OR: [
+						{ email: { contains: searchValue, mode: "insensitive" as const } },
+						{ name: { contains: searchValue, mode: "insensitive" as const } },
+					],
+				}
+			: {}
 
-		const users = res.users.map((u) => ({
+		const [usersList, totalCount] = await Promise.all([
+			prisma.user.findMany({
+				where: whereClause,
+				take: limit,
+				skip: offset,
+				orderBy: { createdAt: "desc" },
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					role: true,
+					banned: true,
+					banReason: true,
+					image: true,
+					createdAt: true,
+				},
+			}),
+			prisma.user.count({ where: whereClause }),
+		])
+
+		const users = usersList.map((u) => ({
 			id: u.id,
 			name: u.name,
 			email: u.email,
 			role: u.role ?? "member",
 			banned: u.banned ?? false,
-			banReason: (u as { banReason?: string | null }).banReason ?? null,
+			banReason: u.banReason ?? null,
 			image: u.image ?? null,
 			createdAt: u.createdAt ?? null,
 		}))
@@ -58,7 +79,7 @@ export async function GET(req: Request) {
 		return NextResponse.json({
 			success: true,
 			data: users,
-			total: res.total ?? users.length,
+			total: totalCount,
 		})
 	} catch (err) {
 		const message = err instanceof Error ? err.message : "Failed to fetch users"

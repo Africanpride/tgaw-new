@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useForm, type UseFormReturn } from "react-hook-form"
@@ -28,6 +28,7 @@ import {
   type OnboardingValues,
 } from "@/lib/schemas/onboardingSchema"
 import { resolveCountryAlpha3, resolveCountryAlpha2 } from "@/lib/countries"
+import { useSession } from "@/lib/auth-client"
 
 const AGE_RANGES = [
   "under-18",
@@ -44,6 +45,7 @@ export function OnboardingFlow({
 }: {
   onComplete: (values: OnboardingValues) => void
 }) {
+  const { data: session } = useSession()
   const [stepIndex, setStepIndex] = useState(0)
   const step = ONBOARDING_STEPS[stepIndex]
   const isLastContentStep = stepIndex === ONBOARDING_STEPS.length - 2
@@ -53,6 +55,12 @@ export function OnboardingFlow({
     resolver: zodResolver(onboardingSchema),
     mode: "onChange",
   })
+
+  useEffect(() => {
+    if (session?.user?.name) {
+      form.setValue("name", session.user.name, { shouldValidate: true })
+    }
+  }, [session, form])
 
   async function goNext() {
     const fields = Object.keys(step.schema.shape) as (keyof OnboardingValues)[]
@@ -244,29 +252,18 @@ function NameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
       </div>
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="firstName">
-            First name <span className="text-destructive">*</span>
+          <Label htmlFor="name">
+            Full name <span className="text-destructive">*</span>
           </Label>
           <Input
-            id="firstName"
-            placeholder="Kwame"
+            id="name"
+            placeholder="Kwame Mensah"
             className="h-12"
-            {...register("firstName")}
+            {...register("name")}
           />
-          {formState.errors.firstName && (
+          {formState.errors.name && (
             <p className="text-sm text-destructive">
-              {formState.errors.firstName.message}
-            </p>
-          )}
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="lastName">
-            Last name <span className="text-destructive">*</span>
-          </Label>
-          <Input id="lastName" placeholder="Mensah" className="h-12" {...register("lastName")} />
-          {formState.errors.lastName && (
-            <p className="text-sm text-destructive">
-              {formState.errors.lastName.message}
+              {formState.errors.name.message}
             </p>
           )}
         </div>
@@ -357,18 +354,25 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
           <Label>
             Sex <span className="text-destructive">*</span>
           </Label>
-          <RadioGroup
-            value={sex}
-            onValueChange={(v) =>
-              setValue("sex", v as "male" | "female", { shouldValidate: true })
-            }
-            className="grid w-full grid-cols-2 gap-3"
-          >
-            <Label
-              htmlFor="sex-male"
-              className={`relative flex w-full cursor-pointer flex-col items-center gap-3 rounded-md border-2 p-5 shadow-xs transition-all duration-200 ${sex === "male" ? "border-primary bg-primary/5 shadow-primary/10" : "border-border hover:border-primary/50"}`}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() =>
+                setValue("sex", "male", { shouldValidate: true })
+              }
+              className={cn(
+                "flex items-start gap-4 rounded-xl border p-5 text-left transition-all cursor-pointer",
+                sex === "male"
+                  ? "border-primary bg-primary/5 ring-2 ring-primary"
+                  : "border-border hover:border-primary/50 hover:bg-muted/50"
+              )}
             >
-              <div className="flex w-full items-center justify-between">
+              <div
+                className={cn(
+                  "flex size-10 shrink-0 items-center justify-center rounded-lg",
+                  sex === "male" ? "bg-primary/10" : "bg-muted"
+                )}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -379,37 +383,42 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className={
+                  className={cn(
+                    "size-5",
                     sex === "male" ? "text-primary" : "text-muted-foreground"
-                  }
+                  )}
                   aria-hidden="true"
                 >
-                  <circle cx="12" cy="5" r="3" />
-                  <line x1="12" y1="8" x2="12" y2="16" />
-                  <path d="M12 16l4 4" />
-                  <path d="M16 20h4v-4" />
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
                 </svg>
-                <RadioGroupItem
-                  value="male"
-                  id="sex-male"
-                  className={
-                    sex === "male"
-                      ? "border-primary bg-primary data-checked:border-primary data-checked:bg-primary"
-                      : ""
-                  }
-                />
               </div>
-              <span
-                className={`text-base font-medium ${sex === "male" ? "text-primary" : "text-foreground"}`}
-              >
-                Male
-              </span>
-            </Label>
-            <Label
-              htmlFor="sex-female"
-              className={`relative flex w-full cursor-pointer flex-col items-center gap-3 rounded-md border-2 p-5 shadow-xs transition-all duration-200 ${sex === "female" ? "border-primary bg-primary/5 shadow-primary/10" : "border-border hover:border-primary/50"}`}
+              <div>
+                <div className="font-medium">Male</div>
+                <div className="mt-0.5 text-sm text-muted-foreground">
+                  Brother in faith
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                setValue("sex", "female", { shouldValidate: true })
+              }
+              className={cn(
+                "flex items-start gap-4 rounded-xl border p-5 text-left transition-all cursor-pointer",
+                sex === "female"
+                  ? "border-primary bg-primary/5 ring-2 ring-primary"
+                  : "border-border hover:border-primary/50 hover:bg-muted/50"
+              )}
             >
-              <div className="flex w-full items-center justify-between">
+              <div
+                className={cn(
+                  "flex size-10 shrink-0 items-center justify-center rounded-lg",
+                  sex === "female" ? "bg-primary/10" : "bg-muted"
+                )}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -420,31 +429,24 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className={
-                    sex === "female" ? "text-pink-500" : "text-muted-foreground"
-                  }
+                  className={cn(
+                    "size-5",
+                    sex === "female" ? "text-primary" : "text-muted-foreground"
+                  )}
                   aria-hidden="true"
                 >
-                  <circle cx="12" cy="8" r="5" />
-                  <path d="M20 21a8 8 0 0 0-16 0" />
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
                 </svg>
-                <RadioGroupItem
-                  value="female"
-                  id="sex-female"
-                  className={
-                    sex === "female"
-                      ? "border-primary bg-primary data-checked:border-primary data-checked:bg-primary"
-                      : ""
-                  }
-                />
               </div>
-              <span
-                className={`text-base font-medium ${sex === "female" ? "text-primary" : "text-foreground"}`}
-              >
-                Female
-              </span>
-            </Label>
-          </RadioGroup>
+              <div>
+                <div className="font-medium">Female</div>
+                <div className="mt-0.5 text-sm text-muted-foreground">
+                  Sister in faith
+                </div>
+              </div>
+            </button>
+          </div>
           {formState.errors.sex && (
             <p className="text-sm text-destructive">
               {formState.errors.sex.message}

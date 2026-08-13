@@ -2,8 +2,7 @@ import { z } from "zod"
 import { phoneSchema } from "@/lib/schemas/phoneSchema"
 
 export const nameStepSchema = z.object({
-  firstName: z.string().min(1, "First name is required").max(50),
-  lastName: z.string().min(1, "Last name is required").max(50),
+  name: z.string().min(1, "Name is required").max(100),
 })
 
 export const contactStepSchema = z.object({

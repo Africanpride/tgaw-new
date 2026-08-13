@@ -63,11 +63,32 @@ const options = {
     openAPI(),
     admin({
       defaultRole: "member",
-      adminRole: ["admin"],
+      adminRole: ["superadmin"],
     }),
     twoFactor(),
     haveIBeenPwned(),
   ],
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          const superadminEmails = (process.env.SUPERADMIN_EMAILS || "")
+            .split(",")
+            .map((e) => e.trim().toLowerCase())
+            .filter(Boolean);
+          if (user.email && superadminEmails.includes(user.email.toLowerCase())) {
+            return {
+              data: {
+                ...user,
+                role: "superadmin",
+              },
+            };
+          }
+          return { data: user };
+        },
+      },
+    },
+  },
 } satisfies BetterAuthOptions
 
 export const auth = betterAuth({

@@ -2,6 +2,11 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 
+const SUPERADMIN_ONLY_PATHS = ["/admin/users"];
+const ADMIN_PORTAL_PATHS = ["/admin"];
+const COORDINATOR_PATHS = ["/coordinator"];
+const BOARD_PATHS = ["/board"];
+
 const PROTECTED_PATHS = [
 	"/overview",
 	"/bible",
@@ -12,12 +17,12 @@ const PROTECTED_PATHS = [
 	"/groups",
 	"/settings",
 	"/admin",
+	"/coordinator",
+	"/board",
 	"/feed",
 	"/notifications",
 	"/booking",
 ];
-
-const ADMIN_ONLY_PATHS = ["/admin"];
 
 const AUTH_PAGES = ["/login", "/signup", "/forgot-password", "/reset-password"];
 
@@ -74,7 +79,28 @@ export async function proxy(req: NextRequest) {
 
 	const role = (session.user.role as string) || "member";
 
-	if (ADMIN_ONLY_PATHS.some((p) => path.startsWith(p)) && role !== "admin") {
+	// superadmin short-circuit (passes all RBAC checks)
+	if (role === "superadmin") {
+		return NextResponse.next();
+	}
+
+	// User Management / Role Assignment: superadmin only
+	if (SUPERADMIN_ONLY_PATHS.some((p) => path.startsWith(p))) {
+		return NextResponse.redirect(new URL("/unauthorized", req.url));
+	}
+
+	// Admin Portal (slot admin, reports, external links, etc.): leader + superadmin
+	if (ADMIN_PORTAL_PATHS.some((p) => path.startsWith(p)) && role !== "leader") {
+		return NextResponse.redirect(new URL("/unauthorized", req.url));
+	}
+
+	// Coordinator Dashboard: coordinator + superadmin
+	if (COORDINATOR_PATHS.some((p) => path.startsWith(p)) && role !== "coordinator") {
+		return NextResponse.redirect(new URL("/unauthorized", req.url));
+	}
+
+	// Board Dashboard: board + superadmin
+	if (BOARD_PATHS.some((p) => path.startsWith(p)) && role !== "board") {
 		return NextResponse.redirect(new URL("/unauthorized", req.url));
 	}
 

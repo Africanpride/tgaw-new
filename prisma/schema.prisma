@@ -277,9 +277,22 @@ model Broadcast {
 
 enum Role {
   member
-  moderator
-  admin
+  coordinator
+  board
+  leader
+  superadmin
 }
+
+model CoordinatorAssignment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  timezone  String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, timezone])
+  @@index([userId])
+}
+
 
 model UserProfile {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId

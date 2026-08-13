@@ -10,8 +10,7 @@
 		"lint": "eslint",
 		"format": "prettier --write \"**/*.{ts,tsx}\"",
 		"typecheck": "tsc --noEmit",
-		"set-admin": "tsx --env-file=.env scripts/set-admin.ts",
-		"set-member": "tsx --env-file=.env scripts/set-member.ts"
+		"set-superadmin": "tsx --env-file=.env scripts/set-superadmin.ts"
 	},
 	"dependencies": {
 		"@base-ui-components/react": "^1.0.0-rc.0",

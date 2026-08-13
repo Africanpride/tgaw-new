@@ -113,7 +113,66 @@ export function AppSidebar({
   role,
   ...props
 }: React.ComponentProps<typeof Sidebar> & { role?: string }) {
-  const filteredAdminItems = role === "admin" ? adminItems : []
+  const userRole = role || "member"
+  const isSuperadmin = userRole === "superadmin"
+  const isLeader = userRole === "leader" || isSuperadmin
+  const isCoordinator = userRole === "coordinator" || isSuperadmin
+  const isBoard = userRole === "board" || isSuperadmin
+
+  const roleNavItems = []
+
+  if (isCoordinator) {
+    roleNavItems.push({
+      title: "Coordinator",
+      url: "#",
+      icon: <Users />,
+      items: [
+        {
+          title: "Timezone Dashboard",
+          url: "/coordinator",
+          icon: <Users className="size-4" />,
+        },
+      ],
+    })
+  }
+
+  if (isBoard) {
+    roleNavItems.push({
+      title: "Board",
+      url: "#",
+      icon: <Shield />,
+      items: [
+        {
+          title: "Org Dashboard",
+          url: "/board",
+          icon: <Shield className="size-4" />,
+        },
+      ],
+    })
+  }
+
+  if (isLeader) {
+    const adminSubItems = [
+      {
+        title: "Admin Portal",
+        url: "/admin",
+        icon: <Shield className="size-4" />,
+      },
+    ]
+    if (isSuperadmin) {
+      adminSubItems.push({
+        title: "User Management",
+        url: "/admin/users",
+        icon: <UserCog className="size-4" />,
+      })
+    }
+    roleNavItems.push({
+      title: "Admin",
+      url: "#",
+      icon: <Shield />,
+      items: adminSubItems,
+    })
+  }
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -126,7 +185,7 @@ export function AppSidebar({
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={[...navData, ...filteredAdminItems]} />
+        <NavMain items={[...navData, ...roleNavItems]} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

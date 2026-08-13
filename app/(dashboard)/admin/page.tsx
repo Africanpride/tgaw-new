@@ -12,7 +12,7 @@ export default async function AdminPage() {
 	if (!session) redirect("/login");
 
 	const role = (session.user.role as string) || "member";
-	if (!["moderator", "admin"].includes(role)) redirect("/unauthorized");
+	if (!["leader", "superadmin"].includes(role)) redirect("/unauthorized");
 
 	const [totalMembers, totalPosts, totalMessages, openReports, totalBookings] =
 		await Promise.all([

@@ -88,8 +88,10 @@ const EMPTY_USERS: User[] = []
 type ActionTarget = "ban" | "delete" | "unban" | null
 
 const roleColor: Record<string, string> = {
-  admin: "bg-primary/15 text-primary",
-  moderator: "bg-violet-500/15 text-violet-700 dark:text-violet-400",
+  superadmin: "bg-red-500/15 text-red-700 dark:text-red-400",
+  leader: "bg-primary/15 text-primary",
+  board: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  coordinator: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
   member: "bg-muted text-muted-foreground",
 }
 
@@ -198,8 +200,10 @@ export default function UserManagementPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="moderator">Moderator</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="coordinator">Coordinator</SelectItem>
+                <SelectItem value="board">Board</SelectItem>
+                <SelectItem value="leader">Leader</SelectItem>
+                <SelectItem value="superadmin">Superadmin</SelectItem>
               </SelectContent>
             </Select>
             {user.banned ? (
