@@ -37,7 +37,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -273,6 +272,91 @@ function parseUA(uaString?: string) {
   }
 
   return { device, browser }
+}
+
+function ThemePreview({
+  variant,
+}: {
+  variant: "light" | "dark" | "system"
+}) {
+  if (variant === "system") {
+    return (
+      <div className="mb-2.5 w-full overflow-hidden rounded-md border">
+        <div className="flex items-center gap-1 border-b px-2 py-1">
+          <div className="h-1 w-1 rounded-full bg-red-400" />
+          <div className="h-1 w-1 rounded-full bg-amber-400" />
+          <div className="h-1 w-1 rounded-full bg-emerald-400" />
+        </div>
+        <div className="flex h-10">
+          <div className="flex-1 bg-white p-1.5">
+            <div className="h-1 w-3/4 rounded bg-gray-200" />
+            <div className="mt-1 h-0.5 w-1/2 rounded bg-gray-100" />
+            <div className="mt-1 h-0.5 w-2/3 rounded bg-gray-100" />
+          </div>
+          <div className="flex-1 bg-gray-900 p-1.5">
+            <div className="h-1 w-3/4 rounded bg-gray-700" />
+            <div className="mt-1 h-0.5 w-1/2 rounded bg-gray-800" />
+            <div className="mt-1 h-0.5 w-2/3 rounded bg-gray-800" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const light = variant === "light"
+  return (
+    <div
+      className={`mb-2.5 w-full overflow-hidden rounded-md border ${
+        light ? "border-gray-200 bg-white" : "border-gray-700 bg-gray-900"
+      }`}
+    >
+      <div
+        className={`flex items-center gap-1 border-b px-2 py-1 ${
+          light ? "border-gray-200 bg-gray-50" : "border-gray-700 bg-gray-800"
+        }`}
+      >
+        <div className="h-1 w-1 rounded-full bg-red-400" />
+        <div className="h-1 w-1 rounded-full bg-amber-400" />
+        <div className="h-1 w-1 rounded-full bg-emerald-400" />
+      </div>
+      <div className="flex h-10">
+        <div
+          className={`w-8 border-r p-1 ${
+            light ? "border-gray-200 bg-gray-50" : "border-gray-700 bg-gray-800"
+          }`}
+        >
+          <div
+            className={`h-0.5 w-full rounded ${light ? "bg-gray-400" : "bg-gray-500"}`}
+          />
+          <div
+            className={`mt-1 h-0.5 w-full rounded ${light ? "bg-gray-200" : "bg-gray-700"}`}
+          />
+          <div
+            className={`mt-1 h-0.5 w-full rounded ${light ? "bg-gray-200" : "bg-gray-700"}`}
+          />
+          <div
+            className={`mt-1 h-0.5 w-full rounded ${light ? "bg-gray-200" : "bg-gray-700"}`}
+          />
+        </div>
+        <div className="flex-1 p-1.5">
+          <div
+            className={`h-1 w-3/4 rounded ${light ? "bg-gray-200" : "bg-gray-700"}`}
+          />
+          <div
+            className={`mt-1 h-0.5 w-1/2 rounded ${light ? "bg-gray-100" : "bg-gray-800"}`}
+          />
+          <div className="mt-1.5 flex gap-1">
+            <div
+              className={`h-3 flex-1 rounded ${light ? "bg-gray-100" : "bg-gray-800"}`}
+            />
+            <div
+              className={`h-3 flex-1 rounded ${light ? "bg-gray-100" : "bg-gray-800"}`}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function SettingsPage() {
@@ -1141,39 +1225,47 @@ export default function SettingsPage() {
                           <Label className="text-sm text-muted-foreground">
                             Theme
                           </Label>
-                          <RadioGroup
-                            value={theme ?? "system"}
-                            onValueChange={(value) => setTheme(value as "light" | "dark" | "system")}
-                            className="grid grid-cols-3 gap-3"
-                            aria-label="Theme"
-                          >
+                          <div className="grid grid-cols-3 gap-2">
                             {themeOptions.map((option) => {
                               const Icon = option.icon
                               const isActive = (theme ?? "system") === option.id
-                              const radioId = `theme-option-${option.id}`
                               return (
-                                <Label
+                                <button
                                   key={option.id}
-                                  htmlFor={radioId}
+                                  type="button"
+                                  onClick={() => setTheme(option.id)}
+                                  aria-pressed={isActive}
                                   className={cn(
-                                    "flex cursor-pointer flex-col items-center gap-2 rounded-xl border px-4 py-5 text-sm font-medium transition-all outline-none",
-                                    "focus-within:ring-2 focus-within:ring-ring",
+                                    "group relative flex cursor-pointer flex-col rounded-lg border p-3 text-left transition-all hover:bg-muted/50",
                                     isActive
-                                      ? "border-ring bg-muted text-foreground"
-                                      : "border-border bg-background text-muted-foreground hover:bg-accent"
+                                      ? "border-foreground ring-1 ring-foreground"
+                                      : "border-border"
                                   )}
                                 >
-                                  <RadioGroupItem
-                                    value={option.id}
-                                    id={radioId}
-                                    className="sr-only"
-                                  />
-                                  <Icon className="size-5" aria-hidden="true" />
-                                  <span>{option.label}</span>
-                                </Label>
+                                  {isActive && (
+                                    <div className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-foreground text-background">
+                                      <Check className="size-3" aria-hidden="true" />
+                                    </div>
+                                  )}
+                                  <ThemePreview variant={option.id} />
+                                  <div className="flex items-center gap-2">
+                                    <Icon className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                                    <span className="text-sm font-medium">
+                                      {option.label}
+                                    </span>
+                                    {option.id === "system" && (
+                                      <Badge
+                                        variant="secondary"
+                                        className="h-4 px-1.5 text-[10px]"
+                                      >
+                                        Auto
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </button>
                               )
                             })}
-                          </RadioGroup>
+                          </div>
                         </div>
                       </div>
                     )}
