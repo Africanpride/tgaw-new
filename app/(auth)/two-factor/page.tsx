@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { AuthBrand, AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ export default function TwoFactorPage() {
 	const [code, setCode] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
+	const router = useRouter();
 
 	async function handleVerify() {
 		if (code.length !== 6) return;
@@ -20,7 +22,7 @@ export default function TwoFactorPage() {
 			if (result.error) {
 				setError(result.error.message || "Invalid code");
 			} else {
-				window.location.href = "/";
+				router.push("/");
 			}
 		});
 	}

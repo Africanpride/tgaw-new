@@ -34,6 +34,10 @@ pnpm-debug.log*
 # glsp server logs
 /logs/
 
+# scratch/test pages (never commit)
+/app/test/
+/test/
+
 # env files (can opt-in for committing if needed)
 .env*
 

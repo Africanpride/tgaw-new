@@ -1141,6 +1141,22 @@ export function cn(...inputs: ClassValue[]) {
 }
 ```
 
+### B1. Tailwind v4 CSS Variable Syntax (Important)
+
+This project uses **Tailwind CSS v4**. Arbitrary values that reference CSS custom
+properties MUST use the **parenthesized syntax**, NOT square brackets:
+
+- ✅ **Correct**: `min-w-(--radix-popper-anchor-width)` (compiles to `min-width: var(--radix-popper-anchor-width)`)
+- ❌ **Wrong**: `min-w-[--radix-popper-anchor-width]` (compiles to the invalid `min-width: --radix-popper-anchor-width;` — the browser silently drops it, so the property falls back to any fixed default)
+
+Anything in `[x]` is treated as a literal value; to reference an existing CSS
+variable you must wrap it with `var()` (`min-w-[var(--x)]`) or use the `(--x)`
+shorthand. Rule of thumb: **brackets for literal values, parens for CSS variables.**
+
+Known cases to watch for: Radix UI sets `--radix-*` custom properties
+(e.g. `--radix-popper-anchor-width`, `--radix-popover-content-transform-origin`,
+`--radix-tooltip-content-transform-origin`) — always reference these with `(--...)`.
+
 ---
 
 ## 13. Environment Variables (`.env.example`)
@@ -1199,7 +1215,17 @@ Use `bun` / `bunx` for all package and runtime commands.
 
 ---
 
-## 15. SVG Accessibility & Linting (`no-svg-without-title`)
+## 15. Client-Side Gotchas
+
+1. **Never ship browser dialogs**: `window.prompt`/`confirm`/`alert` are banned in shipped UI — use shadcn `Dialog`/`AlertDialog` instead (e.g. password confirmation for 2FA backup-code regeneration).
+2. **Navigation**: use `router.push()`/`redirect()`/`<Link>`, never `window.location.href = "..."` (hard reloads lose state and flash the whole app).
+3. **Theme FOUC**: the theme provider applies `.dark`/`.light` in a `useEffect`; the root layout keeps a tiny inline `<script>` at the top of `<body>` (reads `localStorage` + `prefers-color-scheme`, sets the class pre-paint). Don't render a manual `<head>` — Next manages it.
+4. **No scratch pages**: never commit `app/test/**`, `/test/**`, or demo/stub pages. Delete them before committing.
+5. **Scratch artifacts**: gitignore `/.playwright-cli/` (console-*.log, page-*.yml) and `logs/` up front so Playwright/tooling runs never get committed.
+
+---
+
+## 16. SVG Accessibility & Linting (`no-svg-without-title`)
 
 All `<svg>` elements or Lucide React icons must adhere to Biome accessibility rules:
 
@@ -1208,7 +1234,7 @@ All `<svg>` elements or Lucide React icons must adhere to Biome accessibility ru
 
 ---
 
-## 16. Next.js Directives
+## 17. Next.js Directives
 
 - **Images**: Always use `next/image` (`<Image/>`) instead of native `<img>` elements.
 - **Links**: Every `<Link>` component must explicitly include `className="cursor-pointer"`.

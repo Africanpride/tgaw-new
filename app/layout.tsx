@@ -52,6 +52,11 @@ export default function RootLayout({
       )}
     >
       <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("theme")||"system";var r=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var d=document.documentElement;d.classList.remove("light","dark");d.classList.add(r);d.style.colorScheme=r;}catch(e){}})();`,
+          }}
+        />
         <ThemeProvider>
           <TooltipProvider>{children}</TooltipProvider>
           <Toaster />

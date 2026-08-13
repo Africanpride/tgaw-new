@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   Bell,
@@ -24,6 +25,7 @@ import {
 } from "lucide-react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { useEffect, useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -35,6 +37,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -306,6 +309,10 @@ export default function SettingsPage() {
   const [backupCodes, setBackupCodes] = useState<string[]>([])
   const [copiedBackup, setCopiedBackup] = useState(false)
   const [is2FALoading, setIs2FALoading] = useState(false)
+  const [isRegenModalOpen, setIsRegenModalOpen] = useState(false)
+  const [regenStep, setRegenStep] = useState<"auth" | "done">("auth")
+  const [regenPassword, setRegenPassword] = useState("")
+  const [isRegenerating, setIsRegenerating] = useState(false)
 
   // Session state
   const [userSessions, setUserSessions] = useState<any[]>([])
@@ -337,6 +344,7 @@ export default function SettingsPage() {
 
   const reduceMotion = useReducedMotion()
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
 
   // Load profile data on mount
   useEffect(() => {
@@ -562,27 +570,28 @@ export default function SettingsPage() {
     }
   }
 
-  const handleRegenerateBackupCodes = async () => {
-    toast.promise(
-      (async () => {
-        const pw = window.prompt(
-          "Enter your password to regenerate backup codes:"
-        )
-        if (!pw) return
-        const res = await authClient.twoFactor.generateBackupCodes({
-          password: pw,
-        })
-        if (res.error) throw new Error(res.error.message)
-        setBackupCodes(res.data.backupCodes)
-        setTwoFactorStep("backup")
-        setIs2FAModalOpen(true)
-      })(),
-      {
-        loading: "Generating backup codes...",
-        success: "Backup codes generated",
-        error: (err) => err.message || "Failed to generate backup codes",
-      }
-    )
+  const handleRegenerateBackupCodes = () => {
+    setRegenPassword("")
+    setRegenStep("auth")
+    setCopiedBackup(false)
+    setIsRegenModalOpen(true)
+  }
+
+  const handleConfirmRegenerate = async () => {
+    setIsRegenerating(true)
+    try {
+      const res = await authClient.twoFactor.generateBackupCodes({
+        password: regenPassword,
+      })
+      if (res.error) throw new Error(res.error.message)
+      setBackupCodes(res.data.backupCodes)
+      setRegenStep("done")
+      toast.success("Backup codes generated")
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate backup codes")
+    } finally {
+      setIsRegenerating(false)
+    }
   }
 
   // Session actions
@@ -637,7 +646,7 @@ export default function SettingsPage() {
     if (res.success) {
       toast.success("Account deleted successfully. Goodbye!")
       await signOut()
-      window.location.href = "/"
+      router.push("/")
     } else {
       toast.error(res.error || "Account deletion failed")
     }
@@ -645,7 +654,7 @@ export default function SettingsPage() {
 
   const handleSignOut = async () => {
     await signOut()
-    window.location.href = "/"
+    router.push("/")
   }
 
   const themeOptions = [
@@ -1132,35 +1141,39 @@ export default function SettingsPage() {
                           <Label className="text-sm text-muted-foreground">
                             Theme
                           </Label>
-                          <div
+                          <RadioGroup
+                            value={theme ?? "system"}
+                            onValueChange={(value) => setTheme(value as "light" | "dark" | "system")}
                             className="grid grid-cols-3 gap-3"
-                            role="radiogroup"
                             aria-label="Theme"
                           >
                             {themeOptions.map((option) => {
                               const Icon = option.icon
                               const isActive = (theme ?? "system") === option.id
+                              const radioId = `theme-option-${option.id}`
                               return (
-                                <button
+                                <Label
                                   key={option.id}
-                                  type="button"
-                                  role="radio"
-                                  aria-checked={isActive}
-                                  onClick={() => setTheme(option.id)}
+                                  htmlFor={radioId}
                                   className={cn(
                                     "flex cursor-pointer flex-col items-center gap-2 rounded-xl border px-4 py-5 text-sm font-medium transition-all outline-none",
-                                    "focus-visible:ring-2 focus-visible:ring-ring",
+                                    "focus-within:ring-2 focus-within:ring-ring",
                                     isActive
                                       ? "border-ring bg-muted text-foreground"
                                       : "border-border bg-background text-muted-foreground hover:bg-accent"
                                   )}
                                 >
+                                  <RadioGroupItem
+                                    value={option.id}
+                                    id={radioId}
+                                    className="sr-only"
+                                  />
                                   <Icon className="size-5" aria-hidden="true" />
                                   <span>{option.label}</span>
-                                </button>
+                                </Label>
                               )
                             })}
-                          </div>
+                          </RadioGroup>
                         </div>
                       </div>
                     )}
@@ -1816,11 +1829,12 @@ export default function SettingsPage() {
                 {/* Render QR code from free instant zero-dependency QR code API */}
                 {totpURI && (
                   <div className="shrink-0 rounded-2xl border bg-white p-3 shadow-sm">
-                    <img
+                    <Image
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(totpURI)}`}
                       alt="Two Factor QR Code"
                       width={150}
                       height={150}
+                      unoptimized
                       className="block"
                     />
                   </div>
@@ -1903,7 +1917,7 @@ export default function SettingsPage() {
               <div className="grid grid-cols-2 gap-2 rounded-xl border bg-muted/40 p-3.5 font-mono text-xs">
                 {backupCodes.map((code, idx) => (
                   <div
-                    key={idx}
+                    key={code}
                     className="flex items-center justify-between border-b pb-1 last:border-0 last:pb-0"
                   >
                     <span className="mr-1 text-muted-foreground">
@@ -1986,6 +2000,98 @@ export default function SettingsPage() {
               </Button>
             </DialogFooter>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 2FA Regenerate Backup Codes Dialog */}
+      <Dialog open={isRegenModalOpen} onOpenChange={setIsRegenModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Regenerate Backup Codes</DialogTitle>
+            <DialogDescription>
+              Generate a fresh set of recovery codes. Your old codes will stop
+              working.
+            </DialogDescription>
+          </DialogHeader>
+
+          {regenStep === "auth" ? (
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="regen-backup-pw">Current Password</Label>
+                <Input
+                  id="regen-backup-pw"
+                  type="password"
+                  value={regenPassword}
+                  placeholder="Enter password to confirm"
+                  className="h-12"
+                  onChange={(e) => setRegenPassword(e.target.value)}
+                />
+              </div>
+              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsRegenModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  disabled={isRegenerating || !regenPassword}
+                  onClick={handleConfirmRegenerate}
+                >
+                  {isRegenerating ? "Generating..." : "Generate Codes"}
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-500">
+                <Check className="size-5 shrink-0" />
+                <p className="text-sm font-semibold">Backup codes regenerated!</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Save these recovery backup codes in a safe place. They will not
+                be displayed again.
+              </p>
+              <div className="grid grid-cols-2 gap-2 rounded-xl border bg-muted/40 p-3.5 font-mono text-xs">
+                {backupCodes.map((code, idx) => (
+                  <div
+                    key={code}
+                    className="flex items-center justify-between border-b pb-1 last:border-0 last:pb-0"
+                  >
+                    <span className="mr-1 text-muted-foreground">
+                      {idx + 1}:
+                    </span>
+                    <span className="font-bold tracking-wider">{code}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(backupCodes.join("\n"))
+                    setCopiedBackup(true)
+                    toast.success("Backup codes copied")
+                  }}
+                >
+                  <Copy className="mr-1 size-3.5" />
+                  {copiedBackup ? "Copied" : "Copy Codes"}
+                </Button>
+              </div>
+              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-4">
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    setIsRegenModalOpen(false)
+                    setRegenPassword("")
+                  }}
+                >
+                  Done
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
