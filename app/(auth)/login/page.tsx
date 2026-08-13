@@ -28,6 +28,10 @@ type LoginForm = z.infer<typeof loginSchema>
 export default function LoginPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState("")
+  const [needsVerification, setNeedsVerification] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resent, setResent] = useState(false)
   const {
     register,
     handleSubmit,
@@ -38,22 +42,42 @@ export default function LoginPage() {
 
   async function onSubmit(data: LoginForm) {
     setError(null)
+    setNeedsVerification(false)
+    setEmail(data.email)
     const result = await authClient.signIn.email({
       email: data.email,
       password: data.password,
     })
     if (result.error) {
-      // Banned users get a BANNED_USER / FORBIDDEN response
-      const code =
-        (result.error as { code?: string }).code ??
-        (result.error as { status?: number }).status
-      if (code === "BANNED_USER" || result.error.status === 403) {
+      // Only genuinely banned users go to /banned; an unverified account
+      // returns a 403 with EMAIL_NOT_VERIFIED and must not be treated as a ban.
+      const code = (result.error as { code?: string }).code
+      if (code === "BANNED_USER") {
         router.push("/banned")
+        return
+      }
+      if (code === "EMAIL_NOT_VERIFIED") {
+        setNeedsVerification(true)
         return
       }
       setError(result.error.message || "Invalid credentials")
     } else {
       router.push("/overview")
+    }
+  }
+
+  async function handleResendVerification() {
+    setResending(true)
+    setResent(false)
+    const result = await authClient.sendVerificationEmail({
+      email,
+      callbackURL: "/overview",
+    })
+    setResending(false)
+    if (result.error) {
+      setError(result.error.message || "Failed to resend verification email")
+    } else {
+      setResent(true)
     }
   }
 
@@ -92,6 +116,36 @@ export default function LoginPage() {
         {error && (
           <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
             {error}
+          </div>
+        )}
+        {needsVerification && (
+          <div className="rounded-md border border-primary/30 bg-primary/5 p-4 text-sm">
+            <p className="font-medium text-foreground">
+              Please verify your email
+            </p>
+            <p className="mt-1 text-muted-foreground">
+              We sent a verification link to {email}. Check your inbox to
+              activate your account.
+            </p>
+            {resent && (
+              <p className="mt-2 text-sm font-medium text-primary">
+                Verification email sent again. Check your inbox.
+              </p>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={resending}
+              onClick={handleResendVerification}
+              className="mt-3 h-9 w-full cursor-pointer"
+            >
+              {resending
+                ? "Resending..."
+                : resent
+                  ? "Send again"
+                  : "Resend verification email"}
+            </Button>
           </div>
         )}
         <div className="space-y-2">
