@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
+import { phoneSchema } from "@/lib/schemas/phoneSchema";
 
 const notificationPrefsSchema = z.object({
 	email: z.record(z.string(), z.boolean()),
@@ -239,10 +240,7 @@ export async function deleteAccount(input: { password?: string }) {
 
 const updateProfileSchema = z.object({
 	name: z.string().min(2, "Name must be at least 2 characters"),
-	phone: z
-		.string()
-		.min(7, "Enter a valid phone number")
-		.regex(/^\+?[0-9\s-]+$/, "Digits only, may start with +"),
+	phone: phoneSchema,
 	country: z.string().min(1, "Select a country"),
 	sex: z.enum(["male", "female"], { message: "Select an option" }),
 	ageRange: z.enum(

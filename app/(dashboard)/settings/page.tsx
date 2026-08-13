@@ -28,6 +28,8 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 import { useTheme } from "@/components/theme-provider"
+import { CountryDropdown } from "@/components/country-dropdown"
+import { PhoneInput } from "@/components/phone-input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -44,6 +46,8 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { resolveCountryAlpha3, resolveCountryAlpha2 } from "@/lib/countries"
+import { phoneSchema } from "@/lib/schemas/phoneSchema"
 import { authClient, signOut, useSession } from "@/lib/auth-client"
 import {
   AlertDialog,
@@ -80,10 +84,7 @@ import {
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Enter a valid email address"),
-  phone: z
-    .string()
-    .min(7, "Enter a valid phone number")
-    .regex(/^\+?[0-9\s-]+$/, "Digits only, may start with +"),
+  phone: phoneSchema,
   country: z.string().min(1, "Select a country"),
   sex: z.enum(["male", "female"], { message: "Select an option" }),
   ageRange: z.enum(
@@ -107,16 +108,6 @@ const passwordSchema = z
   })
 
 type PasswordForm = z.infer<typeof passwordSchema>
-
-const COUNTRIES = [
-  "Ghana",
-  "Nigeria",
-  "United States",
-  "United Kingdom",
-  "South Africa",
-  "Kenya",
-  "Other",
-]
 
 const TIMEZONE_OPTIONS = [
   { value: "Pacific/Honolulu", label: "(GMT-10:00) Honolulu" },
@@ -338,7 +329,8 @@ export default function SettingsPage() {
     phone: string
     country: string
     sex: "male" | "female"
-    ageRange: "under-18" | "18-24" | "25-34" | "35-44" | "45-54" | "55-64" | "65-plus"
+    ageRange:
+      "under-18" | "18-24" | "25-34" | "35-44" | "45-54" | "55-64" | "65-plus"
     timezone: string
   } | null>(null)
   const [isProfileLoading, setIsProfileLoading] = useState(true)
@@ -836,7 +828,7 @@ export default function SettingsPage() {
                                 disabled
                                 value={email}
                                 readOnly
-                                className="h-11 cursor-not-allowed bg-muted/20 opacity-60"
+                                className="h-12 cursor-not-allowed bg-muted/20 opacity-60"
                               />
                               <p className="text-xs text-muted-foreground">
                                 To change your email, please contact support.
@@ -852,14 +844,27 @@ export default function SettingsPage() {
                               >
                                 Phone number
                               </Label>
-                              <Input
+                              <PhoneInput
                                 id="phone"
-                                type="tel"
-                                autoComplete="tel"
-                                placeholder="+233 20 000 0000"
-                                className="h-12"
+                                value={watch("phone") ?? ""}
+                                onChange={(e) =>
+                                  setValue("phone", e.target.value, {
+                                    shouldValidate: true,
+                                  })
+                                }
+                                defaultCountry={resolveCountryAlpha2(
+                                  watch("country")
+                                )}
+                                onCountryChange={(country) => {
+                                  if (country) {
+                                    setValue("country", country.alpha3, {
+                                      shouldValidate: true,
+                                    })
+                                  }
+                                }}
+                                placeholder="Enter your phone number"
+                                className="h-12 w-full"
                                 aria-invalid={!!errors.phone}
-                                {...register("phone")}
                               />
                               {errors.phone && (
                                 <p className="text-xs text-destructive">
@@ -874,27 +879,18 @@ export default function SettingsPage() {
                               >
                                 Country
                               </Label>
-                              <Select
-                                value={watch("country") ?? ""}
-                                onValueChange={(v) => {
-                                  if (v) setValue("country", v, { shouldValidate: true })
-                                }}
-                              >
-                                <SelectTrigger
-                                  id="country"
-                                  className="h-12"
-                                  aria-invalid={!!errors.country}
-                                >
-                                  <SelectValue placeholder="Select your country" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {COUNTRIES.map((c) => (
-                                    <SelectItem key={c} value={c}>
-                                      {c}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <CountryDropdown
+                                defaultValue={resolveCountryAlpha3(
+                                  watch("country")
+                                )}
+                                onChange={(country) =>
+                                  setValue("country", country.alpha3, {
+                                    shouldValidate: true,
+                                  })
+                                }
+                                className="h-12 w-full"
+                                placeholder="Select your country"
+                              />
                               {errors.country && (
                                 <p className="text-xs text-destructive">
                                   {errors.country.message}
@@ -903,7 +899,7 @@ export default function SettingsPage() {
                             </div>
                           </div>
 
-                          <div className="grid gap-6 sm:grid-cols-2">
+                          <div className="grid gap-6 sm:grid-cols-3">
                             <div className="space-y-2">
                               <Label className="text-sm text-muted-foreground">
                                 Sex
@@ -917,7 +913,7 @@ export default function SettingsPage() {
                                 }
                               >
                                 <SelectTrigger
-                                  className="h-12"
+                                  className="h-12 w-full data-[size=default]:h-12"
                                   aria-invalid={!!errors.sex}
                                 >
                                   <SelectValue placeholder="Select" />
@@ -948,7 +944,7 @@ export default function SettingsPage() {
                                 }
                               >
                                 <SelectTrigger
-                                  className="h-12"
+                                  className="h-12 w-full data-[size=default]:h-12"
                                   aria-invalid={!!errors.ageRange}
                                 >
                                   <SelectValue placeholder="Select age range" />
@@ -967,44 +963,46 @@ export default function SettingsPage() {
                                 </p>
                               )}
                             </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label
-                              htmlFor="timezone"
-                              className="text-sm text-muted-foreground"
-                            >
-                              Timezone
-                            </Label>
-                            <Select
-                              value={watch("timezone") ?? ""}
-                              onValueChange={(v) => {
-                                if (v) setValue("timezone", v, { shouldValidate: true })
-                              }}
-                            >
-                              <SelectTrigger
-                                id="timezone"
-                                className="h-12"
-                                aria-invalid={!!errors.timezone}
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="timezone"
+                                className="text-sm text-muted-foreground"
                               >
-                                <SelectValue placeholder="Select your time zone" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {TIMEZONE_OPTIONS.map((tz) => (
-                                  <SelectItem key={tz.value} value={tz.value}>
-                                    {tz.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <p className="text-xs text-muted-foreground">
-                              Used for slot reminders and the calendar.
-                            </p>
-                            {errors.timezone && (
-                              <p className="text-xs text-destructive">
-                                {errors.timezone.message}
+                                Timezone
+                              </Label>
+                              <Select
+                                value={watch("timezone") ?? ""}
+                                onValueChange={(v) => {
+                                  if (v)
+                                    setValue("timezone", v, {
+                                      shouldValidate: true,
+                                    })
+                                }}
+                              >
+                                <SelectTrigger
+                                  id="timezone"
+                                  className="h-12 w-full data-[size=default]:h-12"
+                                  aria-invalid={!!errors.timezone}
+                                >
+                                  <SelectValue placeholder="Select your time zone" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {TIMEZONE_OPTIONS.map((tz) => (
+                                    <SelectItem key={tz.value} value={tz.value}>
+                                      {tz.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <p className="text-xs text-muted-foreground">
+                                Used for slot reminders and the calendar.
                               </p>
-                            )}
+                              {errors.timezone && (
+                                <p className="text-xs text-destructive">
+                                  {errors.timezone.message}
+                                </p>
+                              )}
+                            </div>
                           </div>
 
                           <div className="flex justify-end">
@@ -1345,7 +1343,9 @@ export default function SettingsPage() {
                                   autoComplete="new-password"
                                   className="h-12"
                                   value={newPassword}
-                                  onChange={(e) => setNewPassword(e.target.value)}
+                                  onChange={(e) =>
+                                    setNewPassword(e.target.value)
+                                  }
                                 />
                               </div>
                               <div className="space-y-2">
@@ -1377,7 +1377,7 @@ export default function SettingsPage() {
                               >
                                 {isSettingPassword
                                   ? "Setting..."
-                                  : "Set password"}
+                                  : "Set New Password"}
                               </Button>
                             </div>
                           </div>
@@ -1693,16 +1693,19 @@ export default function SettingsPage() {
                                         type="password"
                                         value={deletePassword}
                                         placeholder="Enter current password"
+                                        className="h-12"
                                         onChange={(e) =>
-                                          setDeleteAccountPassword(e.target.value)
+                                          setDeleteAccountPassword(
+                                            e.target.value
+                                          )
                                         }
                                       />
                                     </div>
                                   )}
                                   {!hasPassword && (
                                     <p className="text-muted-foreground">
-                                      You signed in with OAuth, so no password is
-                                      required for deletion.
+                                      You signed in with OAuth, so no password
+                                      is required for deletion.
                                     </p>
                                   )}
 
@@ -1718,6 +1721,7 @@ export default function SettingsPage() {
                                       id="delete-typed-confirm"
                                       value={deleteConfirmation}
                                       placeholder="Type DELETE"
+                                      className="h-12"
                                       onChange={(e) =>
                                         setDeleteConfirmation(e.target.value)
                                       }
@@ -1785,6 +1789,7 @@ export default function SettingsPage() {
                   type="password"
                   value={twoFactorPassword}
                   placeholder="Enter current password"
+                  className="h-12"
                   onChange={(e) => setTwoFactorPassword(e.target.value)}
                 />
               </div>
@@ -1859,6 +1864,7 @@ export default function SettingsPage() {
                   value={twoFactorCode}
                   placeholder="e.g. 123456"
                   maxLength={6}
+                  className="h-12"
                   onChange={(e) => setTwoFactorCode(e.target.value)}
                 />
               </div>
@@ -1960,6 +1966,7 @@ export default function SettingsPage() {
                 type="password"
                 value={twoFactorPassword}
                 placeholder="Enter password to confirm"
+                className="h-12"
                 onChange={(e) => setTwoFactorPassword(e.target.value)}
               />
             </div>

@@ -28,6 +28,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# playwright-cli artifacts
+/.playwright-cli/
+
+# glsp server logs
+/logs/
+
 # env files (can opt-in for committing if needed)
 .env*
 

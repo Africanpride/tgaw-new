@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { phoneSchema } from "@/lib/schemas/phoneSchema"
 
 export const nameStepSchema = z.object({
   firstName: z.string().min(1, "First name is required").max(50),
@@ -6,11 +7,8 @@ export const nameStepSchema = z.object({
 })
 
 export const contactStepSchema = z.object({
-  phone: z
-    .string()
-    .min(7, "Enter a valid phone number")
-    .regex(/^\+?[0-9\s-]+$/, "Digits only, may start with +"),
-  country: z.string().min(1, "Select a country"),
+	phone: phoneSchema,
+	country: z.string().min(1, "Select a country"),
 })
 
 export const aboutStepSchema = z.object({

@@ -7,6 +7,8 @@ import { useForm, type UseFormReturn } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Check, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react"
 
+import { CountryDropdown } from "@/components/country-dropdown"
+import { PhoneInput } from "@/components/phone-input"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,16 +27,7 @@ import {
   onboardingSchema,
   type OnboardingValues,
 } from "@/lib/schemas/onboardingSchema"
-
-const COUNTRIES = [
-  "Ghana",
-  "Nigeria",
-  "United States",
-  "United Kingdom",
-  "South Africa",
-  "Kenya",
-  "Other",
-] // placeholder — swap for a full ISO country list
+import { resolveCountryAlpha3, resolveCountryAlpha2 } from "@/lib/countries"
 
 const AGE_RANGES = [
   "under-18",
@@ -257,6 +250,7 @@ function NameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
           <Input
             id="firstName"
             placeholder="Kwame"
+            className="h-12"
             {...register("firstName")}
           />
           {formState.errors.firstName && (
@@ -269,7 +263,7 @@ function NameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
           <Label htmlFor="lastName">
             Last name <span className="text-destructive">*</span>
           </Label>
-          <Input id="lastName" placeholder="Mensah" {...register("lastName")} />
+          <Input id="lastName" placeholder="Mensah" className="h-12" {...register("lastName")} />
           {formState.errors.lastName && (
             <p className="text-sm text-destructive">
               {formState.errors.lastName.message}
@@ -282,61 +276,69 @@ function NameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
 }
 
 function ContactStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
-  const { register, watch, setValue, formState } = form
-  return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold">How can we reach you?</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Used for reminders and account recovery.
-        </p>
-      </div>
-      <div className="space-y-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="phone">
-            Phone number <span className="text-destructive">*</span>
-          </Label>
-          <Input
-            id="phone"
-            placeholder="+233 20 000 0000"
-            {...register("phone")}
-          />
-          {formState.errors.phone && (
-            <p className="text-sm text-destructive">
-              {formState.errors.phone.message}
-            </p>
-          )}
-        </div>
-        <div className="space-y-1.5">
-          <Label>
-            Country <span className="text-destructive">*</span>
-          </Label>
-          <Select
-            value={watch("country") ?? ""}
-            onValueChange={(v) =>
-              v && setValue("country", v, { shouldValidate: true })
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select your country" />
-            </SelectTrigger>
-            <SelectContent>
-              {COUNTRIES.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {formState.errors.country && (
-            <p className="text-sm text-destructive">
-              {formState.errors.country.message}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  )
+	const { watch, setValue, formState } = form
+	return (
+		<div className="space-y-5">
+			<div>
+				<h2 className="text-lg font-semibold">How can we reach you?</h2>
+				<p className="mt-1 text-sm text-muted-foreground">
+					Used for reminders and account recovery.
+				</p>
+			</div>
+			<div className="space-y-4">
+				<div className="space-y-1.5">
+					<Label htmlFor="phone">
+						Phone number <span className="text-destructive">*</span>
+					</Label>
+					<PhoneInput
+						id="phone"
+						value={watch("phone") ?? ""}
+						onChange={(e) =>
+							setValue("phone", e.target.value, {
+								shouldValidate: true,
+							})
+						}
+						defaultCountry={resolveCountryAlpha2(watch("country"))}
+						onCountryChange={(country) => {
+							if (country) {
+								setValue("country", country.alpha3, {
+									shouldValidate: true,
+								})
+							}
+						}}
+						placeholder="Enter your phone number"
+						className="h-12 w-full"
+						aria-invalid={!!formState.errors.phone}
+					/>
+					{formState.errors.phone && (
+						<p className="text-sm text-destructive">
+							{formState.errors.phone.message}
+						</p>
+					)}
+				</div>
+				<div className="space-y-1.5">
+					<Label>
+						Country <span className="text-destructive">*</span>
+					</Label>
+					<CountryDropdown
+						defaultValue={resolveCountryAlpha3(watch("country"))}
+						onChange={(country) =>
+							setValue("country", country.alpha3, {
+								shouldValidate: true,
+							})
+						}
+						className="h-12 w-full"
+						placeholder="Select your country"
+					/>
+					{formState.errors.country && (
+						<p className="text-sm text-destructive">
+							{formState.errors.country.message}
+						</p>
+					)}
+				</div>
+			</div>
+		</div>
+	)
 }
 
 function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
@@ -462,7 +464,7 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
               })
             }
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="h-12 w-full data-[size=default]:h-12">
               <SelectValue placeholder="Select your age range" />
             </SelectTrigger>
             <SelectContent>
@@ -504,7 +506,7 @@ function TimezoneStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
             v && setValue("timezone", v, { shouldValidate: true })
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="h-12 w-full data-[size=default]:h-12">
             <SelectValue placeholder="Select your time zone" />
           </SelectTrigger>
           <SelectContent>
