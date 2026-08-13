@@ -861,16 +861,18 @@ export default function SettingsPage() {
                               <AvatarFallback>{initials}</AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col gap-1">
-                              <h6 className="text-sm font-medium">{name}</h6>
+                              <h6 className="flex items-center gap-2 text-sm font-medium">
+                                {name}{" "}
+                                <Badge
+                                  variant="secondary"
+                                  className="w-fit text-xs capitalize"
+                                >
+                                  {role}
+                                </Badge>
+                              </h6>
                               <p className="text-xs text-muted-foreground">
                                 {email}
                               </p>
-                              <Badge
-                                variant="secondary"
-                                className="mt-0.5 w-fit text-xs capitalize"
-                              >
-                                {role}
-                              </Badge>
                             </div>
                             <Button
                               type="button"

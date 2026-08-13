@@ -1,9 +1,63 @@
 import { type BetterAuthOptions, betterAuth } from "better-auth"
+import { createAccessControl } from "better-auth/plugins/access"
 import { mongodbAdapter } from "better-auth/adapters/mongodb"
 import { haveIBeenPwned, openAPI } from "better-auth/plugins"
 import { admin, customSession, twoFactor } from "better-auth/plugins"
 import { MongoClient } from "mongodb"
 import { sendEmail } from "@/lib/notifications/email"
+
+// ---------------------------------------------------------------------------
+// Custom Access Control for TGAW five-tier role system
+// Better Auth's admin plugin requires all adminRoles to exist in `roles`.
+// We map superadmin & leader to full admin permissions; the other roles are
+// restricted (no destructive user-management actions).
+// ---------------------------------------------------------------------------
+const defaultStatements = {
+  user: [
+    "create",
+    "list",
+    "set-role",
+    "ban",
+    "impersonate",
+    "delete",
+    "set-password",
+    "set-email",
+    "get",
+    "update",
+  ] as const,
+  session: ["list", "revoke", "delete"] as const,
+}
+
+const ac = createAccessControl(defaultStatements)
+
+// Full admin powers — superadmin only
+const superadminRole = ac.newRole({
+  user: [
+    "create",
+    "list",
+    "set-role",
+    "ban",
+    "impersonate",
+    "delete",
+    "set-password",
+    "set-email",
+    "get",
+    "update",
+  ],
+  session: ["list", "revoke", "delete"],
+})
+
+// Leader: can ban/unban and view users but cannot set roles or impersonate
+const leaderRole = ac.newRole({
+  user: ["list", "ban", "get", "update"],
+  session: ["list"],
+})
+
+// Restricted roles — no user-management permissions via the admin plugin
+const restrictedRole = ac.newRole({
+  user: [],
+  session: [],
+})
 
 const client = new MongoClient(process.env.DATABASE_URL as string)
 const db = client.db()
@@ -64,6 +118,13 @@ const options = {
     admin({
       defaultRole: "member",
       adminRole: ["superadmin"],
+      roles: {
+        superadmin: superadminRole,
+        leader: leaderRole,
+        board: restrictedRole,
+        coordinator: restrictedRole,
+        member: restrictedRole,
+      },
     }),
     twoFactor(),
     haveIBeenPwned(),

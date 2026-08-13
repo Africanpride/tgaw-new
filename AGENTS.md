@@ -23,7 +23,7 @@ Your goal is to create a Christian Community Social Media App called "The Global
 
 - Built on a **Mobile-First API Architecture** with decoupled `/api/v1/` REST endpoints ready for native mobile clients.
 - Achieve end-to-end type safety with **MongoDB Atlas + Prisma ORM + Zod schema validation**.
-- Protect all dashboard routes with server-side authentication and **Role-Based Access Control (RBAC)** using **Better Auth** (configured in `lib/auth.ts`) enforcing three explicit roles: `member` (default), `moderator`, and `admin`.
+- Protect all dashboard routes with server-side authentication and **Role-Based Access Control (RBAC)** using **Better Auth** (configured in `lib/auth.ts`) enforcing a five-tier role system: `member` (default), `coordinator`, `board`, `leader`, and `superadmin`.
 
 ### Premium Quality Bar (Apple App Store / Google Play Store):
 
@@ -48,7 +48,7 @@ TGAW is a **premium consumer product** built to a standard worthy of Apple App S
 - TypeScript (`strict: true`).
 - **Database & ORM**: MongoDB Atlas connected via **Prisma ORM** (MongoDB connector).
 - **Validation & Types**: **Zod** for schema definitions, API request body/query validation, and shared TypeScript inferred types.
-- **Authentication & RBAC**: **Better Auth** (`better-auth`) with `admin` plugin enabling strict **Role-Based Access Control (RBAC)** across three explicit roles: `member` (default), `moderator`, and `admin`. Auth is configured in `lib/auth.ts`. Route protection is handled in `proxy.ts` — **do NOT use `middleware.ts**` (deprecated in this project).
+- **Authentication & RBAC**: **Better Auth** (`better-auth`) with `admin` plugin enabling strict **Role-Based Access Control (RBAC)** across a five-tier role system: `member` (default), `coordinator`, `board`, `leader`, and `superadmin`. Auth is configured in `lib/auth.ts`. Route protection is handled in `proxy.ts` — **do NOT use `middleware.ts**` (deprecated in this project).
 - **Forms**: **React Hook Form** + **Zod** resolver (`@hookform/resolvers/zod`) paired with shadcn `<Form/>` fields.
 - **Styling**: Tailwind CSS v4 using shadcn semantic variable tokens (`bg-background`, `text-foreground`, `border-border`, `bg-card`, `bg-primary`, etc.) defined in `globals.css`.
 - **Fonts**: Load standard Google Fonts (e.g. `Inter`) via `next/font/google` on the root layout.
@@ -91,9 +91,15 @@ app/
 │   ├── settings/
 │   │   └── page.tsx           # Account Settings (stub page)
 │   ├── admin/
-│   │   ├── page.tsx           # Admin Dashboard (moderator + admin)
+│   │   ├── page.tsx           # Admin Portal (leader + superadmin)
+│   │   ├── reports/
+│   │   │   └── page.tsx       # Moderation Queue (leader + superadmin)
 │   │   └── users/
-│   │       └── page.tsx       # User & Role Management (admin only)
+│   │       └── page.tsx       # User & Role Management (superadmin only)
+│   ├── coordinator/
+│   │   └── page.tsx           # Timezone-scoped Coordinator Dashboard
+│   ├── board/
+│   │   └── page.tsx           # Org-wide Board Dashboard
 │   └── unauthorized/
 │       └── page.tsx           # 403 Access Denied page
 ├── api/
@@ -330,7 +336,7 @@ model Post {
   linkUrl      String?
   versePassage String?                      // for BIBLE_VERSE posts
   isAnswered   Boolean?   @default(false)    // for PRAYER_REQUEST posts
-  isHidden     Boolean    @default(false)    // set true by admin/moderator action
+  isHidden     Boolean    @default(false)    // set true by leader/superadmin moderation action
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   comments     Comment[]
@@ -347,7 +353,7 @@ model Comment {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   authorId  String
   body      String
-  isHidden  Boolean  @default(false)         // set true by admin/moderator action
+  isHidden  Boolean  @default(false)         // set true by leader/superadmin moderation action
   createdAt DateTime @default(now())
 
   @@index([postId])
@@ -468,7 +474,7 @@ model Report {
 
 model Broadcast {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  authorId  String                        // admin/moderator user.id
+  authorId  String                        // leader/superadmin user.id
   title     String
   body      String
   createdAt DateTime @default(now())
@@ -476,8 +482,20 @@ model Broadcast {
 
 enum Role {
   member
-  moderator
-  admin
+  coordinator
+  board
+  leader
+  superadmin
+}
+
+model CoordinatorAssignment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String                            // coordinator user.id
+  timezone  String                            // one assigned timezone per row
+  createdAt DateTime @default(now())
+
+  @@unique([userId, timezone])
+  @@index([userId])
 }
 
 model User {
@@ -598,14 +616,26 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 ## 3. Authentication & RBAC (Better Auth)
 
 > **AGENTS.md rule**: Global `middleware.ts` is **deprecated** in this project. All request interception and route protection lives in `proxy.ts`. Do not create or modify `middleware.ts`.
-> **Role system**: Three explicit roles must be enforced: `member` (default), `moderator`, and `admin`.
-> **Sign-up rule**: There is **no role selector anywhere in the sign-up form**. Every new account is created with `role: "member"` regardless of input. `moderator`/`admin` can only be granted by an existing `admin` via the User Management page (§11.7) calling Better Auth's admin `setRole` API — never by the user themselves.
-> **Moderator vs admin split**: Better Auth's `admin` plugin (`setRole`, `banUser`, impersonation, etc.) is configured with `adminRole: ["admin"]` only — those are destructive/account-level powers and stay `admin`-exclusive. `moderator` gets a narrower, app-level permission enforced in `proxy.ts` and in the API handlers themselves: access to the Moderation Queue (§11.8) to hide posts/comments and resolve reports, nothing more.
+> **Role system**: Five explicit roles must be enforced (ascending): `member` (default), `coordinator`, `board`, `leader`, and `superadmin`.
+>
+> | Role | Access |
+> |------|--------|
+> | `member` | Default. Feed, chat, groups, booking, devotion pages. |
+> | `coordinator` | + timezone-scoped coordinator dashboard (`/coordinator`) gated to their assigned timezones. |
+> | `board` | + org-wide read-oriented board dashboard (`/board`), messaging/broadcast to `leader`s. No slot, user, or external-link admin. |
+> | `leader` | + admin portal (`/admin`: slot admin, reports, moderation queue, external links, Watch-Leader assignment). |
+> | `superadmin` | Full system access. **Only** `superadmin` can promote/demote roles via User Management (`/admin/users`). |
+>
+> `superadmin` passes every RBAC check; the role guard in `proxy.ts` short-circuits to `NextResponse.next()`.
+>
+> **Sign-up rule**: There is **no role selector anywhere in the sign-up form**. Every new account is created with `role: "member"` (unless the verified email matches the `SUPERADMIN_EMAILS` allowlist — see below). Role changes can only be made by an existing `superadmin` via the User Management page (§11.7) calling Better Auth's admin `setRole` API — never by the user themselves.
+> **Superadmin bootstrap**: `lib/auth.ts` defines a `databaseHooks.user.create.before` hook that auto-assigns `role: "superadmin"` to sign-ups whose **verified email** (never display name) matches the comma-separated `SUPERADMIN_EMAILS` env allowlist. Everyone else gets `member`.
+> **Admin plugin split**: Better Auth's `admin` plugin (`setRole`, `banUser`, impersonation, etc.) is configured with `adminRole: ["superadmin"]` only — those are destructive/account-level powers and stay `superadmin`-exclusive. `leader`'s ban/unban and moderation actions are implemented as **custom app-level routes that check role directly**, NOT routed through the admin plugin.
 > **No phone auth**: Login is email/password + social providers only. There is no phone/SMS-based sign-in or verification anywhere in this app.
 
 ### A. Authentication Flow
 
-1. **Sign-Up / Login Screen** (`app/(auth)/login/page.tsx`, `app/(auth)/signup/page.tsx`) — email/password fields (shadcn `<Form/>`) plus a "Continue with GitHub" social button. No role field. On sign-up, `emailVerified` starts `false`; a verification email is sent via Nodemailer.
+1. **Sign-Up / Login Screen** (`app/(auth)/login/page.tsx`, `app/(auth)/signup/page.tsx`) — email/password fields (shadcn `<Form/>`) plus "Continue with Google" / "Continue with Microsoft" social buttons. No role field. On sign-up, `emailVerified` starts `false`; a verification email is sent via Nodemailer.
 2. **Forgot Password / Reset Flow** — `app/(auth)/forgot-password/page.tsx` collects an email and calls `authClient.forgetPassword({ email, redirectTo: "/reset-password" })`; Better Auth emails a reset link (sent via the Nodemailer transport in §7). `app/(auth)/reset-password/page.tsx` reads the token from the URL and calls `authClient.resetPassword({ newPassword, token })`.
 3. **Two-Factor Authentication (TOTP, free)** — enabled via Better Auth's `twoFactor` plugin (authenticator-app based, no SMS provider needed). A user opts in from Settings, scans a QR code (`authClient.twoFactor.enable()`), and confirms a code. On future logins where 2FA is enabled, `authClient.signIn.email()` returns a `twoFactorRedirect`, and `app/(auth)/two-factor/page.tsx` collects the 6-digit code via `authClient.twoFactor.verifyTotp({ code })`.
 
@@ -613,43 +643,63 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 
 ```typescript
 import { betterAuth } from "better-auth"
-import { admin, twoFactor } from "better-auth/plugins"
-import { prismaAdapter } from "better-auth/adapters/prisma"
-import { prisma } from "@/lib/db/prisma"
+import { admin, customSession, haveIBeenPwned, openAPI, twoFactor } from "better-auth/plugins"
+import { mongodbAdapter } from "better-auth/adapters/mongodb"
+import { MongoClient } from "mongodb"
 import { sendEmail } from "@/lib/notifications/email"
 
+const client = new MongoClient(process.env.DATABASE_URL as string)
+const db = client.db()
+
 export const auth = betterAuth({
-  database: prismaAdapter(prisma, { provider: "mongodb" }),
+  appName: "TGAW",
+  database: mongodbAdapter(db, { client }),
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) =>
-      sendEmail(
-        user.email,
-        "Reset your TGAW password",
-        `<a href="${url}">Reset password</a>`
-      ),
+      sendEmail(user.email, "Reset your TGAW password", `<a href="${url}">Reset password</a>`),
   },
   emailVerification: {
+    sendOnSignIn: true,
     sendVerificationEmail: async ({ user, url }) =>
-      sendEmail(
-        user.email,
-        "Verify your TGAW email",
-        `<a href="${url}">Verify email</a>`
-      ),
+      sendEmail(user.email, "Verify your TGAW email", `<a href="${url}">Verify email</a>`),
   },
   socialProviders: {
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+    microsoft: {
+      clientId: process.env.MICROSOFT_CLIENT_ID as string,
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET as string,
+      tenantId: "common",
+      prompt: "select_account",
+    },
+  },
+  // Superadmin bootstrap: verified email vs SUPERADMIN_EMAILS allowlist
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          const allowed = (process.env.SUPERADMIN_EMAILS || "")
+            .split(",").map((e) => e.trim().toLowerCase()).filter(Boolean)
+          if (user.email && allowed.includes(user.email.toLowerCase())) {
+            return { data: { ...user, role: "superadmin" } }
+          }
+          return { data: user }
+        },
+      },
     },
   },
   plugins: [
+    openAPI(),
     admin({
       defaultRole: "member",
-      adminRole: ["admin"],
+      adminRole: ["superadmin"],
     }),
     twoFactor(),
+    haveIBeenPwned(),
   ],
 })
 ```
@@ -684,6 +734,7 @@ import { auth } from "@/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
 
 const PROTECTED_PATHS = [
+  "/overview",
   "/bible",
   "/prayer",
   "/calendar",
@@ -692,10 +743,17 @@ const PROTECTED_PATHS = [
   "/groups",
   "/settings",
   "/admin",
+  "/coordinator",
+  "/board",
+  "/feed",
+  "/notifications",
+  "/booking",
 ]
 
-const ADMIN_ONLY_PATHS = ["/admin/users"] // account-level actions: role changes, bans
-const MODERATOR_PATHS = ["/admin"] // admin portal + moderation queue
+const SUPERADMIN_ONLY_PATHS = ["/admin/users"] // role changes, bans
+const ADMIN_PORTAL_PATHS = ["/admin"] // admin portal + moderation queue
+const COORDINATOR_PATHS = ["/coordinator"]
+const BOARD_PATHS = ["/board"]
 
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname
@@ -709,16 +767,28 @@ export async function proxy(req: NextRequest) {
 
   const role = (session.user.role as string) || "member"
 
-  // RBAC Guard: Admin-only paths (user management, role assignment, banning)
-  if (ADMIN_ONLY_PATHS.some((p) => path.startsWith(p)) && role !== "admin") {
+  // superadmin short-circuit (passes all RBAC checks)
+  if (role === "superadmin") {
+    return NextResponse.next()
+  }
+
+  // User Management / Role Assignment: superadmin only
+  if (SUPERADMIN_ONLY_PATHS.some((p) => path.startsWith(p))) {
     return NextResponse.redirect(new URL("/unauthorized", req.url))
   }
 
-  // RBAC Guard: Moderator & Admin paths (admin portal, moderation queue)
-  if (
-    MODERATOR_PATHS.some((p) => path.startsWith(p)) &&
-    !["moderator", "admin"].includes(role)
-  ) {
+  // Admin Portal (slot admin, reports, moderation queue, etc.): leader + superadmin
+  if (ADMIN_PORTAL_PATHS.some((p) => path.startsWith(p)) && role !== "leader") {
+    return NextResponse.redirect(new URL("/unauthorized", req.url))
+  }
+
+  // Coordinator Dashboard: coordinator + superadmin
+  if (COORDINATOR_PATHS.some((p) => path.startsWith(p)) && role !== "coordinator") {
+    return NextResponse.redirect(new URL("/unauthorized", req.url))
+  }
+
+  // Board Dashboard: board + superadmin
+  if (BOARD_PATHS.some((p) => path.startsWith(p)) && role !== "board") {
     return NextResponse.redirect(new URL("/unauthorized", req.url))
   }
 
@@ -960,13 +1030,13 @@ Implement using **shadcn/ui** `<Form/>`, `<FormField/>`, `<FormItem/>`, `<FormLa
 
 - Form handling with `react-hook-form` and `@hookform/resolvers/zod`.
 - Primary submission triggers `authClient.signIn.email({ email, password })`. If the response includes `twoFactorRedirect`, route to `/two-factor` instead of the dashboard.
-- Social authentication button triggers `authClient.signIn.social({ provider: "github" })`.
+- Social authentication button triggers `authClient.signIn.social({ provider: "google" })` / `{ provider: "microsoft" }`.
 - "Forgot password?" link to `/forgot-password`.
 - Feedback presented via shadcn `<Alert/>` or `toast()`.
 
 ### 9.2 Sign-Up (`app/(auth)/signup/page.tsx`)
 
-- Fields: name, email, password (no role field — every account is created as `user`; see §3).
+- Fields: name, email, password (no role field — every account is created as `member`; see §3).
 - Submission triggers `authClient.signUp.email({ name, email, password })`, then shows a "check your email to verify" state.
 
 ### 9.3 Forgot Password / Reset (`app/(auth)/forgot-password/page.tsx`, `app/(auth)/reset-password/page.tsx`)
@@ -991,10 +1061,12 @@ Uses shadcn's official **Sidebar** component pattern (`SidebarProvider`, `Sideba
 - **Devotion**: Calendar, Bible Reading, Prayer, Praise & Worship, Slot Booking
 - **Community**: Feed, Messages (with `<Badge/>` for unread count), Groups
 - **Account**: Settings, Sign Out
-- **Admin Section** (rendered conditionally for `moderator` / `admin` roles):
-- Admin Portal (`/admin`)
-- Moderation Queue (`/admin/reports`, `moderator` + `admin`)
-- User Management (`/admin/users`, `admin` only)
+- **Role-scoped sections** (rendered conditionally by `AppSidebar` based on the signed-in user's role):
+- Coordinator Dashboard (`/coordinator`, `coordinator` + `superadmin`)
+- Org Dashboard (`/board`, `board` + `superadmin`)
+- Admin Portal (`/admin`, `leader` + `superadmin`)
+- Moderation Queue (`/admin/reports`, `leader` + `superadmin`)
+- User Management (`/admin/users`, `superadmin` only)
 
 ### Topbar (`components/dashboard/Topbar.tsx`):
 
@@ -1052,17 +1124,17 @@ Uses shadcn's official **Sidebar** component pattern (`SidebarProvider`, `Sideba
 - **Feed list**: infinite-scroll or "Load more" `<Button/>` over `Post` rows (paginate by `createdAt` cursor), each rendered via a `PostCard` component keyed to `PostType` (e.g. a Bible verse post looks different from a poll post).
 - **Like / comment / share**: `<Button size="icon">` actions; likes call `POST /api/v1/posts/:id/likes` (toggles a `Like` row); comments expand an inline list + composer; share copies a deep link.
 - **Report action**: every post/comment has a "Report" option in a `<DropdownMenu/>` that opens a short reason `<Textarea/>` and creates a `Report` row.
-- **Moderation tools for Admins**: `admin`/`moderator` see an extra "Hide" action directly on posts/comments (`isHidden = true`, soft-hides without deleting) in addition to the Moderation Queue (§11.8) that lists open `Report`s for review.
+- **Moderation tools for leaders**: `leader`/`superadmin` see an extra "Hide" action directly on posts/comments (`isHidden = true`, soft-hides without deleting) in addition to the Moderation Queue (§11.8) that lists open `Report`s for review.
 
 ### 11.7 Admin & RBAC Pages
 
 - User management implemented using shadcn `<Table/>`, `<TableHeader/>`, `<TableBody/>`, `<TableRow/>`, `<TableCell/>`.
-- Role assignment implemented using shadcn `<Select/>` dropdown inside table cells (calls the Better Auth admin `setRole` API — `admin` only, per §3).
+- Role assignment implemented using shadcn `<Select/>` dropdown inside table cells (calls the Better Auth admin `setRole` API — `superadmin` only, per §3). The picker lists the five roles: `member`, `coordinator`, `board`, `leader`, `superadmin`. Assigning `coordinator` additionally writes one or more rows to `CoordinatorAssignment`.
 - Unauthorized 403 page built with `<Card/>` and clear fallback `<Button/>` returning to dashboard.
 
 ### 11.8 Moderation Queue (`app/(dashboard)/admin/reports/page.tsx`)
 
-- `moderator`/`admin` only. `<Table/>` of open `Report` rows (target type, reason, reporter, date) with row actions: "Hide content" (sets `isHidden` on the target `Post`/`Comment`), "Dismiss" (marks the `Report` `RESOLVED` with no action), or "Ban user" (`admin` only — existing `User.banned`/`banReason` fields, gated by the Better Auth `admin` plugin's `adminRole: ["admin"]`).
+- `leader`/`superadmin` only. `<Table/>` of open `Report` rows (target type, reason, reporter, date) with row actions: "Hide content" (sets `isHidden` on the target `Post`/`Comment`), "Dismiss" (marks the `Report` `RESOLVED` with no action), or "Ban user" (`leader`/`superadmin` — existing `User.banned`/`banReason` fields, enforced by **app-level role checks**, NOT the Better Auth `admin` plugin).
 
 ### 11.9 Notifications Panel
 
@@ -1169,10 +1241,14 @@ DATABASE_URL="mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<dbname>?ret
 BETTER_AUTH_SECRET="<generate with: openssl rand -base64 32>"
 BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+# Comma-separated emails auto-promoted to superadmin on signup (verified email match)
+SUPERADMIN_EMAILS="admin@tgaw.app,superadmin@tgaw.app"
 
 # OAuth Providers
-GITHUB_CLIENT_ID=""
-GITHUB_CLIENT_SECRET=""
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+MICROSOFT_CLIENT_ID=""
+MICROSOFT_CLIENT_SECRET=""
 
 # Email (Nodemailer / SMTP — free-tier provider or Gmail app password)
 BETTER_AUTH_EMAIL="noreply@tgaw.app"
