@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 export function AdminBookingConfig({ initialConfig }: { initialConfig: any }) {
   const [config, setConfig] = useState(initialConfig || {
@@ -94,31 +96,39 @@ export function AdminBookingConfig({ initialConfig }: { initialConfig: any }) {
           <RadioGroup 
             value={config.visibilityMode.toString()} 
             onValueChange={(v) => setConfig({ ...config, visibilityMode: Number(v) })}
+            className="gap-2"
           >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="1" id="mode1" />
-              <Label htmlFor="mode1" className="font-normal">
-                <span className="font-medium">1. Full Public</span> - Everyone sees who booked every slot.
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="2" id="mode2" />
-              <Label htmlFor="mode2" className="font-normal">
-                <span className="font-medium">2. Count Only</span> - Hide names, show only "Booked".
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="3" id="mode3" />
-              <Label htmlFor="mode3" className="font-normal">
-                <span className="font-medium">3. Full Transparency</span> - Show names + prominent empty slots.
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="4" id="mode4" />
-              <Label htmlFor="mode4" className="font-normal">
-                <span className="font-medium">4. Role-Scoped (Default)</span> - Leaders see names, members only see availability.
-              </Label>
-            </div>
+            {[
+              { value: "1", title: "1. Full Public", desc: "Everyone sees who booked every slot." },
+              { value: "2", title: "2. Count Only", desc: "Hide names, show only \"Booked\"." },
+              { value: "3", title: "3. Full Transparency", desc: "Show names + prominent empty slots." },
+              { value: "4", title: "4. Role-Scoped (Default)", desc: "Leaders see names, members only see availability." },
+            ].map((mode) => {
+              const selected = config.visibilityMode.toString() === mode.value;
+              return (
+                <label
+                  key={mode.value}
+                  htmlFor={`mode${mode.value}`}
+                  className={cn(
+                    "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors",
+                    selected
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                      : "border-border hover:bg-muted/50",
+                  )}
+                >
+                  <RadioGroupItem value={mode.value} id={`mode${mode.value}`} className="mt-0.5" />
+                  <div className="flex-1">
+                    <span className={cn("text-sm", selected ? "font-semibold text-foreground" : "font-medium text-foreground")}>
+                      {mode.title}
+                    </span>
+                    <p className="text-xs text-muted-foreground mt-0.5">{mode.desc}</p>
+                  </div>
+                  {selected && (
+                    <Check className="size-4 shrink-0 text-primary mt-0.5" aria-hidden="true" />
+                  )}
+                </label>
+              );
+            })}
           </RadioGroup>
         </div>
 
