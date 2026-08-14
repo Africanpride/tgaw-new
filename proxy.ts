@@ -31,7 +31,7 @@ const BANNED_PATH = "/banned";
 
 export async function proxy(req: NextRequest) {
 	const path = req.nextUrl.pathname;
-	const isProtected = PROTECTED_PATHS.some((p) => path.startsWith(p));
+	const isProtected = PROTECTED_PATHS.some((p) => path.startsWith(p)) || path.startsWith("/api/v1/slots/");
 	const isAuthPage = AUTH_PAGES.some((p) => path.startsWith(p));
 	const isOnboardingPath = path.startsWith(ONBOARDING_PATH);
 	const isBannedPath = path.startsWith(BANNED_PATH);
@@ -82,6 +82,15 @@ export async function proxy(req: NextRequest) {
 	// superadmin short-circuit (passes all RBAC checks)
 	if (role === "superadmin") {
 		return NextResponse.next();
+	}
+
+	if (path.startsWith("/api/v1/slots/book") || path.startsWith("/api/v1/slots/cancel") || path === "/api/v1/slots") {
+		// All authenticated users can list/book/cancel
+	} else if (path.startsWith("/api/v1/slots/assign") || path.startsWith("/api/v1/slots/admin-cancel") || path.startsWith("/api/v1/slots/config") || path.startsWith("/api/v1/slots/meeting-link") || path.startsWith("/api/v1/slots/generate")) {
+		// Only leader and superadmin
+		if (role !== "leader" && role !== "superadmin") {
+			return NextResponse.redirect(new URL("/unauthorized", req.url));
+		}
 	}
 
 	// User Management / Role Assignment: superadmin only

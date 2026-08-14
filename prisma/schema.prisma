@@ -293,6 +293,48 @@ model CoordinatorAssignment {
   @@index([userId])
 }
 
+model Slot {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  type      EventType                    // BIBLE | PRAYER | PRAISE_WORSHIP
+  date      String                       // YYYY-MM-DD (UTC date)
+  startTime String                       // HH:MM (UTC, e.g. "08:00")
+  endTime   String                       // HH:MM (UTC, e.g. "08:30")
+  bookedBy  String?                      // user.id of who booked it (null = available)
+  notes     String?                      // optional context from user
+  assignedBy String?                     // user.id of leader who assigned it (null = self-booked)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([type, date, startTime])      // one slot per type per date per time
+  @@index([date])
+  @@index([bookedBy])
+  @@index([type, date])
+}
+
+model MeetingLink {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  type      EventType                    // BIBLE | PRAYER | PRAISE_WORSHIP
+  date      String                       // YYYY-MM-DD
+  url       String                       // Zoom or MS Teams URL
+  label     String?                      // e.g. "Morning Zoom Room"
+  createdBy String                       // leader/superadmin user.id
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([type, date])                 // one link per type per day
+}
+
+model BookingConfig {
+  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
+  maxBibleSlotsPerDay   Int       @default(2)
+  maxPrayerSlotsPerDay  Int       @default(2)
+  maxWorshipSlotsPerDay Int       @default(2)
+  visibilityMode        Int       @default(4)  // 1=Full Public, 2=Count Only, 3=Full Transparency, 4=Role-Scoped
+  updatedBy             String                 // last admin who changed config
+  updatedAt             DateTime  @updatedAt
+  createdAt             DateTime  @default(now())
+}
+
 
 model UserProfile {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId

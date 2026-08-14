@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import Statistics from "@/components/shadcn-space/blocks/statistics-01/statistics";
+import { AdminBookingConfig } from "@/components/booking/AdminBookingConfig";
+import { AdminMeetingLinkManager } from "@/components/booking/AdminMeetingLinkManager";
+import { AdminSlotOverride } from "@/components/booking/AdminSlotOverride";
 
 export default async function AdminPage() {
 	const session = await auth.api.getSession({ headers: await headers() });
@@ -14,13 +17,14 @@ export default async function AdminPage() {
 	const role = (session.user.role as string) || "member";
 	if (!["leader", "superadmin"].includes(role)) redirect("/unauthorized");
 
-	const [totalMembers, totalPosts, totalMessages, openReports, totalBookings] =
+	const [totalMembers, totalPosts, totalMessages, openReports, totalBookings, bookingConfig] =
 		await Promise.all([
 			prisma.user.count(),
 			prisma.post.count(),
 			prisma.message.count(),
 			prisma.report.count({ where: { status: "OPEN" } }),
 			prisma.eventBooking.count({ where: { status: "CONFIRMED" } }),
+			prisma.bookingConfig.findFirst(),
 		]);
 
 	return (
@@ -107,6 +111,16 @@ export default async function AdminPage() {
 					</p>
 				</CardContent>
 			</Card>
+			
+			<div className="space-y-6">
+				<h3 className="text-xl font-semibold flex items-center gap-2">
+					<CalendarCheck className="size-5" />
+					Slot Management
+				</h3>
+				<AdminBookingConfig initialConfig={bookingConfig} />
+				<AdminMeetingLinkManager />
+				<AdminSlotOverride />
+			</div>
 		</div>
 	);
 }
