@@ -1,73 +1,138 @@
 "use client";
 
-import { useState } from "react";
-import { SlotCell, SlotData } from "./SlotCell";
+import { useMemo, useState } from "react";
+import { CalendarX2 } from "lucide-react";
+import { SlotCell, SlotData, convertUtcTimeToLocal, isPastSlot } from "./SlotCell";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { slotAccent } from "./slotAccent";
 import { EventType } from "@prisma/client";
+import { cn } from "@/lib/utils";
 
 interface SlotTimelineProps {
   slots: SlotData[];
   type: EventType;
   selectedIds: string[];
   onSelectionChange: (ids: string[]) => void;
+  onEmptyAction?: () => void;
 }
 
-export function SlotTimeline({ slots, type, selectedIds, onSelectionChange }: SlotTimelineProps) {
+interface SlotGroup {
+  label: string;
+  slots: SlotData[];
+}
+
+function localHour(utcTime: string) {
+  const [hours] = convertUtcTimeToLocal(utcTime).split(":");
+  return parseInt(hours, 10);
+}
+
+function groupSlots(slots: SlotData[]): SlotGroup[] {
+  const groups: Record<string, SlotData[]> = {
+    Morning: [],
+    Midday: [],
+    Evening: [],
+    Night: [],
+  };
+  for (const slot of slots) {
+    const h = localHour(slot.startTime);
+    if (h >= 5 && h < 12) groups.Morning.push(slot);
+    else if (h >= 12 && h < 17) groups.Midday.push(slot);
+    else if (h >= 17 && h < 21) groups.Evening.push(slot);
+    else groups.Night.push(slot);
+  }
+  return Object.entries(groups)
+    .map(([label, s]) => ({ label, slots: s }))
+    .filter((g) => g.slots.length > 0);
+}
+
+export function SlotTimeline({
+  slots,
+  type,
+  selectedIds,
+  onSelectionChange,
+  onEmptyAction,
+}: SlotTimelineProps) {
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
 
-  const accentColorClass = type === "BIBLE" ? "purple-500" : type === "PRAYER" ? "red-500" : "amber-500";
+  const accent = slotAccent[type];
+  const groups = useMemo(() => groupSlots(slots), [slots]);
 
   const handleSelect = (id: string, shiftKey: boolean) => {
-    const targetSlot = slots.find(s => s.id === id);
-    if (!targetSlot || targetSlot.isBooked) return;
+    const targetSlot = slots.find((s) => s.id === id);
+    if (!targetSlot || targetSlot.isBooked || isPastSlot(targetSlot)) return;
 
     if (shiftKey && lastSelectedId) {
-      const startIndex = slots.findIndex(s => s.id === lastSelectedId);
-      const endIndex = slots.findIndex(s => s.id === id);
-      
+      const startIndex = slots.findIndex((s) => s.id === lastSelectedId);
+      const endIndex = slots.findIndex((s) => s.id === id);
       const min = Math.min(startIndex, endIndex);
       const max = Math.max(startIndex, endIndex);
-      
-      const newSelection = [];
+      const newSelection: string[] = [];
       let canSelectAll = true;
-
       for (let i = min; i <= max; i++) {
-        if (slots[i].isBooked) {
+        if (slots[i].isBooked || isPastSlot(slots[i])) {
           canSelectAll = false;
           break;
         }
         newSelection.push(slots[i].id);
       }
-
       if (canSelectAll) {
         onSelectionChange(Array.from(new Set([...selectedIds, ...newSelection])));
       }
     } else {
-      if (selectedIds.includes(id)) {
-        onSelectionChange(selectedIds.filter(sId => sId !== id));
-      } else {
-        onSelectionChange([...selectedIds, id]);
-      }
+      onSelectionChange(
+        selectedIds.includes(id)
+          ? selectedIds.filter((sId) => sId !== id)
+          : [...selectedIds, id],
+      );
       setLastSelectedId(id);
     }
   };
 
-  return (
-    <ScrollArea className="h-[500px] w-full rounded-md border">
-      <div className="flex flex-col">
-        {slots.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground">No slots available.</div>
-        ) : (
-          slots.map((slot) => (
-            <SlotCell
-              key={slot.id}
-              slot={slot}
-              isSelected={selectedIds.includes(slot.id)}
-              onSelect={handleSelect}
-              accentColorClass={accentColorClass}
-            />
-          ))
+  if (slots.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 rounded-md border py-14 text-center">
+        <div className={cn("flex size-12 items-center justify-center rounded-full", accent.iconTile)}>
+          <CalendarX2 className="size-6" aria-hidden="true" />
+        </div>
+        <p className="font-medium">No slots for this day</p>
+        <p className="max-w-xs text-sm text-muted-foreground">
+          This day is quiet. Pick another day on the calendar to keep your devotional watch.
+        </p>
+        {onEmptyAction && (
+          <Button variant="outline" size="sm" onClick={onEmptyAction} className="mt-1">
+            Pick another day
+          </Button>
         )}
+      </div>
+    );
+  }
+
+  return (
+    <ScrollArea className="h-[560px] w-full max-w-full overflow-hidden rounded-md border">
+      <div className="flex flex-col">
+        {groups.map((group) => (
+          <div key={group.label}>
+            <div className="sticky top-0 z-10 flex items-center gap-2 border-y bg-popover/95 px-3 py-1.5 backdrop-blur">
+              <span className={cn("h-1.5 w-1.5 rounded-full", accent.dotStrong)} />
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {group.label}
+              </span>
+              <span className="text-xs text-muted-foreground/70">
+                · {group.slots.length} slot{group.slots.length === 1 ? "" : "s"}
+              </span>
+            </div>
+            {group.slots.map((slot) => (
+              <SlotCell
+                key={slot.id}
+                slot={slot}
+                isSelected={selectedIds.includes(slot.id)}
+                onSelect={handleSelect}
+                accent={accent}
+              />
+            ))}
+          </div>
+        ))}
       </div>
     </ScrollArea>
   );

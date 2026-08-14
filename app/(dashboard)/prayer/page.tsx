@@ -44,7 +44,7 @@ export default async function PrayerPage() {
 				/>
 			</div>
 			
-			<Card className="border-red-500/20 shadow-md">
+			<Card className="min-w-0 border-red-500/20 shadow-md">
 				<CardContent className="p-6">
 					<SlotBookingStrip slots={slots} type="PRAYER" />
 				</CardContent>

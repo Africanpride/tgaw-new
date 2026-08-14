@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
-import { EventType } from "@prisma/client";
-import { startOfDay, addDays, format, differenceInMinutes, parse } from "date-fns";
+import { EventType, Prisma } from "@prisma/client";
+import { addDays, addMonths, endOfMonth, format, parse, startOfMonth } from "date-fns";
 
 /**
  * Generate 48 slots per day for a given date range.
@@ -9,11 +9,13 @@ export async function generateSlotsForDateRange(startDateStr: string, endDateStr
   const startDate = parse(startDateStr, "yyyy-MM-dd", new Date());
   const endDate = parse(endDateStr, "yyyy-MM-dd", new Date());
 
-  const newSlots = [];
+  const newSlots: { type: EventType; date: string; startTime: string; endTime: string }[] = [];
+  const dates: string[] = [];
   let currentDate = startDate;
 
   while (currentDate <= endDate) {
     const dateStr = format(currentDate, "yyyy-MM-dd");
+    dates.push(dateStr);
 
     for (const type of [EventType.BIBLE, EventType.PRAYER, EventType.PRAISE_WORSHIP]) {
       for (let i = 0; i < 48; i++) {
@@ -36,26 +38,50 @@ export async function generateSlotsForDateRange(startDateStr: string, endDateStr
     currentDate = addDays(currentDate, 1);
   }
 
-  // Idempotent creation
-  let createdCount = 0;
-  for (const slot of newSlots) {
-    const existing = await prisma.slot.findUnique({
-      where: {
-        type_date_startTime: {
-          type: slot.type,
-          date: slot.date,
-          startTime: slot.startTime,
-        },
-      },
-    });
+  if (newSlots.length === 0) return 0;
 
-    if (!existing) {
-      await prisma.slot.create({ data: slot });
-      createdCount++;
+  // Idempotent batch creation: fetch existing keys once, then bulk insert.
+  const existing = await prisma.slot.findMany({
+    where: {
+      date: { in: dates },
+      type: { in: [EventType.BIBLE, EventType.PRAYER, EventType.PRAISE_WORSHIP] },
+    },
+    select: { type: true, date: true, startTime: true },
+  });
+  const existingKeys = new Set(existing.map((s) => `${s.type}|${s.date}|${s.startTime}`));
+
+  const toCreate = newSlots.filter(
+    (slot) => !existingKeys.has(`${slot.type}|${slot.date}|${slot.startTime}`)
+  );
+
+  if (toCreate.length === 0) return 0;
+
+  try {
+    const result = await prisma.slot.createMany({ data: toCreate });
+    return result.count;
+  } catch (error) {
+    // Concurrent generation can hit the unique constraint — slots already exist.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return 0;
     }
+    throw error;
   }
+}
 
-  return createdCount;
+/**
+ * Ensure slots exist for a date, generating the rolling month window on demand
+ * (spec §2.1: auto-generate on first load when slots don't exist).
+ */
+export async function ensureSlotsForDate(dateStr: string) {
+  const existingCount = await prisma.slot.count({
+    where: { date: dateStr },
+  });
+  if (existingCount > 0) return;
+
+  const today = new Date();
+  const startDate = format(startOfMonth(today), "yyyy-MM-dd");
+  const endDate = format(endOfMonth(addMonths(today, 1)), "yyyy-MM-dd");
+  await generateSlotsForDateRange(startDate, endDate);
 }
 
 export async function getBookingConfig() {
@@ -90,6 +116,7 @@ export async function updateBookingConfig(
 }
 
 export async function getSlotsForDate(date: string, type?: EventType, currentUserId?: string, userRole?: string) {
+  await ensureSlotsForDate(date);
   const config = await getBookingConfig();
   
   const slots = await prisma.slot.findMany({

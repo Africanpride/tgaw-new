@@ -44,7 +44,7 @@ export default async function WorshipPage() {
 				/>
 			</div>
 			
-			<Card className="border-amber-500/20 shadow-md">
+			<Card className="min-w-0 border-amber-500/20 shadow-md">
 				<CardContent className="p-6">
 					<SlotBookingStrip slots={slots} type="PRAISE_WORSHIP" />
 				</CardContent>

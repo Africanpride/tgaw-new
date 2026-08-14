@@ -10,6 +10,16 @@ import { EventType } from "@prisma/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function AdminMeetingLinkManager() {
   const [type, setType] = useState<EventType>("BIBLE");
@@ -17,6 +27,7 @@ export function AdminMeetingLinkManager() {
   const [url, setUrl] = useState("");
   const [label, setLabel] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: string; date: string } | null>(null);
 
   const handleSave = async () => {
     if (!url) {
@@ -51,15 +62,24 @@ export function AdminMeetingLinkManager() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this meeting link?")) return;
-    
+  const handleDelete = () => {
+    setDeleteTarget({
+      type,
+      date: format(date, "yyyy-MM-dd"),
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteTarget(null);
     setIsSaving(true);
     try {
-      const dateStr = format(date, "yyyy-MM-dd");
-      const res = await fetch(`/api/v1/slots/meeting-link?type=${type}&date=${dateStr}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `/api/v1/slots/meeting-link?type=${deleteTarget.type}&date=${deleteTarget.date}`,
+        {
+          method: "DELETE",
+        },
+      );
       const data = await res.json();
       if (data.success) {
         toast.success("Meeting link deleted");
@@ -137,6 +157,30 @@ export function AdminMeetingLinkManager() {
           </div>
         </div>
       </CardContent>
+
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete meeting link?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the meeting link for {deleteTarget?.type.replace("_", " ").toLowerCase()}{" "}
+              on {deleteTarget?.date}. Booked slots are not affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep link</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Delete link
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

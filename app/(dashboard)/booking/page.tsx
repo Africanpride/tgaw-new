@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { EventType } from "@prisma/client";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { TypeTabs } from "@/components/booking/TypeTabs";
 import { BookingCalendarMini } from "@/components/booking/BookingCalendarMini";
 import { SlotTimeline } from "@/components/booking/SlotTimeline";
@@ -14,6 +15,19 @@ import { bookSlotAction, cancelSlotAction } from "@/actions/slotActions";
 import { toast } from "sonner";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { CalendarX2 } from "lucide-react";
 
 export default function BookingPage() {
   const searchParams = useSearchParams();
@@ -27,6 +41,10 @@ export default function BookingPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<SlotData | null>(null);
+  const [bookedDates, setBookedDates] = useState<Set<string>>(new Set());
+  const [myBookedDates, setMyBookedDates] = useState<Set<string>>(new Set());
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const fetchSlots = async () => {
@@ -39,6 +57,23 @@ export default function BookingPage() {
         if (data.success) {
           setSlots(data.data.slots);
           setMeetingLink(data.data.meetingLinks[type]);
+
+          const dateStr = format(date, "yyyy-MM-dd");
+          const slotList = data.data.slots as { isBooked: boolean; isOwnBooking: boolean }[];
+          const hasAny = slotList.some((s) => s.isBooked);
+          const hasOwn = slotList.some((s) => s.isOwnBooking);
+          setBookedDates((prev) => {
+            const next = new Set(prev);
+            if (hasAny) next.add(dateStr);
+            else next.delete(dateStr);
+            return next;
+          });
+          setMyBookedDates((prev) => {
+            const next = new Set(prev);
+            if (hasOwn) next.add(dateStr);
+            else next.delete(dateStr);
+            return next;
+          });
         }
       } catch (error) {
         console.error("Failed to fetch slots", error);
@@ -76,13 +111,16 @@ export default function BookingPage() {
     }
   };
 
-  const handleCancelBooking = async (slotId: string) => {
-    if (!confirm("Are you sure you want to cancel this booking?")) return;
-    
-    const result = await cancelSlotAction({ slotId });
+  const handleCancelBooking = (slot: SlotData) => {
+    setCancelTarget(slot);
+  };
+
+  const confirmCancelBooking = async () => {
+    if (!cancelTarget) return;
+    const result = await cancelSlotAction({ slotId: cancelTarget.id });
+    setCancelTarget(null);
     if (result.success) {
       toast.success("Booking cancelled");
-      // Refresh slots
       const dateStr = format(date, "yyyy-MM-dd");
       const res = await fetch(`/api/v1/slots?date=${dateStr}&type=${type}`);
       const data = await res.json();
@@ -99,7 +137,12 @@ export default function BookingPage() {
     <div className="container mx-auto p-4 max-w-6xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Slot Booking</h1>
-        <p className="text-muted-foreground">Book your devotional time slots.</p>
+        <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+          {format(date, "EEEE, MMMM d")}
+          <Badge variant="secondary">
+            {type === "BIBLE" ? "Bible Reading" : type === "PRAYER" ? "Prayer" : "Praise & Worship"}
+          </Badge>
+        </p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
@@ -107,6 +150,9 @@ export default function BookingPage() {
           <BookingCalendarMini 
             date={date} 
             onDateChange={(d) => d && setDate(d)} 
+            bookedDates={bookedDates}
+            myBookedDates={myBookedDates}
+            type={type}
           />
           
           <div className="hidden md:block">
@@ -141,21 +187,30 @@ export default function BookingPage() {
                 type={type} 
                 selectedIds={selectedIds}
                 onSelectionChange={setSelectedIds}
+                onEmptyAction={() => setSelectedIds([])}
               />
               
-              {selectedIds.length > 0 && (
-                <div className="fixed bottom-4 left-0 right-0 md:absolute md:bottom-4 md:left-4 md:right-4 flex justify-center z-10 px-4 md:px-0">
-                  <div className="bg-background border shadow-lg rounded-full px-4 py-2 flex items-center gap-4 w-full md:w-auto">
-                    <span className="text-sm font-medium">{selectedIds.length} slots selected</span>
-                    <button 
-                      onClick={() => setSheetOpen(true)}
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ml-auto md:ml-0"
-                    >
-                      Book Selected
-                    </button>
-                  </div>
-                </div>
-              )}
+              <AnimatePresence>
+                {selectedIds.length > 0 && (
+                  <motion.div
+                    key="book-selected-bar"
+                    initial={reduceMotion ? false : { y: 24, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={reduceMotion ? undefined : { y: 24, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    className="fixed bottom-4 left-0 right-0 z-10 flex justify-center px-4 md:px-0"
+                  >
+                    <div className="flex w-full items-center gap-4 rounded-full border bg-popover px-4 py-2 shadow-lg md:w-auto">
+                      <span className="text-sm font-medium tabular-nums">
+                        {selectedIds.length} slot{selectedIds.length === 1 ? "" : "s"} selected
+                      </span>
+                      <Button size="sm" onClick={() => setSheetOpen(true)} className="rounded-full">
+                        Book Selected
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
           
@@ -183,6 +238,34 @@ export default function BookingPage() {
         onConfirm={handleConfirmBooking}
         isSubmitting={isSubmitting}
       />
+
+      <AlertDialog
+        open={!!cancelTarget}
+        onOpenChange={(open) => !open && setCancelTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <CalendarX2 className="size-4 text-destructive" aria-hidden="true" />
+              Cancel this booking?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {cancelTarget
+                ? `Your ${type.replace("_", " ").toLowerCase()} slot at ${cancelTarget.startTime} will be freed for others.`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep booking</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCancelBooking}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Cancel booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
