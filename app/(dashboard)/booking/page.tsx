@@ -7,6 +7,8 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { TypeTabs } from "@/components/booking/TypeTabs";
 import { BookingCalendarMini } from "@/components/booking/BookingCalendarMini";
 import { SlotTimeline } from "@/components/booking/SlotTimeline";
+import { SlotGrid } from "@/components/booking/SlotGrid";
+import { SlotViewToggle, SlotViewMode } from "@/components/booking/SlotViewToggle";
 import { SlotBookingSheet } from "@/components/booking/SlotBookingSheet";
 import { MyBookingsCards } from "@/components/booking/MyBookingsCards";
 import { MeetingLinkCard } from "@/components/booking/MeetingLinkCard";
@@ -44,6 +46,7 @@ export default function BookingPage() {
   const [cancelTarget, setCancelTarget] = useState<SlotData | null>(null);
   const [bookedDates, setBookedDates] = useState<Set<string>>(new Set());
   const [myBookedDates, setMyBookedDates] = useState<Set<string>>(new Set());
+  const [view, setView] = useState<SlotViewMode>("grid");
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -79,11 +82,11 @@ export default function BookingPage() {
         console.error("Failed to fetch slots", error);
       } finally {
         setIsLoading(false);
+        setSelectedIds([]);
       }
     };
 
     fetchSlots();
-    setSelectedIds([]);
   }, [date, type]);
 
   const handleTypeChange = (newType: EventType) => {
@@ -173,7 +176,11 @@ export default function BookingPage() {
 
         <div className="md:w-2/3 lg:w-3/4 space-y-4">
           <TypeTabs value={type} onChange={handleTypeChange} />
-          
+
+          <div className="flex justify-end">
+            <SlotViewToggle view={view} onViewChange={setView} />
+          </div>
+
           {isLoading ? (
             <div className="space-y-2">
               {[...Array(10)].map((_, i) => (
@@ -182,13 +189,23 @@ export default function BookingPage() {
             </div>
           ) : (
             <div className="relative">
-              <SlotTimeline 
-                slots={slots} 
-                type={type} 
-                selectedIds={selectedIds}
-                onSelectionChange={setSelectedIds}
-                onEmptyAction={() => setSelectedIds([])}
-              />
+              {view === "grid" ? (
+                <SlotGrid
+                  slots={slots}
+                  type={type}
+                  selectedIds={selectedIds}
+                  onSelectionChange={setSelectedIds}
+                  onEmptyAction={() => setSelectedIds([])}
+                />
+              ) : (
+                <SlotTimeline
+                  slots={slots}
+                  type={type}
+                  selectedIds={selectedIds}
+                  onSelectionChange={setSelectedIds}
+                  onEmptyAction={() => setSelectedIds([])}
+                />
+              )}
               
               <AnimatePresence>
                 {selectedIds.length > 0 && (
