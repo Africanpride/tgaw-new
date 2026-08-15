@@ -171,7 +171,7 @@ export async function getSlotsForDate(date: string, type?: EventType, currentUse
     };
   });
 
-  let userBookingCounts = { BIBLE: 0, PRAYER: 0, PRAISE_WORSHIP: 0 };
+  const userBookingCounts = { BIBLE: 0, PRAYER: 0, PRAISE_WORSHIP: 0 };
   if (currentUserId) {
     for (const t of ["BIBLE", "PRAYER", "PRAISE_WORSHIP"] as EventType[]) {
       userBookingCounts[t] = await getUserBookingCountForDate(currentUserId, date, t);
@@ -259,13 +259,21 @@ export async function bookSlots(slotIds: string[], userId: string, notes?: strin
   // 5. Booking limit check
   const config = await getBookingConfig();
   let maxSlots = 2;
-  if (type === "BIBLE") maxSlots = config.maxBibleSlotsPerDay;
-  if (type === "PRAYER") maxSlots = config.maxPrayerSlotsPerDay;
-  if (type === "PRAISE_WORSHIP") maxSlots = config.maxWorshipSlotsPerDay;
+  let typeLabel = "this type";
+  if (type === "BIBLE") {
+    maxSlots = config.maxBibleSlotsPerDay;
+    typeLabel = "Bible reading";
+  } else if (type === "PRAYER") {
+    maxSlots = config.maxPrayerSlotsPerDay;
+    typeLabel = "Prayer";
+  } else if (type === "PRAISE_WORSHIP") {
+    maxSlots = config.maxWorshipSlotsPerDay;
+    typeLabel = "Praise & Worship";
+  }
 
   const currentCount = await getUserBookingCountForDate(userId, date, type);
   if (currentCount + slots.length > maxSlots) {
-    throw new Error(`Booking limit exceeded. Maximum is ${maxSlots} slots per day for this type.`);
+    throw new Error(`Booking limit exceeded. Maximum is ${maxSlots} slots per day for ${typeLabel}.`);
   }
 
   // 6. Book atomically
