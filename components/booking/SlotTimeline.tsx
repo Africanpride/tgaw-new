@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarX2 } from "lucide-react";
-import { SlotCell, SlotData, convertUtcTimeToLocal, isPastSlot } from "./SlotCell";
+import { SlotCell, SlotData, convertUtcTimeToLocal, isPastSlot, isCurrentSlot } from "./SlotCell";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { slotAccent } from "./slotAccent";
@@ -29,10 +29,10 @@ function localHour(utcTime: string) {
 
 function groupSlots(slots: SlotData[]): SlotGroup[] {
   const groups: Record<string, SlotData[]> = {
+    Night: [],
     Morning: [],
     Midday: [],
     Evening: [],
-    Night: [],
   };
   for (const slot of slots) {
     const h = localHour(slot.startTime);
@@ -54,9 +54,20 @@ export function SlotTimeline({
   onEmptyAction,
 }: SlotTimelineProps) {
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const accent = slotAccent[type];
   const groups = useMemo(() => groupSlots(slots), [slots]);
+
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    const current = slots.find((s) => isCurrentSlot(s));
+    if (!current) return;
+    const el = scrollRef.current.querySelector(`[data-slot-id="${current.id}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [slots]);
 
   const handleSelect = (id: string, shiftKey: boolean) => {
     const targetSlot = slots.find((s) => s.id === id);
@@ -110,7 +121,7 @@ export function SlotTimeline({
 
   return (
     <ScrollArea className="h-[560px] w-full max-w-full overflow-hidden rounded-md border">
-      <div className="flex flex-col">
+      <div ref={scrollRef} className="flex flex-col">
         {groups.map((group) => (
           <div key={group.label}>
             <div className="sticky top-0 z-10 flex items-center gap-2 border-y bg-popover/95 px-3 py-1.5 backdrop-blur">
@@ -129,6 +140,7 @@ export function SlotTimeline({
                 isSelected={selectedIds.includes(slot.id)}
                 onSelect={handleSelect}
                 accent={accent}
+                isCurrent={isCurrentSlot(slot)}
               />
             ))}
           </div>

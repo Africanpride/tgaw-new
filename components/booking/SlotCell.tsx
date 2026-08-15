@@ -25,6 +25,7 @@ interface SlotCellProps {
   isSelected: boolean;
   onSelect: (id: string, shiftKey: boolean) => void;
   accent: SlotAccent;
+  isCurrent?: boolean;
 }
 
 export function convertUtcTimeToLocal(utcTime: string) {
@@ -42,7 +43,15 @@ export function isPastSlot(slot: SlotData): boolean {
   return now >= slotEnd;
 }
 
-export function SlotCell({ slot, isSelected, onSelect, accent }: SlotCellProps) {
+export function isCurrentSlot(slot: SlotData): boolean {
+  if (!slot.date) return false;
+  const now = new Date();
+  const slotStart = new Date(`${slot.date}T${slot.startTime}:00Z`);
+  const slotEnd = new Date(`${slot.date}T${slot.endTime}:00Z`);
+  return now >= slotStart && now < slotEnd;
+}
+
+export function SlotCell({ slot, isSelected, onSelect, accent, isCurrent }: SlotCellProps) {
   const isAvailable = !slot.isBooked && !isPastSlot(slot);
   const past = isPastSlot(slot);
 
@@ -57,13 +66,14 @@ export function SlotCell({ slot, isSelected, onSelect, accent }: SlotCellProps) 
       aria-disabled={!isAvailable}
       aria-label={`${convertUtcTimeToLocal(slot.startTime)} to ${convertUtcTimeToLocal(
         slot.endTime,
-      )} slot, ${past ? "past" : isAvailable ? (isSelected ? "selected" : "available") : "booked"}`}
+      )} slot, ${past ? "past" : isAvailable ? (isSelected ? "selected" : "available") : "booked"}${isCurrent ? " (current)" : ""}`}
       onKeyDown={(e) => {
         if (isAvailable && (e.key === "Enter" || e.key === " ")) {
           e.preventDefault();
           onSelect(slot.id, e.shiftKey);
         }
       }}
+      data-slot-id={slot.id}
       className={cn(
         "flex items-center border-b border-l-4 border-transparent px-3 transition-colors select-none outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
         past
@@ -73,6 +83,7 @@ export function SlotCell({ slot, isSelected, onSelect, accent }: SlotCellProps) 
         !past && !isAvailable && "cursor-not-allowed opacity-60",
         isSelected && isAvailable && cn(accent.tint, accent.rail),
         slot.isOwnBooking && !past && cn(accent.tintStrong, accent.rail),
+        isCurrent && !past && "bg-primary/5 ring-1 ring-inset ring-primary/30",
       )}
     >
       <div className="w-20 shrink-0 font-medium text-sm tabular-nums">
