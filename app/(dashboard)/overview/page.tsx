@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
+import { UpcomingBookings } from "@/components/booking/UpcomingBookings"
 
 export default async function OverviewPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -16,15 +17,19 @@ export default async function OverviewPage() {
   const user = session.user
   const today = new Date().toISOString().split("T")[0]
 
-  const todayBookings = await prisma.eventBooking.findMany({
+  const upcomingBookings = await prisma.eventBooking.findMany({
     where: {
       userId: user.id!,
       status: "CONFIRMED",
-      event: { date: today },
+      event: { date: { gte: today } },
     },
     include: { event: true },
-    orderBy: { event: { time: "asc" } },
+    orderBy: [{ event: { date: "asc" } }, { event: { time: "asc" } }],
   })
+
+  const todayBookings = upcomingBookings.filter(
+    (booking) => booking.event.date === today,
+  )
 
   const sessionCount = todayBookings.length
 
@@ -174,6 +179,8 @@ export default async function OverviewPage() {
           </CardContent>
         </Card>
       </div>
+
+      <UpcomingBookings bookings={upcomingBookings} />
 
 		<Card>
 			<CardHeader>
