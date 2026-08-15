@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { Check, Settings } from "lucide-react";
 
 export function AdminBookingConfig({ initialConfig }: { initialConfig: any }) {
   const [config, setConfig] = useState(initialConfig || {
@@ -51,7 +51,12 @@ export function AdminBookingConfig({ initialConfig }: { initialConfig: any }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Booking Configuration</CardTitle>
+        <CardTitle className="flex items-center gap-3">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+            <Settings className="size-4 text-primary" aria-hidden="true" />
+          </div>
+          Booking Configuration
+        </CardTitle>
         <CardDescription>Set global limits and visibility modes for all users.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

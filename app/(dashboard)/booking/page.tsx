@@ -15,12 +15,13 @@ import {
 import { SlotBookingSheet } from "@/components/booking/SlotBookingSheet"
 import { MyBookingsCards } from "@/components/booking/MyBookingsCards"
 import { MeetingLinkCard } from "@/components/booking/MeetingLinkCard"
-import { SlotData } from "@/components/booking/SlotCell"
+import { SlotData, convertUtcTimeToLocal } from "@/components/booking/SlotCell"
+import { slotAccent } from "@/components/booking/slotAccent"
 import { bookSlotAction, cancelSlotAction } from "@/actions/slotActions"
 import { toast } from "sonner"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   AlertDialog,
@@ -32,7 +33,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { CalendarX2 } from "lucide-react"
+import { CalendarX2, Clock, Trash2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function BookingPage() {
   const searchParams = useSearchParams()
@@ -147,6 +149,14 @@ export default function BookingPage() {
   const myBookings = slots.filter((s) => s.isOwnBooking)
   const selectedSlots = slots.filter((s) => selectedIds.includes(s.id))
 
+  const typeLabel =
+    type === "BIBLE"
+      ? "Bible Reading"
+      : type === "PRAYER"
+        ? "Prayer"
+        : "Praise & Worship"
+  const accent = slotAccent[type]
+
   return (
     <div className="max-w-8xl container mx-auto space-y-6 p-4">
       <div className="flex justify-between">
@@ -154,13 +164,7 @@ export default function BookingPage() {
           <h1 className="text-3xl font-bold tracking-tight">Slot Booking</h1>
           <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
             {format(date, "EEEE, MMMM d")}
-            <Badge variant="secondary">
-              {type === "BIBLE"
-                ? "Bible Reading"
-                : type === "PRAYER"
-                  ? "Prayer"
-                  : "Praise & Worship"}
-            </Badge>
+            <Badge variant="secondary">{typeLabel}</Badge>
           </p>
         </div>
         <div>
@@ -291,27 +295,73 @@ export default function BookingPage() {
         open={!!cancelTarget}
         onOpenChange={(open) => !open && setCancelTarget(null)}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
+        <AlertDialogContent className="sm:max-w-[26rem]">
+          <div className="flex items-start gap-4">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-destructive/10">
               <CalendarX2
-                className="size-4 text-destructive"
+                className="size-5 text-destructive"
                 aria-hidden="true"
               />
-              Cancel this booking?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {cancelTarget
-                ? `Your ${type.replace("_", " ").toLowerCase()} slot at ${cancelTarget.startTime} will be freed for others.`
-                : ""}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </div>
+            <AlertDialogHeader className="gap-1.5">
+              <AlertDialogTitle className="text-base sm:text-lg">
+                Cancel this booking?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This frees the slot for another member to book. You can book it
+                again if you change your mind.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+          </div>
+
+          {cancelTarget && (
+            <div className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <Badge className={cn("shrink-0", accent.solid)}>
+                  {typeLabel}
+                </Badge>
+                <div className="flex min-w-0 flex-col">
+                  <span className="text-sm font-semibold tabular-nums">
+                    {convertUtcTimeToLocal(cancelTarget.startTime)}
+                    <span className="text-muted-foreground">
+                      {" "}
+                      &ndash; {convertUtcTimeToLocal(cancelTarget.endTime)}
+                    </span>
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {cancelTarget.date
+                      ? format(
+                          new Date(`${cancelTarget.date}T00:00:00`),
+                          "EEEE, MMMM d",
+                        )
+                      : format(date, "EEEE, MMMM d")}
+                  </span>
+                </div>
+              </div>
+              <Clock
+                className="size-4 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
+            </div>
+          )}
+
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep booking</AlertDialogCancel>
+            <AlertDialogCancel
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "cursor-pointer",
+              )}
+            >
+              Keep booking
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmCancelBooking}
-              className="bg-destructive text-white hover:bg-destructive/90"
+              className={cn(
+                buttonVariants({ variant: "destructive" }),
+                "cursor-pointer",
+              )}
             >
+              <Trash2 className="size-4" aria-hidden="true" />
               Cancel booking
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -1,4 +1,4 @@
-import { BookOpen, CalendarPlus, Clock, Flame, MessageSquare, Timer } from "lucide-react"
+import { BookOpen, CalendarPlus, Clock, Flame, Timer } from "lucide-react"
 import { headers } from "next/headers"
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -9,6 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
 import { UpcomingBookings } from "@/components/booking/UpcomingBookings"
+import { CommunityActivity } from "@/components/dashboard/CommunityActivity"
+
+function slotTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    BIBLE: "Bible Reading",
+    PRAYER: "Prayer",
+    PRAISE_WORSHIP: "Praise & Worship",
+  }
+  return labels[type] ?? type
+}
 
 export default async function OverviewPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -17,18 +27,25 @@ export default async function OverviewPage() {
   const user = session.user
   const today = new Date().toISOString().split("T")[0]
 
-  const upcomingBookings = await prisma.eventBooking.findMany({
+  const upcomingBookings = (await prisma.slot.findMany({
     where: {
-      userId: user.id!,
-      status: "CONFIRMED",
-      event: { date: { gte: today } },
+      bookedBy: user.id!,
+      date: { gte: today },
     },
-    include: { event: true },
-    orderBy: [{ event: { date: "asc" } }, { event: { time: "asc" } }],
-  })
+    orderBy: [{ date: "asc" }, { startTime: "asc" }],
+  })).map((slot) => ({
+    id: slot.id,
+    event: {
+      type: slot.type,
+      title: slotTypeLabel(slot.type),
+      date: slot.date,
+      time: slot.startTime,
+      duration: 30,
+    },
+  }))
 
   const todayBookings = upcomingBookings.filter(
-    (booking) => booking.event.date === today,
+    (booking) => booking.event.date === today
   )
 
   const sessionCount = todayBookings.length
@@ -75,36 +92,36 @@ export default async function OverviewPage() {
           )}
         </p>
       </div>
-		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-			<StatCard
-				title="Day Streak"
-				value={0}
-				description="Keep it going!"
-				icon={Flame}
-				className="border-l-4 border-l-orange-500"
-			/>
-			<StatCard
-				title="Chapters Read"
-				value="—"
-				description="This month"
-				icon={BookOpen}
-				className="border-l-4 border-l-purple-500"
-			/>
-			<StatCard
-				title="Prayer Sessions"
-				value="—"
-				description="This month"
-				icon={Timer}
-				className="border-l-4 border-l-red-500"
-			/>
-			<StatCard
-				title="Total Time"
-				value="—"
-				description="Hours invested"
-				icon={Clock}
-				className="border-l-4 border-l-blue-500"
-			/>
-		</div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Day Streak"
+          value={0}
+          description="Keep it going!"
+          icon={Flame}
+          className="border-l-4 border-l-orange-500"
+        />
+        <StatCard
+          title="Chapters Read"
+          value="—"
+          description="This month"
+          icon={BookOpen}
+          className="border-l-4 border-l-purple-500"
+        />
+        <StatCard
+          title="Prayer Sessions"
+          value="—"
+          description="This month"
+          icon={Timer}
+          className="border-l-4 border-l-red-500"
+        />
+        <StatCard
+          title="Total Time"
+          value="—"
+          description="Hours invested"
+          icon={Clock}
+          className="border-l-4 border-l-blue-500"
+        />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -145,12 +162,12 @@ export default async function OverviewPage() {
                 ))}
               </div>
             )}
-			<Button variant="outline" className="mt-4 gap-2">
-				<CalendarPlus className="size-4" />
-				<Link href="/booking" className="cursor-pointer">
-					Book a Slot
-				</Link>
-			</Button>
+            <Button variant="outline" className="mt-4 gap-2">
+              <CalendarPlus className="size-4" />
+              <Link href="/booking" className="cursor-pointer">
+                Book a Slot
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 
@@ -180,27 +197,14 @@ export default async function OverviewPage() {
         </Card>
       </div>
 
-      <UpcomingBookings bookings={upcomingBookings} />
-
-		<Card>
-			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
-					<MessageSquare className="size-5" />
-					Recent Messages
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<p className="text-sm text-muted-foreground">
-					No recent messages.{" "}
-					<Link
-						href="/messages"
-						className="cursor-pointer text-primary hover:underline"
-					>
-						View Messages
-					</Link>
-				</p>
-			</CardContent>
-		</Card>
+      <div className="grid gap-6 lg:grid-cols-4">
+        <div className="lg:col-span-3">
+          <UpcomingBookings bookings={upcomingBookings} />
+        </div>
+        <div className="lg:col-span-1">
+          <CommunityActivity />
+        </div>
+      </div>
     </div>
   )
 }

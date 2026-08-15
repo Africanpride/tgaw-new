@@ -122,3 +122,40 @@ Standardize every handler on `{ success, data, error }` response shape + Zod `.s
 - [x] Manual RBAC smoke test: member / moderator / admin flows for protected routes (pending manual verification)
 - [x] Manual smoke test: chat (1-1 + group), post creation for each `PostType`, event booking, notification delivery (email + push) (pending manual verification)
 - [x] Review `.env.example` is complete and matches all services wired in
+
+---
+
+## Session Log — Latest Run
+
+> Each run appends a dated section so any model can resume where the last one stopped.
+
+### Run: Booking-stats fix (Active Bookings showing 0)
+- [x] Root cause: Slot Booking writes bookings to `Slot.bookedBy`, but dashboards queried the legacy `EventBooking` model (never populated by the slot flow) → stats always 0.
+- [x] `app/(dashboard)/admin/page.tsx` — "Active Bookings" stat now counts `prisma.slot.count({ where: { bookedBy: { not: null } } })` (was `eventBooking.count`).
+- [x] `app/(dashboard)/overview/page.tsx` — "Upcoming Bookings" now queries `Slot` (bookedBy = user, date >= today) and maps to the `UpcomingBookings` component shape (type/title/date/time=startTime/duration=30).
+- [x] `components/booking/AdminBookingConfig.tsx` — added `Settings` (gear) icon to the "Booking Configuration" `CardTitle`, matching the `Video` (Meeting Link Manager) and `SlidersHorizontal` (Slot Override) icon pattern.
+- [x] Verified `bun run typecheck` passes (zero errors). Lint shows only pre-existing errors in unrelated files (`settings/page.tsx`, `admin/users/page.tsx`, `feed/page.tsx`, etc.).
+
+### Still to check (next run)
+- [ ] Confirm `calendar/page.tsx` and `/api/v1/calendar/ical` still use `Slot` correctly (they query `prisma.slot`, so should be fine).
+- [ ] Consider whether the old `Event`/`EventBooking` API routes (`/api/v1/events`, `/api/v1/bookings`) are still used anywhere, or should be removed/deprecated now that slot booking is the active flow.
+- [ ] Manual smoke test: book a slot, verify Admin "Active Bookings" count and Overview "Upcoming Bookings" now reflect real data.
+
+### Run: Theme FOUC script React warning
+- [x] Root cause: inline theme `<script>` in `app/layout.tsx` was NOT self-closing (`<script>...</script>`). Next.js 16 (App Router) treats a non-self-closing `<script>` with `dangerouslySetInnerHTML` as a child-bearing element, so it never executes on the client and React logs "Encountered a script tag while rendering React component."
+- [x] Fix: made the `<script>` self-closing (`<script ... />`) in `app/layout.tsx:55-59` — the documented Next.js inline-script pattern for pre-paint theme. Preserved the inline IIFE (reads localStorage + prefers-color-scheme, sets `light`/`dark` class + `colorScheme` on `<html>`).
+- [x] Verified `bun run typecheck` passes. No new lint errors.
+
+### Run: Theme FOUC script warning (recurrence)
+- [x] Root cause (revisited): the raw inline `<script>` in `app/layout.tsx` (even self-closing) still triggers React 19 / Next.js 16 "Encountered a script tag while rendering React component" because React manages scripts itself and inline scripts with `dangerouslySetInnerHTML` in the render tree are not executed client-side.
+- [x] Fix: switched to the canonical Next.js `<Script>` component from `next/script` with `strategy="beforeInteractive"` in `app/layout.tsx:56-61`. This injects the pre-paint theme IIFE the Next.js way (no React inline-script warning, still runs before paint to prevent FOUC).
+- [x] Verified `bun run typecheck` passes.
+
+### Run: Theme FOUC script warning (FINAL fix — `<template>`, verified in browser)
+- [x] Root cause: React 19 / Next.js 16 (Turbopack) warns "Encountered a script tag while rendering React component" for ANY inline `<script>` in the render tree — BOTH the raw `<script>` AND `next/script` with `strategy="beforeInteractive"` triggered it. React manages `<script>` elements itself and never executes inline ones placed in the tree.
+- [x] Fix: `app/layout.tsx` now uses the `<template dangerouslySetInnerHTML={{ __html: '<script>…</script>' }} />` pattern — exactly what the React error message recommends. React renders a `<template>` (no warning); during hydration it clones the template `content` into a real `<script>` the browser executes, so FOUC prevention is preserved.
+- [x] **Empirically verified** with headless Chrome (google-chrome) against the running dev server:
+  - `<html class="... font-sans dark">` → theme class applied (script executed).
+  - `colorScheme` applied → `true`.
+  - No script-related console errors in stderr.
+- [x] Removed the now-unused `next/script` `Script` import. `bun run typecheck` + `eslint app/layout.tsx` both clean.

@@ -1,26 +1,32 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { SlotData } from "./SlotCell";
+import { useState } from "react"
+import { SlidersHorizontal, UserPlus, XCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 export function AdminSlotOverride() {
-  const [slotId, setSlotId] = useState("");
-  const [userId, setUserId] = useState("");
-  const [reason, setReason] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
+  const [slotId, setSlotId] = useState("")
+  const [userId, setUserId] = useState("")
+  const [reason, setReason] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
 
   const handleAssign = async () => {
     if (!slotId || !userId) {
-      toast.error("Slot ID and User ID are required");
-      return;
+      toast.error("Slot ID and User ID are required")
+      return
     }
-    
-    setIsSaving(true);
+
+    setIsSaving(true)
     try {
       const res = await fetch("/api/v1/slots/assign", {
         method: "POST",
@@ -30,30 +36,30 @@ export function AdminSlotOverride() {
           userId,
           notes: reason || undefined,
         }),
-      });
-      const data = await res.json();
+      })
+      const data = await res.json()
       if (data.success) {
-        toast.success("Slot assigned successfully");
-        setSlotId("");
-        setUserId("");
-        setReason("");
+        toast.success("Slot assigned successfully")
+        setSlotId("")
+        setUserId("")
+        setReason("")
       } else {
-        toast.error(data.error?.message || "Failed to assign slot");
+        toast.error(data.error?.message || "Failed to assign slot")
       }
-    } catch (e) {
-      toast.error("An error occurred");
+    } catch {
+      toast.error("An error occurred")
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   const handleForceCancel = async () => {
     if (!slotId) {
-      toast.error("Slot ID is required");
-      return;
+      toast.error("Slot ID is required")
+      return
     }
-    
-    setIsSaving(true);
+
+    setIsSaving(true)
     try {
       const res = await fetch("/api/v1/slots/admin-cancel", {
         method: "POST",
@@ -62,62 +68,85 @@ export function AdminSlotOverride() {
           slotId,
           reason: reason || undefined,
         }),
-      });
-      const data = await res.json();
+      })
+      const data = await res.json()
       if (data.success) {
-        toast.success("Slot cancelled successfully");
-        setSlotId("");
-        setReason("");
+        toast.success("Slot cancelled successfully")
+        setSlotId("")
+        setReason("")
       } else {
-        toast.error(data.error?.message || "Failed to cancel slot");
+        toast.error(data.error?.message || "Failed to cancel slot")
       }
-    } catch (e) {
-      toast.error("An error occurred");
+    } catch {
+      toast.error("An error occurred")
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle>Slot Override</CardTitle>
-        <CardDescription>Directly assign or force-cancel slots by ID.</CardDescription>
+        <CardTitle className="flex items-center gap-3">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+            <SlidersHorizontal
+              className="size-4 text-primary"
+              aria-hidden="true"
+            />
+          </div>
+          Slot Override
+        </CardTitle>
+        <CardDescription>Assign or force-cancel slots by ID.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label>Slot ID</Label>
-          <Input 
-            placeholder="ObjectId..." 
-            value={slotId} 
-            onChange={(e) => setSlotId(e.target.value)} 
+          <Label htmlFor="ov-slot">Slot ID</Label>
+          <Input
+            id="ov-slot"
+            placeholder="ObjectId..."
+            value={slotId}
+            onChange={(e) => setSlotId(e.target.value)}
           />
         </div>
         <div className="space-y-2">
-          <Label>Target User ID (for assignment)</Label>
-          <Input 
-            placeholder="User ID..." 
-            value={userId} 
-            onChange={(e) => setUserId(e.target.value)} 
+          <Label htmlFor="ov-user">
+            Target User ID{" "}
+            <span className="text-muted-foreground">(for assignment)</span>
+          </Label>
+          <Input
+            id="ov-user"
+            placeholder="User ID..."
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
           />
         </div>
         <div className="space-y-2">
-          <Label>Notes / Reason</Label>
-          <Input 
-            placeholder="Optional context..." 
-            value={reason} 
-            onChange={(e) => setReason(e.target.value)} 
+          <Label htmlFor="ov-reason">
+            Notes <span className="text-muted-foreground">(optional)</span>
+          </Label>
+          <Input
+            id="ov-reason"
+            placeholder="Optional context..."
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
           />
         </div>
-        <div className="flex gap-2 pt-4">
+        <div className="flex flex-col gap-2 pt-2 sm:flex-row">
           <Button onClick={handleAssign} disabled={isSaving} className="flex-1">
+            <UserPlus className="size-4" aria-hidden="true" />
             Force Assign
           </Button>
-          <Button onClick={handleForceCancel} disabled={isSaving} variant="destructive">
+          <Button
+            onClick={handleForceCancel}
+            disabled={isSaving}
+            variant="outline"
+            className="text-destructive hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+          >
+            <XCircle className="size-4" aria-hidden="true" />
             Force Cancel
           </Button>
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }
