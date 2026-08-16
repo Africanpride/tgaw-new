@@ -298,9 +298,9 @@ export async function cancelSlot(slotId: string, userId: string) {
   if (!slot) throw new Error("Slot not found");
   if (slot.bookedBy !== userId) throw new Error("Not authorized to cancel this slot");
 
-  const slotDateTime = parse(`${slot.date} ${slot.startTime}`, "yyyy-MM-dd HH:mm", new Date());
-  if (slotDateTime <= new Date()) {
-    throw new Error("Cannot cancel a slot in the past");
+  const slotStartDateTime = new Date(`${slot.date}T${slot.startTime}:00Z`);
+  if (slotStartDateTime <= new Date()) {
+    throw new Error("Cannot cancel a booking that is in the past or already started");
   }
 
   await prisma.slot.update({

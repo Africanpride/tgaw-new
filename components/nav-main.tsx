@@ -46,9 +46,8 @@ export function NavMain({
 			<SidebarMenu>
 				{items.map((item) => {
 					const hasSubItems = item.items && item.items.length > 0;
-					const isOverview = item.title === "Overview" && !hasSubItems;
 
-					if (isOverview) {
+					if (!hasSubItems) {
 						return (
 							<SidebarMenuItem key={item.title}>
 								<SidebarMenuButton

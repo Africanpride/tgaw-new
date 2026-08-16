@@ -15,7 +15,7 @@ import {
 import { SlotBookingSheet } from "@/components/booking/SlotBookingSheet"
 import { MyBookingsCards } from "@/components/booking/MyBookingsCards"
 import { MeetingLinkCard } from "@/components/booking/MeetingLinkCard"
-import { SlotData, convertUtcTimeToLocal } from "@/components/booking/SlotCell"
+import { SlotData, convertUtcTimeToLocal, isPastSlot } from "@/components/booking/SlotCell"
 import { slotAccent } from "@/components/booking/slotAccent"
 import { bookSlotAction, cancelSlotAction } from "@/actions/slotActions"
 import { toast } from "sonner"
@@ -128,6 +128,10 @@ export default function BookingPage() {
   }
 
   const handleCancelBooking = (slot: SlotData) => {
+    if (isPastSlot(slot)) {
+      toast.error("Cannot cancel a booking that is in the past")
+      return
+    }
     setCancelTarget(slot)
   }
 

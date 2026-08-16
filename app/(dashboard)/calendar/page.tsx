@@ -31,15 +31,14 @@ function slotTypeLabel(type: EventType): string {
 	}
 }
 
-export default async function CalendarPage({
-	searchParams,
-}: {
+export default async function CalendarPage(props: {
 	searchParams: Promise<{ month?: string }>;
 }) {
+	const searchParams = await props.searchParams;
+	const monthParam = searchParams?.month;
+
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session?.user?.id) redirect("/login");
-
-	const { month: monthParam } = await searchParams;
 	const monthStart = monthParam
 		? (() => {
 				const [y, m] = monthParam.split("-").map(Number);

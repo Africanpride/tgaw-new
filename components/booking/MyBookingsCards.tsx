@@ -1,6 +1,6 @@
 "use client";
 
-import { SlotData, convertUtcTimeToLocal } from "./SlotCell";
+import { SlotData, convertUtcTimeToLocal, isPastSlot } from "./SlotCell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EventType } from "@prisma/client";
@@ -35,29 +35,33 @@ export function MyBookingsCards({ bookings, onCancel, type }: MyBookingsCardsPro
 
   return (
     <div className="space-y-3">
-      {bookings.map((booking) => (
-        <Card key={booking.id} className={cn("overflow-hidden border-l-2", accent.rail)}>
-          <div className="flex items-center justify-between gap-2 p-4">
-            <div className="min-w-0">
-              <p className={cn("flex items-center gap-1.5 font-semibold tabular-nums", accent.text)}>
-                <Clock className="size-3.5 shrink-0" aria-hidden="true" />
-                {convertUtcTimeToLocal(booking.startTime)} – {convertUtcTimeToLocal(booking.endTime)}
-              </p>
-              {booking.notes && (
-                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{booking.notes}</p>
-              )}
+      {bookings.map((booking) => {
+        const past = isPastSlot(booking);
+        return (
+          <Card key={booking.id} className={cn("overflow-hidden border-l-2", accent.rail)}>
+            <div className="flex items-center justify-between gap-2 p-4">
+              <div className="min-w-0">
+                <p className={cn("flex items-center gap-1.5 font-semibold tabular-nums", accent.text)}>
+                  <Clock className="size-3.5 shrink-0" aria-hidden="true" />
+                  {convertUtcTimeToLocal(booking.startTime)} – {convertUtcTimeToLocal(booking.endTime)}
+                </p>
+                {booking.notes && (
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{booking.notes}</p>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={past}
+                onClick={() => !past && onCancel(booking)}
+                className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {past ? "Past" : "Cancel"}
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onCancel(booking)}
-              className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              Cancel
-            </Button>
-          </div>
-        </Card>
-      ))}
+          </Card>
+        );
+      })}
     </div>
   );
 }

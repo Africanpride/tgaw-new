@@ -40,36 +40,29 @@ const navData = [
     icon: <Home />,
   },
   {
-    title: "Devotion",
-    url: "#",
-    icon: <BookOpen />,
-    items: [
-      {
-        title: "Calendar",
-        url: "/calendar",
-        icon: <Calendar className="size-4" />,
-      },
-      {
-        title: "Bible Reading",
-        url: "/bible",
-        icon: <Book className="size-4" />,
-      },
-      {
-        title: "Prayer",
-        url: "/prayer",
-        icon: <Church className="size-4" />,
-      },
-      {
-        title: "Praise & Worship",
-        url: "/worship",
-        icon: <Music className="size-4" />,
-      },
-      {
-        title: "Slot Booking",
-        url: "/booking",
-        icon: <CalendarCheck className="size-4" />,
-      },
-    ],
+    title: "My Calendar",
+    url: "/calendar",
+    icon: <Calendar />,
+  },
+  {
+    title: "Bible Reading",
+    url: "/bible",
+    icon: <Book />,
+  },
+  {
+    title: "Prayer",
+    url: "/prayer",
+    icon: <Church />,
+  },
+  {
+    title: "Praise & Worship",
+    url: "/worship",
+    icon: <Music />,
+  },
+  {
+    title: "Slot Booking",
+    url: "/booking",
+    icon: <CalendarCheck />,
   },
   {
     title: "Community",

@@ -16,7 +16,8 @@ import { SlotBookingSheet } from "./SlotBookingSheet";
 import { bookSlotAction } from "@/actions/slotActions";
 import { toast } from "sonner";
 import Link from "next/link";
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, Check, Clock } from "lucide-react";
+import { slotAccent } from "./slotAccent";
 
 interface SlotBookingStripProps {
   slots: SlotData[];
@@ -33,12 +34,7 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
     ? Math.max(0, slots.findIndex((slot) => slot.id === initialSlotId))
     : 0;
 
-  const accentStyles = {
-    BIBLE: { border: "border-purple-500", bg: "bg-purple-500/10" },
-    PRAYER: { border: "border-red-500", bg: "bg-red-500/10" },
-    PRAISE_WORSHIP: { border: "border-amber-500", bg: "bg-amber-500/10" },
-  } as const;
-  const accent = accentStyles[type];
+  const accent = slotAccent[type];
 
   const handleSelect = (slot: SlotData) => {
     if (slot.isBooked || isPastSlot(slot)) return;
@@ -106,26 +102,41 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
                     data-slot-id={slot.id}
                     onClick={() => handleSelect(slot)}
                     className={cn(
-                      "flex flex-col items-center justify-center rounded-md border transition-colors shrink-0 cursor-pointer",
+                      "flex flex-col items-center justify-center rounded-lg border transition-all duration-200 shrink-0 cursor-pointer select-none",
                       past
-                        ? "w-20 h-12 opacity-40 cursor-default"
-                        : "w-24 h-16 p-3",
-                      !past && isAvailable && "hover:bg-muted/50",
-                      !past && !isAvailable && "opacity-50 cursor-not-allowed bg-muted",
-                      slot.isOwnBooking && !past && cn(accent.border, accent.bg, "opacity-100"),
-                      isCurrent && !past && "ring-2 ring-primary ring-offset-2",
+                        ? "w-20 h-14 opacity-40 cursor-default bg-muted/30 border-dashed"
+                        : "w-24 h-16 p-3 shadow-2xs",
+                      !past && isAvailable && accent.available,
+                      !past && slot.isBooked && !slot.isOwnBooking && cn(accent.booked, "cursor-not-allowed opacity-80"),
+                      !past && slot.isOwnBooking && cn(accent.mine, "opacity-100 font-semibold"),
+                      isCurrent && !past && "ring-2 ring-primary ring-offset-2 ring-offset-background",
                     )}
                   >
-                    <span className={cn("font-medium tabular-nums", past ? "text-xs" : "text-sm")}>
+                    <span className={cn("font-medium tabular-nums", past ? "text-xs text-muted-foreground" : "text-sm")}>
                       {convertUtcTimeToLocal(slot.startTime)}
                     </span>
-                    <span className={cn("text-muted-foreground", past ? "text-[10px] mt-0.5 flex items-center gap-0.5" : "text-xs mt-1")}>
+                    <span className={cn(
+                      "text-xs mt-1 flex items-center gap-1 font-medium",
+                      past ? "text-[10px] text-muted-foreground/70" :
+                      slot.isOwnBooking ? accent.text :
+                      slot.isBooked ? "text-muted-foreground" :
+                      "text-muted-foreground/80"
+                    )}>
                       {past ? (
                         <>
                           <Clock className="size-2.5" aria-hidden="true" />
                           Past
                         </>
-                      ) : slot.isOwnBooking ? "Mine" : isAvailable ? "Available" : "Booked"}
+                      ) : slot.isOwnBooking ? (
+                        <>
+                          <Check className="size-3 text-emerald-500" aria-hidden="true" />
+                          Mine
+                        </>
+                      ) : isAvailable ? (
+                        "Available"
+                      ) : (
+                        "Booked"
+                      )}
                     </span>
                   </div>
                 </CarouselItem>

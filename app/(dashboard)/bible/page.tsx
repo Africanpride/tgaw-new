@@ -8,6 +8,10 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { DateNav } from "@/components/date-nav";
 
+import { convertUtcTimeToLocal } from "@/components/booking/SlotCell";
+import { slotAccent } from "@/components/booking/slotAccent";
+import { cn } from "@/lib/utils";
+
 function getCurrentSlotId(slots: { id: string; startTime: string; endTime: string }[]): string | undefined {
 	const now = new Date();
 	const utcHH = String(now.getUTCHours()).padStart(2, "0");
@@ -16,14 +20,14 @@ function getCurrentSlotId(slots: { id: string; startTime: string; endTime: strin
 	return slots.find((s) => s.startTime <= nowTime && s.endTime > nowTime)?.id;
 }
 
-export default async function BiblePage({
-	searchParams,
-}: {
+export default async function BiblePage(props: {
 	searchParams: Promise<{ date?: string }>;
 }) {
-	const session = await auth.api.getSession({ headers: await headers() });
-	const { date: dateParam } = await searchParams;
+	const searchParams = await props.searchParams;
+	const dateParam = searchParams?.date;
 	const dateStr = dateParam ?? format(new Date(), "yyyy-MM-dd");
+
+	const session = await auth.api.getSession({ headers: await headers() });
 
 	const { slots, meetingLinks } = await getSlotsForDate(
 		dateStr,
@@ -35,6 +39,7 @@ export default async function BiblePage({
 	const meetingLink = meetingLinks["BIBLE"];
 	const myBookings = slots.filter((s) => s.isOwnBooking);
 	const initialSlotId = dateParam ? undefined : getCurrentSlotId(slots);
+	const accent = slotAccent["BIBLE"];
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -84,19 +89,26 @@ export default async function BiblePage({
 							</p>
 						) : (
 							<div className="space-y-3">
-								{myBookings.slice(0, 3).map((booking) => (
+								{myBookings.map((booking) => (
 									<div
 										key={booking.id}
-										className="border rounded-md p-3"
-									>
-										<p className="font-medium text-purple-600 dark:text-purple-400">
-											{booking.startTime} - {booking.endTime}
-										</p>
-										{booking.notes && (
-											<p className="mt-1 text-sm text-muted-foreground">
-												{booking.notes}
-											</p>
+										className={cn(
+											"flex items-center justify-between rounded-lg border border-l-4 p-4 shadow-2xs transition-all",
+											accent.rail,
+											accent.mine
 										)}
+									>
+										<div>
+											<p className={cn("flex items-center gap-1.5 font-semibold tabular-nums text-sm", accent.text)}>
+												<Clock className="size-4 shrink-0" aria-hidden="true" />
+												{convertUtcTimeToLocal(booking.startTime)} – {convertUtcTimeToLocal(booking.endTime)}
+											</p>
+											{booking.notes && (
+												<p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+													{booking.notes}
+												</p>
+											)}
+										</div>
 									</div>
 								))}
 							</div>

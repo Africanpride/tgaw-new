@@ -54,7 +54,7 @@ export default function RootLayout({
       <body>
         <template
           dangerouslySetInnerHTML={{
-            __html: `<script>(function(){try{var t=localStorage.getItem("theme")||"system";var r=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var d=document.documentElement;d.classList.remove("light","dark");d.classList.add(r);d.style.colorScheme=r;}catch(e){}})();</script>`,
+            __html: `<script>(function(){try{var t=localStorage.getItem("theme")||"system";var r=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var d=document.documentElement;d.classList.remove("light","dark");d.classList.add(r);d.style.colorScheme=r;}catch(e){}})();(function(){if(typeof window!=="undefined"&&window.performance&&typeof window.performance.measure==="function"){var orig=window.performance.measure.bind(window.performance);window.performance.measure=function(name,s,e){try{return orig(name,s,e);}catch(err){if(err&&(err.message||"").indexOf("negative")!==-1){return;}throw err;}};}})();</script>`,
           }}
         />
         <ThemeProvider>
