@@ -1,3 +1,34 @@
+# EventFormDialog Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Redesign `EventFormDialog` into a premium, category-accented modal with an interactive card-based event type selector and icon-adorned input fields.
+
+**Architecture:** Update `components/calendar/event-form-dialog.tsx` to use dynamic category styling (BIBLE, PRAYER, PRAISE_WORSHIP), card-based segmented buttons, structured icon input layouts, and loading spinner states.
+
+**Tech Stack:** React 19, React Hook Form, Zod resolver, Lucide React icons, shadcn Dialog & Button UI.
+
+## Global Constraints
+- Preserve full Zod schema validation using `createEventSchema`.
+- Maintain clean accessibility (`aria-hidden` on icons, keyboard navigable buttons).
+- Use shadcn semantic variables and Tailwind v4 styling.
+
+---
+
+### Task 1: Redesign EventFormDialog Component
+
+**Files:**
+- Modify: `components/calendar/event-form-dialog.tsx`
+
+**Interfaces:**
+- Consumes: `open: boolean`, `onOpenChange: (open: boolean) => void`
+- Produces: Premium category-accented `EventFormDialog` component.
+
+- [ ] **Step 1: Update EventFormDialog implementation**
+
+Replace the contents of `components/calendar/event-form-dialog.tsx` with:
+
+```tsx
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,6 +74,7 @@ const EVENT_TYPES = [
 		color: "text-purple-500",
 		bg: "bg-purple-500/10",
 		border: "border-purple-500/30",
+		activeBg: "data-[state=active]:border-purple-500 data-[state=active]:bg-purple-500/10",
 		btnBg: "bg-purple-600 hover:bg-purple-700 text-white",
 	},
 	{
@@ -53,6 +85,7 @@ const EVENT_TYPES = [
 		color: "text-red-500",
 		bg: "bg-red-500/10",
 		border: "border-red-500/30",
+		activeBg: "data-[state=active]:border-red-500 data-[state=active]:bg-red-500/10",
 		btnBg: "bg-red-600 hover:bg-red-700 text-white",
 	},
 	{
@@ -63,6 +96,7 @@ const EVENT_TYPES = [
 		color: "text-amber-500",
 		bg: "bg-amber-500/10",
 		border: "border-amber-500/30",
+		activeBg: "data-[state=active]:border-amber-500 data-[state=active]:bg-amber-500/10",
 		btnBg: "bg-amber-600 hover:bg-amber-700 text-white",
 	},
 ];
@@ -307,3 +341,21 @@ export function EventFormDialog({
 		</Dialog>
 	);
 }
+```
+
+- [ ] **Step 2: Run TypeScript check**
+
+Run: `npx tsc --noEmit`
+Expected output: exit status 0
+
+- [ ] **Step 3: Run production build**
+
+Run: `bun run build`
+Expected output: successful compilation
+
+- [ ] **Step 4: Commit changes**
+
+```bash
+git add components/calendar/event-form-dialog.tsx docs/superpowers/specs/2026-08-16-event-form-dialog-design.md docs/superpowers/plans/2026-08-16-event-form-dialog.md
+git commit -m "style(calendar): redesign EventFormDialog with category accents and card selector"
+```
