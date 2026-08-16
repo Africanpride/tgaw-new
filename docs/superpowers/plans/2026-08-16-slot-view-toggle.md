@@ -1,3 +1,34 @@
+# SlotViewToggle Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Upgrade `SlotViewToggle` to a floating segmented control with zero-flicker hover states and smooth spring layout animation.
+
+**Architecture:** Refactor `SlotViewToggle.tsx` using shadcn semantic tokens, explicit hover/active state scoping with Radix UI selectors, and `motion/react` layoutId animation.
+
+**Tech Stack:** React 19, Tailwind CSS v4, Radix UI (ToggleGroup), motion/react, Lucide React icons.
+
+## Global Constraints
+- Must use shadcn semantic tokens (`bg-muted/60`, `border-border/50`, `bg-background`, `text-foreground`, `text-muted-foreground`).
+- Must eliminate hover flickering on active items using `data-[state=on]:bg-transparent` and `data-[state=on]:hover:bg-transparent`.
+- Must respect `useReducedMotion()`.
+
+---
+
+### Task 1: Refactor SlotViewToggle Component Visuals
+
+**Files:**
+- Modify: `components/booking/SlotViewToggle.tsx`
+
+**Interfaces:**
+- Consumes: `SlotViewMode` ("grid" | "list"), `SlotViewToggleProps` (`view`, `onViewChange`)
+- Produces: Polished `SlotViewToggle` component.
+
+- [ ] **Step 1: Update SlotViewToggle styling and state scoping**
+
+Replace the contents of `components/booking/SlotViewToggle.tsx` with:
+
+```tsx
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
@@ -64,3 +95,21 @@ export function SlotViewToggle({ view, onViewChange, className }: SlotViewToggle
     </ToggleGroup>
   );
 }
+```
+
+- [ ] **Step 2: Run TypeScript check**
+
+Run: `npx tsc --noEmit`
+Expected output: exit status 0 (no errors)
+
+- [ ] **Step 3: Run production build**
+
+Run: `bun run build`
+Expected output: successful compilation
+
+- [ ] **Step 4: Commit changes**
+
+```bash
+git add components/booking/SlotViewToggle.tsx docs/superpowers/specs/2026-08-16-slot-view-toggle-design.md docs/superpowers/plans/2026-08-16-slot-view-toggle.md
+git commit -m "style(booking): upgrade SlotViewToggle to floating segmented control"
+```
