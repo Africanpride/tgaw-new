@@ -37,7 +37,9 @@ export const updateBookingConfigSchema = z.object({
 // Meeting link management (leader/superadmin only)
 export const upsertMeetingLinkSchema = z.object({
   type: slotTypeSchema,
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date (YYYY-MM-DD)"),
+  date: z.string().refine((val) => val === "DEFAULT" || /^\d{4}-\d{2}-\d{2}$/.test(val), {
+    message: "Invalid date format (YYYY-MM-DD or DEFAULT)",
+  }),
   url: z.string().url("Must be a valid URL"),
   label: z.string().max(100).optional(),
 });

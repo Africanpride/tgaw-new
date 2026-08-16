@@ -130,7 +130,12 @@ export async function getSlotsForDate(date: string, type?: EventType, currentUse
   });
 
   const meetingLinks = await prisma.meetingLink.findMany({
-    where: { date },
+    where: {
+      OR: [
+        { date },
+        { date: "DEFAULT" },
+      ],
+    },
   });
 
   const userIds = slots.map(s => s.bookedBy).filter(Boolean) as string[];
@@ -178,10 +183,18 @@ export async function getSlotsForDate(date: string, type?: EventType, currentUse
     }
   }
 
+  const getLinkForType = (t: EventType) => {
+    return (
+      meetingLinks.find((m) => m.type === t && m.date === date) ||
+      meetingLinks.find((m) => m.type === t && m.date === "DEFAULT") ||
+      null
+    );
+  };
+
   const meetingLinksMap = {
-    BIBLE: meetingLinks.find(m => m.type === "BIBLE") || null,
-    PRAYER: meetingLinks.find(m => m.type === "PRAYER") || null,
-    PRAISE_WORSHIP: meetingLinks.find(m => m.type === "PRAISE_WORSHIP") || null,
+    BIBLE: getLinkForType("BIBLE"),
+    PRAYER: getLinkForType("PRAYER"),
+    PRAISE_WORSHIP: getLinkForType("PRAISE_WORSHIP"),
   };
 
   return {
