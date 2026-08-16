@@ -128,15 +128,15 @@ export function EventFormDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-lg overflow-hidden p-0 gap-0 border-border/60 shadow-2xl">
+			<DialogContent className="sm:max-w-lg max-h-[88vh] overflow-hidden p-0 gap-0 border-border/60 shadow-2xl flex flex-col">
 				{/* Category-Accented Header */}
-				<DialogHeader className={cn("px-6 pt-6 pb-4 transition-colors border-b border-border/40", currentTypeConfig.bg)}>
+				<DialogHeader className={cn("px-5 py-3.5 shrink-0 transition-colors border-b border-border/40", currentTypeConfig.bg)}>
 					<div className="flex items-center gap-3">
-						<div className={cn("flex size-10 shrink-0 items-center justify-center rounded-xl border bg-background shadow-xs", currentTypeConfig.border)}>
-							<TypeIcon className={cn("size-5", currentTypeConfig.color)} aria-hidden="true" />
+						<div className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg border bg-background shadow-xs", currentTypeConfig.border)}>
+							<TypeIcon className={cn("size-4.5", currentTypeConfig.color)} aria-hidden="true" />
 						</div>
 						<div>
-							<DialogTitle className="text-lg font-bold tracking-tight">Add New Event</DialogTitle>
+							<DialogTitle className="text-base font-bold tracking-tight">Add New Event</DialogTitle>
 							<DialogDescription className="text-xs text-muted-foreground">
 								Schedule a new altar session or watch gathering
 							</DialogDescription>
@@ -144,10 +144,10 @@ export function EventFormDialog({
 					</div>
 				</DialogHeader>
 
-				<form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6">
+				<form onSubmit={handleSubmit(onSubmit)} className="space-y-3 p-5 overflow-y-auto max-h-[calc(88vh-70px)]">
 					{/* 3-Way Card Type Selector */}
-					<div className="space-y-2">
-						<Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+					<div className="space-y-1.5">
+						<Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
 							Event Category
 						</Label>
 						<div className="grid grid-cols-3 gap-2">
@@ -160,14 +160,14 @@ export function EventFormDialog({
 										type="button"
 										onClick={() => setValue("type", t.id, { shouldValidate: true })}
 										className={cn(
-											"flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-center transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring",
+											"flex items-center justify-center gap-2 rounded-lg border px-2.5 py-2 text-center transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring",
 											isSelected
-												? cn("border-2 shadow-xs bg-background font-semibold", t.border)
+												? cn("border-2 shadow-2xs bg-background font-semibold", t.border)
 												: "border-border/60 bg-muted/40 hover:bg-muted/80 text-muted-foreground hover:text-foreground"
 										)}
 									>
-										<CardIcon className={cn("size-5", isSelected ? t.color : "text-muted-foreground")} aria-hidden="true" />
-										<span className="text-xs">{t.label}</span>
+										<CardIcon className={cn("size-4 shrink-0", isSelected ? t.color : "text-muted-foreground")} aria-hidden="true" />
+										<span className="text-xs truncate">{t.label}</span>
 									</button>
 								);
 							})}
@@ -178,14 +178,14 @@ export function EventFormDialog({
 					</div>
 
 					{/* Title */}
-					<div className="space-y-1.5">
+					<div className="space-y-1">
 						<Label htmlFor="event-title" className="text-xs font-medium">Title</Label>
 						<div className="relative">
 							<Sparkles className="absolute left-3 top-2.5 size-4 text-muted-foreground" aria-hidden="true" />
 							<Input
 								id="event-title"
 								placeholder="e.g., Morning Prayer Watch"
-								className="pl-9"
+								className="pl-9 h-9 text-xs"
 								{...register("title")}
 							/>
 						</div>
@@ -194,107 +194,105 @@ export function EventFormDialog({
 						)}
 					</div>
 
-					{/* Date & Time Grid */}
-					<div className="grid grid-cols-2 gap-3">
-						<div className="space-y-1.5">
+					{/* Date, Time & Duration 3-Col Grid */}
+					<div className="grid grid-cols-3 gap-2">
+						<div className="space-y-1">
 							<Label htmlFor="event-date" className="text-xs font-medium">Date</Label>
 							<div className="relative">
-								<Calendar className="absolute left-3 top-2.5 size-4 text-muted-foreground" aria-hidden="true" />
-								<Input id="event-date" type="date" className="pl-9" {...register("date")} />
+								<Calendar className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" aria-hidden="true" />
+								<Input id="event-date" type="date" className="pl-8 h-9 text-xs" {...register("date")} />
 							</div>
 							{errors.date && (
-								<p className="text-xs text-destructive">{errors.date.message}</p>
+								<p className="text-[11px] text-destructive">{errors.date.message}</p>
 							)}
 						</div>
-						<div className="space-y-1.5">
+						<div className="space-y-1">
 							<Label htmlFor="event-time" className="text-xs font-medium">Time</Label>
 							<div className="relative">
-								<Clock className="absolute left-3 top-2.5 size-4 text-muted-foreground" aria-hidden="true" />
-								<Input id="event-time" type="time" className="pl-9" {...register("time")} />
+								<Clock className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" aria-hidden="true" />
+								<Input id="event-time" type="time" className="pl-8 h-9 text-xs" {...register("time")} />
 							</div>
 							{errors.time && (
-								<p className="text-xs text-destructive">{errors.time.message}</p>
+								<p className="text-[11px] text-destructive">{errors.time.message}</p>
+							)}
+						</div>
+						<div className="space-y-1">
+							<Label htmlFor="event-duration" className="text-xs font-medium">Duration (min)</Label>
+							<div className="relative">
+								<Timer className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" aria-hidden="true" />
+								<Input
+									id="event-duration"
+									type="number"
+									min={1}
+									className="pl-8 h-9 text-xs"
+									{...register("duration", { valueAsNumber: true })}
+								/>
+							</div>
+							{errors.duration && (
+								<p className="text-[11px] text-destructive">{errors.duration.message}</p>
 							)}
 						</div>
 					</div>
 
-					{/* Duration */}
-					<div className="space-y-1.5">
-						<Label htmlFor="event-duration" className="text-xs font-medium">Duration (minutes)</Label>
-						<div className="relative">
-							<Timer className="absolute left-3 top-2.5 size-4 text-muted-foreground" aria-hidden="true" />
-							<Input
-								id="event-duration"
-								type="number"
-								min={1}
-								className="pl-9"
-								{...register("duration", { valueAsNumber: true })}
-							/>
+					{/* Passage & Meeting URL 2-Col Grid */}
+					<div className="grid grid-cols-2 gap-2">
+						<div className="space-y-1">
+							<Label htmlFor="event-passage" className="text-xs font-medium">Passage / Focus</Label>
+							<div className="relative">
+								<BookMarked className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" aria-hidden="true" />
+								<Input
+									id="event-passage"
+									placeholder="Scripture or topic"
+									className="pl-8 h-9 text-xs"
+									{...register("passage")}
+								/>
+							</div>
 						</div>
-						{errors.duration && (
-							<p className="text-xs text-destructive">{errors.duration.message}</p>
-						)}
-					</div>
 
-					{/* Passage / Focus */}
-					<div className="space-y-1.5">
-						<Label htmlFor="event-passage" className="text-xs font-medium">Passage / Focus</Label>
-						<div className="relative">
-							<BookMarked className="absolute left-3 top-2.5 size-4 text-muted-foreground" aria-hidden="true" />
-							<Input
-								id="event-passage"
-								placeholder="Optional Scripture passage or prayer topic"
-								className="pl-9"
-								{...register("passage")}
-							/>
+						<div className="space-y-1">
+							<Label htmlFor="event-zoom-url" className="text-xs font-medium">Meeting URL</Label>
+							<div className="relative">
+								<Video className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" aria-hidden="true" />
+								<Input
+									id="event-zoom-url"
+									type="url"
+									placeholder="https://zoom.us/j/..."
+									className="pl-8 h-9 text-xs"
+									{...register("zoomUrl")}
+								/>
+							</div>
+							{errors.zoomUrl && (
+								<p className="text-[11px] text-destructive">{errors.zoomUrl.message}</p>
+							)}
 						</div>
-					</div>
-
-					{/* Zoom / Teams URL */}
-					<div className="space-y-1.5">
-						<Label htmlFor="event-zoom-url" className="text-xs font-medium">Meeting URL</Label>
-						<div className="relative">
-							<Video className="absolute left-3 top-2.5 size-4 text-muted-foreground" aria-hidden="true" />
-							<Input
-								id="event-zoom-url"
-								type="url"
-								placeholder="https://zoom.us/j/..."
-								className="pl-9"
-								{...register("zoomUrl")}
-							/>
-						</div>
-						{errors.zoomUrl && (
-							<p className="text-xs text-destructive">{errors.zoomUrl.message}</p>
-						)}
 					</div>
 
 					{/* Notes */}
-					<div className="space-y-1.5">
+					<div className="space-y-1">
 						<Label htmlFor="event-notes" className="text-xs font-medium">Notes</Label>
-						<div className="relative">
-							<Textarea
-								id="event-notes"
-								placeholder="Add additional session guidelines or details..."
-								rows={2}
-								className="resize-none"
-								{...register("notes")}
-							/>
-						</div>
+						<Textarea
+							id="event-notes"
+							placeholder="Add session notes or guidelines..."
+							rows={2}
+							className="resize-none text-xs min-h-[50px]"
+							{...register("notes")}
+						/>
 					</div>
 
 					{/* Footer Actions */}
-					<div className="flex items-center justify-end gap-2 pt-3 border-t border-border/40">
+					<div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
 						<Button
 							type="button"
 							variant="ghost"
+							size="sm"
 							onClick={() => onOpenChange(false)}
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={isSubmitting} className={cn("gap-2 font-medium shadow-sm transition-all", currentTypeConfig.btnBg)}>
+						<Button type="submit" size="sm" disabled={isSubmitting} className={cn("gap-1.5 font-medium shadow-2xs transition-all h-9 px-4 text-xs", currentTypeConfig.btnBg)}>
 							{isSubmitting ? (
 								<>
-									<Loader2 className="size-4 animate-spin" aria-hidden="true" />
+									<Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
 									Creating...
 								</>
 							) : (
