@@ -421,7 +421,7 @@ export function AdminMeetingLinkManager() {
                             </div>
                           )}
 
-                          <div className="space-y-2 pt-1 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+                          <div className="space-y-2 pt-1 lg:grid lg:grid-cols-1 lg:gap-4 lg:space-y-0">
                             <div className="space-y-1">
                               <Label htmlFor={`def-url-${t}`} className="text-[11px]">Meeting URL</Label>
                               <Input
@@ -506,40 +506,42 @@ export function AdminMeetingLinkManager() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="ml-type">Slot type</Label>
-                <Select
-                  value={type}
-                  onValueChange={(v) => setType(v as EventType)}
-                >
-                  <SelectTrigger id="ml-type" className="w-full">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="BIBLE">Bible Reading</SelectItem>
-                    <SelectItem value="PRAYER">Prayer</SelectItem>
-                    <SelectItem value="PRAISE_WORSHIP">
-                      Praise & Worship
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Date</Label>
-                <div className="w-full rounded-md border p-1">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={(d) => d && setDate(d)}
-                    className="w-full rounded-md"
-                  />
-                </div>
+          <div className="space-y-5">
+            {/* Row 1: Slot type selector */}
+            <div className="space-y-2">
+              <Label htmlFor="ml-type">Slot type</Label>
+              <Select
+                value={type}
+                onValueChange={(v) => setType(v as EventType)}
+              >
+                <SelectTrigger id="ml-type" className="w-full">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BIBLE">Bible Reading</SelectItem>
+                  <SelectItem value="PRAYER">Prayer</SelectItem>
+                  <SelectItem value="PRAISE_WORSHIP">
+                    Praise & Worship
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Row 2: Full-width calendar */}
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <div className="w-full rounded-lg border p-1">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(d) => d && setDate(d)}
+                  className="mx-auto w-full rounded-md"
+                />
               </div>
             </div>
 
-            <div className="space-y-4">
+            {/* Row 3: Meeting URL + Label — side by side on larger screens */}
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="ml-url">Meeting URL</Label>
                 <Input
@@ -561,120 +563,122 @@ export function AdminMeetingLinkManager() {
                   onChange={(e) => setLabel(e.target.value)}
                 />
               </div>
+            </div>
 
-              <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-                <Button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="flex-1"
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2
-                        className="size-4 animate-spin"
-                        aria-hidden="true"
-                      />
-                      Saving…
-                    </>
-                  ) : (
-                    <>
-                      <Save className="size-4" aria-hidden="true" />
-                      Save Override
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={handleDelete}
-                  disabled={isSaving || !currentLink}
-                  variant="outline"
-                  className="text-destructive hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                  Delete
-                </Button>
+            {/* Row 4: Action buttons */}
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="flex-1"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2
+                      className="size-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <Save className="size-4" aria-hidden="true" />
+                    Save Override
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={handleDelete}
+                disabled={isSaving || !currentLink}
+                variant="outline"
+                className="text-destructive hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="size-4" aria-hidden="true" />
+                Delete
+              </Button>
+            </div>
+
+            {/* Row 5: Current link status for selected date */}
+            <div className="space-y-2 rounded-lg border border-border/40 bg-muted/20 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="mb-0 text-xs">
+                  Link for {format(date, "EEEE, MMMM d")}
+                </Label>
+                <Badge className={cn("border-0 text-xs", accent.tabFill, accent.text)}>
+                  {typeLabel}
+                </Badge>
               </div>
-
-              <div className="space-y-2 pt-2">
-                <div className="flex items-center justify-between gap-2">
-                  <Label className="mb-0 text-xs">
-                    Link for {format(date, "EEEE, MMMM d")}
-                  </Label>
-                  <Badge className={cn("border-0 text-xs", accent.tabFill, accent.text)}>
-                    {typeLabel}
-                  </Badge>
-                </div>
-                <AnimatePresence mode="wait" initial={false}>
-                  {isLoadingLink ? (
+              <AnimatePresence mode="wait" initial={false}>
+                {isLoadingLink ? (
+                  <div
+                    key="loading"
+                    className="flex h-[52px] items-center justify-center rounded-md border bg-muted/30"
+                  >
+                    <Loader2
+                      className="size-4 animate-spin text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                  </div>
+                ) : currentLink ? (
+                  <motion.div
+                    key="link"
+                    initial={reduceMotion ? false : { opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
+                    transition={{ duration: 0.18 }}
+                    className="flex items-center gap-3 rounded-md border p-3"
+                  >
                     <div
-                      key="loading"
-                      className="flex h-[52px] items-center justify-center rounded-md border bg-muted/30"
+                      className={cn(
+                        "flex size-9 shrink-0 items-center justify-center rounded-md",
+                        accent.iconTile
+                      )}
                     >
-                      <Loader2
-                        className="size-4 animate-spin text-muted-foreground"
-                        aria-hidden="true"
-                      />
+                      <Video className="size-4" aria-hidden="true" />
                     </div>
-                  ) : currentLink ? (
-                    <motion.div
-                      key="link"
-                      initial={reduceMotion ? false : { opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
-                      transition={{ duration: 0.18 }}
-                      className="flex items-center gap-3 rounded-md border p-3"
+                    <div className="min-w-0 flex-1">
+                      <p className="flex items-center gap-2 text-sm font-semibold">
+                        <span className="truncate">
+                          {currentLink.label || "Meeting link"}
+                        </span>
+                        <Badge className="shrink-0 border-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-[10px]">
+                          Active
+                        </Badge>
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {currentLink.url}
+                      </p>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleCopy(currentLink.url, "date-override")}
+                      aria-label={copied === "date-override" ? "Link copied" : "Copy meeting link"}
                     >
-                      <div
-                        className={cn(
-                          "flex size-9 shrink-0 items-center justify-center rounded-md",
-                          accent.iconTile
-                        )}
-                      >
-                        <Video className="size-4" aria-hidden="true" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="flex items-center gap-2 text-sm font-semibold">
-                          <span className="truncate">
-                            {currentLink.label || "Meeting link"}
-                          </span>
-                          <Badge className="shrink-0 border-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-[10px]">
-                            Active
-                          </Badge>
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {currentLink.url}
-                        </p>
-                      </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleCopy(currentLink.url, "date-override")}
-                        aria-label={copied === "date-override" ? "Link copied" : "Copy meeting link"}
-                      >
-                        {copied === "date-override" ? (
-                          <Check
-                            className="size-4 text-emerald-600"
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <Copy className="size-4" aria-hidden="true" />
-                        )}
-                      </Button>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="empty"
-                      initial={reduceMotion ? false : { opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
-                      transition={{ duration: 0.18 }}
-                      className="flex h-[52px] items-center justify-center gap-2 rounded-md border border-dashed text-sm text-muted-foreground"
-                    >
-                      <Link2 className="size-4" aria-hidden="true" />
-                      No specific link override. Default link applies.
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                      {copied === "date-override" ? (
+                        <Check
+                          className="size-4 text-emerald-600"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <Copy className="size-4" aria-hidden="true" />
+                      )}
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="empty"
+                    initial={reduceMotion ? false : { opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
+                    transition={{ duration: 0.18 }}
+                    className="flex h-[52px] items-center justify-center gap-2 rounded-md border border-dashed text-sm text-muted-foreground"
+                  >
+                    <Link2 className="size-4" aria-hidden="true" />
+                    No specific link override. Default link applies.
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>

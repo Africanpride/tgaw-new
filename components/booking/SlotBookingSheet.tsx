@@ -40,13 +40,7 @@ const TYPE_LABEL: Record<EventType, string> = {
   PRAISE_WORSHIP: "Praise & Worship",
 };
 
-function convertUtcTimeToLocal(utcTime: string) {
-  const [hours, minutes] = utcTime.split(":");
-  const d = new Date();
-  d.setUTCHours(parseInt(hours, 10));
-  d.setUTCMinutes(parseInt(minutes, 10));
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
+import { convertUtcTimeToLocal } from "./slotTime";
 
 export function SlotBookingSheet({
   open,

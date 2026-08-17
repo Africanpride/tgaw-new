@@ -8,7 +8,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { DateNav } from "@/components/date-nav";
 
-import { convertUtcTimeToLocal } from "@/components/booking/SlotCell";
+import { convertUtcTimeToLocal } from "@/components/booking/slotTime";
 import { slotAccent } from "@/components/booking/slotAccent";
 import { cn } from "@/lib/utils";
 

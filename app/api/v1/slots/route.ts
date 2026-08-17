@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { getSlotsForDate } from "@/lib/services/slotService";
+import { getSlotsForDate, getDefaultMeetingLinks } from "@/lib/services/slotService";
 import { EventType } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
@@ -14,8 +14,18 @@ export async function GET(req: NextRequest) {
   const date = searchParams.get("date");
   const type = searchParams.get("type") as EventType | null;
 
-  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return NextResponse.json({ success: false, error: "Valid date (YYYY-MM-DD) is required" }, { status: 400 });
+  if (!date || (date !== "DEFAULT" && !/^\d{4}-\d{2}-\d{2}$/.test(date))) {
+    return NextResponse.json({ success: false, error: "Valid date (YYYY-MM-DD or DEFAULT) is required" }, { status: 400 });
+  }
+
+  // For DEFAULT we only need meeting links, not slot generation
+  if (date === "DEFAULT") {
+    try {
+      const meetingLinksMap = await getDefaultMeetingLinks();
+      return NextResponse.json({ success: true, data: { slots: [], meetingLinks: meetingLinksMap, userBookingCounts: { BIBLE: 0, PRAYER: 0, PRAISE_WORSHIP: 0 } } });
+    } catch (error: unknown) {
+      return NextResponse.json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
+    }
   }
 
   try {

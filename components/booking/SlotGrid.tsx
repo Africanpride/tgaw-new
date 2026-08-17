@@ -7,12 +7,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SlotData } from "./SlotCell";
 import {
-  SlotData,
   convertUtcTimeToLocal,
   isCurrentSlot,
   isPastSlot,
-} from "./SlotCell";
+} from "./slotTime";
 import { slotAccent } from "./slotAccent";
 import type { SlotAccent } from "./slotAccent";
 import { EventType } from "@prisma/client";

@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CalendarX2 } from "lucide-react";
-import { SlotCell, SlotData, isPastSlot, isCurrentSlot } from "./SlotCell";
+import { SlotCell, SlotData } from "./SlotCell";
+import { isPastSlot, isCurrentSlot } from "./slotTime";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { slotAccent } from "./slotAccent";

@@ -402,3 +402,20 @@ export async function deleteMeetingLink(type: EventType, date: string) {
     },
   });
 }
+
+export async function getDefaultMeetingLinks(): Promise<{
+  BIBLE: { url: string; label: string | null } | null;
+  PRAYER: { url: string; label: string | null } | null;
+  PRAISE_WORSHIP: { url: string; label: string | null } | null;
+}> {
+  const links = await prisma.meetingLink.findMany({ where: { date: "DEFAULT" } });
+  const map: { BIBLE: { url: string; label: string | null } | null; PRAYER: { url: string; label: string | null } | null; PRAISE_WORSHIP: { url: string; label: string | null } | null } = {
+    BIBLE: null,
+    PRAYER: null,
+    PRAISE_WORSHIP: null,
+  };
+  for (const link of links) {
+    map[link.type as keyof typeof map] = { url: link.url, label: link.label ?? null };
+  }
+  return map;
+}

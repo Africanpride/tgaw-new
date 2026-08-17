@@ -10,7 +10,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { SlotData, isPastSlot } from "./SlotCell";
+import { SlotData } from "./SlotCell";
+import { convertUtcTimeToLocal, isPastSlot } from "./slotTime";
 import { cn } from "@/lib/utils";
 import { SlotBookingSheet } from "./SlotBookingSheet";
 import { bookSlotAction } from "@/actions/slotActions";
@@ -57,15 +58,6 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
       toast.error(result.error || "Failed to book slot");
     }
   };
-
-  function convertUtcTimeToLocal(utcTime: string) {
-    const [hours, minutes] = utcTime.split(':');
-    const d = new Date();
-    d.setUTCHours(parseInt(hours, 10));
-    d.setUTCMinutes(parseInt(minutes, 10));
-    
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
 
   return (
     <div className="space-y-4">

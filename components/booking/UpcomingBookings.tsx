@@ -5,7 +5,7 @@ import { CalendarClock, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { convertUtcTimeToLocal } from "./SlotCell";
+import { convertUtcTimeToLocal } from "./slotTime";
 import { cn } from "@/lib/utils";
 
 interface UpcomingBookingEvent {

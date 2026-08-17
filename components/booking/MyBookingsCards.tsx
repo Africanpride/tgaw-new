@@ -1,6 +1,7 @@
 "use client";
 
-import { SlotData, convertUtcTimeToLocal, isPastSlot } from "./SlotCell";
+import { SlotData } from "./SlotCell";
+import { convertUtcTimeToLocal, isPastSlot } from "./slotTime";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EventType } from "@prisma/client";
