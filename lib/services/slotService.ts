@@ -141,7 +141,7 @@ export async function getSlotsForDate(date: string, type?: EventType, currentUse
   const userIds = slots.map(s => s.bookedBy).filter(Boolean) as string[];
   const users = await prisma.user.findMany({
     where: { id: { in: [...new Set(userIds)] } },
-    select: { id: true, name: true, image: true },
+    select: { id: true, name: true, email: true, image: true },
   });
   const userMap = new Map(users.map(u => [u.id, u]));
 
@@ -153,16 +153,21 @@ export async function getSlotsForDate(date: string, type?: EventType, currentUse
 
     if (isBooked) {
       const user = userMap.get(slot.bookedBy!);
+      const isAdminOrCoordinator = userRole === "leader" || userRole === "superadmin" || userRole === "coordinator";
       
       const canSeeDetails = 
+        isAdminOrCoordinator ||
         config.visibilityMode === 1 || 
         config.visibilityMode === 3 || 
-        isOwnBooking || 
-        (config.visibilityMode === 4 && (userRole === "leader" || userRole === "superadmin" || userRole === "coordinator"));
+        isOwnBooking;
         
       if (canSeeDetails && user) {
-        bookedByName = user.name;
+        bookedByName = user.name || user.email || "Member";
         bookedByImage = user.image;
+      } else if (isBooked && !canSeeDetails) {
+        bookedByName = "Anonymous";
+      } else if (isBooked && !user) {
+        bookedByName = "Member";
       }
     }
 

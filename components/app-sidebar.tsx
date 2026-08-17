@@ -3,12 +3,11 @@
 import {
   Book,
   BookAIcon,
-  BookOpen,
   Calendar,
   CalendarCheck,
   Church,
-  CircleHelp,
   CircleQuestionMarkIcon,
+  Gavel,
   Home,
   MessageCircle,
   MessageSquare,
@@ -88,26 +87,6 @@ const navData = [
   },
 ]
 
-const adminItems = [
-  {
-    title: "Admin",
-    url: "#",
-    icon: <Shield />,
-    items: [
-      {
-        title: "Admin Portal",
-        url: "/admin",
-        icon: <Shield className="size-4" />,
-      },
-      {
-        title: "User Management",
-        url: "/admin/users",
-        icon: <UserCog className="size-4" />,
-      },
-    ],
-  },
-]
-
 export function AppSidebar({
   role,
   ...props
@@ -139,12 +118,12 @@ export function AppSidebar({
     roleNavItems.push({
       title: "Board",
       url: "#",
-      icon: <Shield />,
+      icon: <Gavel />,
       items: [
         {
           title: "Org Dashboard",
           url: "/board",
-          icon: <Shield className="size-4" />,
+          icon: <Gavel className="size-4" />,
         },
       ],
     })

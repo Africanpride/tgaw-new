@@ -58,7 +58,7 @@ export function PastBookingsStack({ bookings }: { bookings: SlotData[] }) {
   if (pastBookings.length === 0) return null;
 
   return (
-    <div className="relative w-full max-w-xs h-72 overflow-hidden rounded-xl px-3.5 py-2.5">
+    <div className="relative w-full h-72 overflow-hidden rounded-xl px-3.5 py-2.5">
       <div className="relative h-full w-full">
         {pastBookings.map((booking, idx) => {
           const config = CARD_CONFIGS[idx] || CARD_CONFIGS[CARD_CONFIGS.length - 1];
@@ -75,7 +75,7 @@ export function PastBookingsStack({ bookings }: { bookings: SlotData[] }) {
               style={{ top: config.top }}
               className={cn(
                 "absolute inset-x-0 mx-auto",
-                "flex h-14 w-full max-w-xs items-center justify-between",
+                "flex h-14 w-full items-center justify-between",
                 "bg-background rounded-xl border border-border px-2"
               )}
             >

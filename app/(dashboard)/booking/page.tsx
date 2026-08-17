@@ -228,11 +228,11 @@ export default function BookingPage() {
             <h3 className="mb-3 font-semibold">
               My Bookings for {format(date, "MMM d")}
             </h3>
-            <MyBookingsStack
+            {/* <MyBookingsStack
               bookings={myBookings}
               onCancel={handleCancelBooking}
               dateLabel={format(date, "MMM d")}
-            />
+            /> */}
           </div>
 
           {meetingLink && (

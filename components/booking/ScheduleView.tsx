@@ -105,9 +105,6 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
-          {/* Past Bookings Stack */}
-          <PastBookingsStack bookings={bookings} />
-
           {/* Upcoming Bookings */}
           {groupedBookings.map(([dateLabel, dayBookings]) => (
             <div key={dateLabel} className="space-y-2">
@@ -118,7 +115,7 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
                 .sort((a, b) => a.startTime.localeCompare(b.startTime))
                 .map((booking) => {
                   const past = isPastSlot(booking);
-                  if (past) return null; // Past bookings shown in stack above
+                  if (past) return null; // Past bookings shown in stack below
                   const type = booking.type as EventType | undefined;
                   const accent = type ? slotAccent[type] : slotAccent.BIBLE;
                   const typeLabel = getTypeLabel(type);
@@ -220,6 +217,9 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
                 })}
             </div>
           ))}
+
+          {/* Past Bookings Stack */}
+          <PastBookingsStack bookings={bookings} />
         </div>
       </ScrollArea>
     </Card>
