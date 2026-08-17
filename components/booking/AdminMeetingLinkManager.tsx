@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import { EventType } from "@prisma/client"
 import { toast } from "sonner"
-import { Check, Copy, Link2, Loader2, Save, Trash2, Video } from "lucide-react"
+import { BookOpen, Check, Copy, Flame, Link2, Loader2, Music, Save, Trash2, Video } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +38,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
 import { slotAccent } from "./slotAccent"
+
+// Slide animation variants for tab content transitions
+const tabSlideVariants = {
+  enter: (dir: number) => ({ x: dir > 0 ? 48 : -48, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir: number) => ({ x: dir > 0 ? -48 : 48, opacity: 0 }),
+}
+const tabSlideTransition = { type: "spring" as const, stiffness: 340, damping: 32 }
 
 interface MeetingLinkData {
   url: string
@@ -72,6 +81,22 @@ export function AdminMeetingLinkManager() {
     date: string
   } | null>(null)
   const reduceMotion = useReducedMotion()
+
+  // Default-tab underline animation state
+  const defaultTabItems = [
+    { id: "BIBLE" as EventType, label: "Bible", icon: BookOpen },
+    { id: "PRAYER" as EventType, label: "Prayer", icon: Flame },
+    { id: "PRAISE_WORSHIP" as EventType, label: "Worship", icon: Music },
+  ] as const
+  const [activeDefaultTab, setActiveDefaultTab] = useState<EventType>("BIBLE")
+  const [hoveredDefaultTab, setHoveredDefaultTab] = useState<string | null>(null)
+  const [defaultTabDir, setDefaultTabDir] = useState(1)
+  const handleDefaultTabChange = (newId: string) => {
+    const prevIdx = defaultTabItems.findIndex((t) => t.id === activeDefaultTab)
+    const nextIdx = defaultTabItems.findIndex((t) => t.id === newId)
+    setDefaultTabDir(nextIdx > prevIdx ? 1 : -1)
+    setActiveDefaultTab(newId as EventType)
+  }
 
   const accent = slotAccent[type]
   const typeLabel =
@@ -282,125 +307,192 @@ export function AdminMeetingLinkManager() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            {(["BIBLE", "PRAYER", "PRAISE_WORSHIP"] as EventType[]).map((t) => {
-              const tAccent = slotAccent[t]
-              const tName = t === "BIBLE" ? "Bible Reading" : t === "PRAYER" ? "Prayer Watch" : "Praise & Worship"
-              const currentDef = defaultLinks[t]
-              const inputVal = defaultInputs[t]
-              const isSavingThis = savingDefaultType === t
+          <Tabs value={activeDefaultTab} onValueChange={handleDefaultTabChange} className="w-full">
+            <TabsList
+              variant="line"
+              className="flex w-full no-visible-scrollbar! border-b border-border bg-transparent p-0! rounded-none h-auto! gap-0! justify-start!"
+              onMouseLeave={() => setHoveredDefaultTab(null)}
+            >
+              {defaultTabItems.map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeDefaultTab === tab.id
+                const isHovered = hoveredDefaultTab === tab.id
 
-              return (
-                <div
-                  key={t}
-                  className={cn(
-                    "flex flex-col justify-between rounded-xl border p-4 shadow-2xs space-y-3 transition-colors",
-                    tAccent.rail,
-                    "bg-card/50"
-                  )}
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Badge className={cn("border-0 font-medium", tAccent.tabFill, tAccent.text)}>
-                        {tName}
-                      </Badge>
-                      {currentDef && (
-                        <Badge className="border-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]">
-                          Active Default
-                        </Badge>
-                      )}
-                    </div>
-
-                    {currentDef && (
-                      <div className="flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-muted/30 p-2.5">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-semibold">{currentDef.label || "Default Room"}</p>
-                          <p className="truncate text-[11px] text-muted-foreground">{currentDef.url}</p>
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="size-7 shrink-0"
-                          onClick={() => handleCopy(currentDef.url, `default-${t}`)}
-                        >
-                          {copied === `default-${t}` ? (
-                            <Check className="size-3.5 text-emerald-600" aria-hidden="true" />
-                          ) : (
-                            <Copy className="size-3.5" aria-hidden="true" />
-                          )}
-                        </Button>
-                      </div>
+                return (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    onMouseEnter={() => setHoveredDefaultTab(tab.id)}
+                    className={cn(
+                      "relative flex items-center justify-center cursor-pointer text-sm font-medium transition-colors outline-none whitespace-nowrap bg-transparent",
+                      "data-[state=active]:bg-transparent data-[state=active]:text-foreground",
+                      "dark:data-[state=active]:bg-transparent dark:data-[state=active]:border-transparent dark:data-[state=active]:text-foreground",
+                      "border-transparent data-[state=active]:border-transparent shadow-none data-[state=active]:shadow-none after:hidden",
+                      isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                     )}
-
-                    <div className="space-y-2 pt-1">
-                      <div className="space-y-1">
-                        <Label htmlFor={`def-url-${t}`} className="text-[11px]">Meeting URL</Label>
-                        <Input
-                          id={`def-url-${t}`}
-                          type="url"
-                          placeholder="https://zoom.us/j/..."
-                          className="h-8 text-xs"
-                          value={inputVal.url}
-                          onChange={(e) =>
-                            setDefaultInputs((prev) => ({
-                              ...prev,
-                              [t]: { ...prev[t], url: e.target.value },
-                            }))
-                          }
+                  >
+                    <span className="relative flex items-center gap-2 px-4 py-3 rounded-md z-10">
+                      {isHovered && (
+                        <motion.span
+                          layoutId="default-link-tab-hover"
+                          className="absolute inset-0 bg-muted/70 rounded-md pointer-events-none"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor={`def-label-${t}`} className="text-[11px]">Label (optional)</Label>
-                        <Input
-                          id={`def-label-${t}`}
-                          placeholder="e.g. Daily Zoom Room"
-                          className="h-8 text-xs"
-                          value={inputVal.label}
-                          onChange={(e) =>
-                            setDefaultInputs((prev) => ({
-                              ...prev,
-                              [t]: { ...prev[t], label: e.target.value },
-                            }))
-                          }
-                        />
-                      </div>
-                    </div>
-                  </div>
+                      )}
+                      <Icon className="size-4 relative z-10" aria-hidden="true" />
+                      <span className="relative z-10">{tab.label}</span>
+                    </span>
 
-                  <div className="flex gap-2 pt-2 border-t border-border/30">
-                    <Button
-                      size="sm"
-                      onClick={() => handleSaveDefault(t)}
-                      disabled={isSavingThis || isLoadingDefaults}
-                      className={cn("flex-1 h-8 text-xs gap-1.5", tAccent.solid)}
+                    {isActive && (
+                      <motion.div
+                        layoutId="default-link-tab-indicator"
+                        className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-primary"
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                  </TabsTrigger>
+                )
+              })}
+            </TabsList>
+
+            {/* Slide-animated content panels */}
+            <div className="mt-4 relative overflow-hidden">
+              <AnimatePresence mode="wait" custom={defaultTabDir}>
+                {defaultTabItems.map((tab) => {
+                  if (tab.id !== activeDefaultTab) return null
+                  const t = tab.id
+                  const tAccent = slotAccent[t]
+                  const tName = t === "BIBLE" ? "Bible Reading" : t === "PRAYER" ? "Prayer Watch" : "Praise & Worship"
+                  const currentDef = defaultLinks[t]
+                  const inputVal = defaultInputs[t]
+                  const isSavingThis = savingDefaultType === t
+
+                  return (
+                    <motion.div
+                      key={t}
+                      custom={defaultTabDir}
+                      variants={reduceMotion ? undefined : tabSlideVariants}
+                      initial={reduceMotion ? false : "enter"}
+                      animate="center"
+                      exit={reduceMotion ? undefined : "exit"}
+                      transition={tabSlideTransition}
                     >
-                      {isSavingThis ? (
-                        <>
-                          <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="size-3.5" aria-hidden="true" />
-                          Save Default
-                        </>
-                      )}
-                    </Button>
-                    {currentDef && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteDefault(t)}
-                        className="h-8 px-2 text-destructive hover:border-destructive/40 hover:bg-destructive/10"
+                      <div
+                        className={cn(
+                          "flex w-full flex-col justify-between rounded-xl border p-4 shadow-2xs space-y-3 transition-colors",
+                          tAccent.rail,
+                          "bg-card/50"
+                        )}
                       >
-                        <Trash2 className="size-3.5" aria-hidden="true" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Badge className={cn("border-0 font-medium", tAccent.tabFill, tAccent.text)}>
+                              {tName}
+                            </Badge>
+                            {currentDef && (
+                              <Badge className="border-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]">
+                                Active Default
+                              </Badge>
+                            )}
+                          </div>
+
+                          {currentDef && (
+                            <div className="flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-muted/30 p-2.5">
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-xs font-semibold">{currentDef.label || "Default Room"}</p>
+                                <p className="truncate text-[11px] text-muted-foreground">{currentDef.url}</p>
+                              </div>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="size-7 shrink-0"
+                                onClick={() => handleCopy(currentDef.url, `default-${t}`)}
+                              >
+                                {copied === `default-${t}` ? (
+                                  <Check className="size-3.5 text-emerald-600" aria-hidden="true" />
+                                ) : (
+                                  <Copy className="size-3.5" aria-hidden="true" />
+                                )}
+                              </Button>
+                            </div>
+                          )}
+
+                          <div className="space-y-2 pt-1 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+                            <div className="space-y-1">
+                              <Label htmlFor={`def-url-${t}`} className="text-[11px]">Meeting URL</Label>
+                              <Input
+                                id={`def-url-${t}`}
+                                type="url"
+                                placeholder="https://zoom.us/j/..."
+                                className="h-8 text-xs"
+                                value={inputVal.url}
+                                onChange={(e) =>
+                                  setDefaultInputs((prev) => ({
+                                    ...prev,
+                                    [t]: { ...prev[t], url: e.target.value },
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`def-label-${t}`} className="text-[11px]">Label (optional)</Label>
+                              <Input
+                                id={`def-label-${t}`}
+                                placeholder="e.g. Daily Zoom Room"
+                                className="h-8 text-xs"
+                                value={inputVal.label}
+                                onChange={(e) =>
+                                  setDefaultInputs((prev) => ({
+                                    ...prev,
+                                    [t]: { ...prev[t], label: e.target.value },
+                                  }))
+                                }
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2 border-t border-border/30">
+                          <Button
+                            size="sm"
+                            onClick={() => handleSaveDefault(t)}
+                            disabled={isSavingThis || isLoadingDefaults}
+                            className={cn("flex-1 h-8 text-xs gap-1.5", tAccent.solid)}
+                          >
+                            {isSavingThis ? (
+                              <>
+                                <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="size-3.5" aria-hidden="true" />
+                                Save Default
+                              </>
+                            )}
+                          </Button>
+                          {currentDef && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeleteDefault(t)}
+                              className="h-8 px-2 text-destructive hover:border-destructive/40 hover:bg-destructive/10"
+                            >
+                              <Trash2 className="size-3.5" aria-hidden="true" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )
+                })}
+              </AnimatePresence>
+            </div>
+          </Tabs>
         </div>
 
         {/* SECTION 2: DATE-SPECIFIC OVERRIDES */}
@@ -657,4 +749,3 @@ export function AdminMeetingLinkManager() {
     </Card>
   )
 }
-
