@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
-import { EventType } from "@prisma/client"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
+import { EventType } from "@prisma/client"
 import { TypeTabs } from "@/components/booking/TypeTabs"
 import { BookingCalendarMini } from "@/components/booking/BookingCalendarMini"
 import { SlotTimeline } from "@/components/booking/SlotTimeline"
@@ -13,7 +13,7 @@ import {
   SlotViewMode,
 } from "@/components/booking/SlotViewToggle"
 import { SlotBookingSheet } from "@/components/booking/SlotBookingSheet"
-import { MyBookingsCards } from "@/components/booking/MyBookingsCards"
+import { MyBookingsStack } from "@/components/booking/MyBookingsStack"
 import { MeetingLinkCard } from "@/components/booking/MeetingLinkCard"
 import { SlotData } from "@/components/booking/SlotCell"
 import { convertUtcTimeToLocal, isPastSlot } from "@/components/booking/slotTime"
@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { CalendarX2, Clock, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ScheduleView } from "@/components/booking/ScheduleView"
 
 export default function BookingPage() {
   const searchParams = useSearchParams()
@@ -46,6 +47,7 @@ export default function BookingPage() {
     (searchParams.get("type") as EventType) || "BIBLE"
   )
   const [slots, setSlots] = useState<SlotData[]>([])
+  const [allMyBookings, setAllMyBookings] = useState<SlotData[]>([])
   const [meetingLink, setMeetingLink] = useState<{
     url: string
     label: string | null
@@ -103,6 +105,38 @@ export default function BookingPage() {
     fetchSlots()
   }, [date, type])
 
+  // Fetch all my bookings across all types for the date
+  useEffect(() => {
+    const fetchAllMyBookings = async () => {
+      try {
+        const dateStr = format(date, "yyyy-MM-dd")
+        const types: EventType[] = ["BIBLE", "PRAYER", "PRAISE_WORSHIP"]
+        const allBookings: SlotData[] = []
+
+        for (const t of types) {
+          const res = await fetch(`/api/v1/slots?date=${dateStr}&type=${t}&_=${Date.now()}`)
+          const data = await res.json()
+          console.log(`[DEBUG] Type ${t}:`, data.success, data.data?.slots?.length, data.data?.slots?.filter((s: SlotData) => s.isOwnBooking).length)
+          if (data.success) {
+            const ownBookings = (data.data.slots as SlotData[]).filter(
+              (s) => s.isOwnBooking
+            )
+            allBookings.push(...ownBookings)
+          }
+        }
+
+        // Sort by start time
+        allBookings.sort((a, b) => a.startTime.localeCompare(b.startTime))
+        console.log('[DEBUG] allMyBookings:', allBookings)
+        setAllMyBookings(allBookings)
+      } catch (error) {
+        console.error("Failed to fetch all my bookings", error)
+      }
+    }
+
+    fetchAllMyBookings()
+  }, [date])
+
   const handleTypeChange = (newType: EventType) => {
     setType(newType)
     router.replace(`/booking?type=${newType}`, { scroll: false })
@@ -151,7 +185,7 @@ export default function BookingPage() {
     }
   }
 
-  const myBookings = slots.filter((s) => s.isOwnBooking)
+  const myBookings = allMyBookings
   const selectedSlots = slots.filter((s) => selectedIds.includes(s.id))
 
   const typeLabel =
@@ -180,7 +214,8 @@ export default function BookingPage() {
       </div>
 
       <div className="flex flex-col gap-6 md:flex-row">
-        <div className="space-y-6 md:w-1/3 lg:w-1/4">
+        {/* Left Column: Calendar + My Bookings + Meeting Links */}
+        <div className="space-y-6 md:w-1/4 lg:w-1/5 min-w-0">
           <BookingCalendarMini
             date={date}
             onDateChange={(d) => d && setDate(d)}
@@ -193,10 +228,10 @@ export default function BookingPage() {
             <h3 className="mb-3 font-semibold">
               My Bookings for {format(date, "MMM d")}
             </h3>
-            <MyBookingsCards
+            <MyBookingsStack
               bookings={myBookings}
               onCancel={handleCancelBooking}
-              type={type}
+              dateLabel={format(date, "MMM d")}
             />
           </div>
 
@@ -210,7 +245,8 @@ export default function BookingPage() {
           )}
         </div>
 
-        <div className="space-y-4 md:w-2/3 lg:w-3/4">
+        {/* Middle Column: Slot Grid/Timeline for Booking */}
+        <div className="space-y-4 md:w-1/2 lg:w-3/5 min-w-0">
           <TypeTabs value={type} onChange={handleTypeChange} />
 
           {isLoading ? (
@@ -271,10 +307,10 @@ export default function BookingPage() {
           <div className="space-y-6 pt-6 md:hidden">
             <div>
               <h3 className="mb-3 font-semibold">My Bookings</h3>
-              <MyBookingsCards
+              <MyBookingsStack
                 bookings={myBookings}
                 onCancel={handleCancelBooking}
-                type={type}
+                dateLabel={format(date, "MMM d")}
               />
             </div>
             {meetingLink && (
@@ -284,6 +320,15 @@ export default function BookingPage() {
               />
             )}
           </div>
+        </div>
+
+        {/* Right Column: Schedule View */}
+        <div className="md:w-1/4 lg:w-1/5 min-w-0 hidden md:block">
+          <ScheduleView
+            bookings={allMyBookings}
+            meetingLinks={meetingLink ? { [type]: meetingLink, BIBLE: null, PRAYER: null, PRAISE_WORSHIP: null } as Record<EventType, { url: string; label: string | null } | null> : { BIBLE: null, PRAYER: null, PRAISE_WORSHIP: null } as Record<EventType, { url: string; label: string | null } | null>}
+            onCancel={handleCancelBooking}
+          />
         </div>
       </div>
 

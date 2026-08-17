@@ -6,6 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SlotAccent } from "./slotAccent";
+import {
+  convertUtcTimeToLocal,
+  isPastSlot,
+} from "./slotTime";
+
+export { convertUtcTimeToLocal, isPastSlot };
 
 export interface SlotData {
   id: string;
@@ -27,8 +33,6 @@ interface SlotCellProps {
   accent: SlotAccent;
   isCurrent?: boolean;
 }
-
-import { convertUtcTimeToLocal, isPastSlot, isCurrentSlot } from "./slotTime";
 
 export function SlotCell({ slot, isSelected, onSelect, accent, isCurrent }: SlotCellProps) {
   const isAvailable = !slot.isBooked && !isPastSlot(slot);

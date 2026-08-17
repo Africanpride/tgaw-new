@@ -39,26 +39,47 @@ export function MyBookingsCards({ bookings, onCancel, type }: MyBookingsCardsPro
       {bookings.map((booking) => {
         const past = isPastSlot(booking);
         return (
-          <Card key={booking.id} className={cn("overflow-hidden border-l-2", accent.rail)}>
+          <Card
+            key={booking.id}
+            className={cn(
+              "overflow-hidden border-l-2 transition-all",
+              past
+                ? "opacity-40 border-l-muted bg-muted/30"
+                : accent.rail,
+            )}
+          >
             <div className="flex items-center justify-between gap-2 p-4">
               <div className="min-w-0">
                 <p className={cn("flex items-center gap-1.5 font-semibold tabular-nums", accent.text)}>
                   <Clock className="size-3.5 shrink-0" aria-hidden="true" />
-                  {convertUtcTimeToLocal(booking.startTime)} – {convertUtcTimeToLocal(booking.endTime)}
+                  {convertUtcTimeToLocal(booking.startTime)} –{" "}
+                  {convertUtcTimeToLocal(booking.endTime)}
                 </p>
                 {booking.notes && (
-                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{booking.notes}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                    {booking.notes}
+                  </p>
+                )}
+                {past && (
+                  <span className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <span
+                      className="inline-block w-1.5 h-1.5 rounded-full bg-muted-foreground/40"
+                      aria-hidden="true"
+                    />
+                    Past
+                  </span>
                 )}
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={past}
-                onClick={() => !past && onCancel(booking)}
-                className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {past ? "Past" : "Cancel"}
-              </Button>
+              {!past && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onCancel(booking)}
+                  className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  Cancel
+                </Button>
+              )}
             </div>
           </Card>
         );
