@@ -139,10 +139,31 @@ export async function getSlotsForDate(date: string, type?: EventType, currentUse
   });
 
   const userIds = slots.map(s => s.bookedBy).filter(Boolean) as string[];
+  const uniqueUserIds = [...new Set(userIds)];
   const users = await prisma.user.findMany({
-    where: { id: { in: [...new Set(userIds)] } },
+    where: { id: { in: uniqueUserIds } },
     select: { id: true, name: true, email: true, image: true },
   });
+
+  // Fallback for legacy seeded users that have ObjectId _id in MongoDB
+  if (users.length !== uniqueUserIds.length) {
+    const missingIds = uniqueUserIds.filter(id => !users.some(u => u.id === id));
+    const objectIds = missingIds.filter(id => /^[0-9a-fA-F]{24}$/.test(id)).map(id => ({ $oid: id }));
+    if (objectIds.length > 0) {
+      const rawUsers = (await prisma.user.findRaw({
+        filter: { _id: { $in: objectIds } }
+      })) as unknown as any[];
+      for (const ru of rawUsers) {
+        users.push({
+          id: ru._id.$oid,
+          name: ru.name ?? "",
+          email: ru.email ?? "",
+          image: ru.image ?? null
+        });
+      }
+    }
+  }
+
   const userMap = new Map(users.map(u => [u.id, u]));
 
   const formattedSlots = slots.map(slot => {

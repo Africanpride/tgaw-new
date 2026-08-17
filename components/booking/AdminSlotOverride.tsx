@@ -171,9 +171,10 @@ function UserSearchCombobox({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-        <Command shouldFilter={false}>
+      <PopoverContent className="p-0" style={{ width: "var(--radix-popover-trigger-width)" }} align="start">
+        <Command className="w-full" shouldFilter={false}>
           <CommandInput
+            className="w-full"
             placeholder="Type a name or email…"
             value={query}
             onValueChange={(v) => {
