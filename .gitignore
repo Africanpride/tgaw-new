@@ -44,3 +44,8 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# superpowers SDD scratch artifacts (briefs, reports, review packages)
+.superpowers/sdd/*-brief.md
+.superpowers/sdd/*-report.md
+.superpowers/sdd/review-*.diff
