@@ -6,7 +6,7 @@
 | Task 2: getVerseOfDay resolver | complete | 6731499 | clean (Minor: indentation; NaN on malformed input by design) |
 | Task 3: Public API route | complete | cf5ffd4 | clean |
 | Task 4: Share dialog | complete | 4fc875a | clean (Minor: clipboard.writeText not error-guarded, brief-mandated) |
-| Task 5: VerseCard | pending | | |
+| Task 5: VerseCard | complete | 38e55d6 | clean |
 | Task 6: Public /verse/today page | pending | | |
 | Task 7: Mount VerseCard on overview | pending | | |
 | Task 8: End-to-end verification | pending | | |
