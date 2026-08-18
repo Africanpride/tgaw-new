@@ -10,6 +10,14 @@
 | Task 6: Public /verse/today page | complete | 138f7b1 | clean (Minor: Link wraps Button without asChild → nested interactive element, brief-mandated) |
 | Task 7: Mount VerseCard on overview | complete | c63a3c1 | clean |
 | Task 8: End-to-end verification | complete | — | 4/4 tests pass; typecheck clean; eslint clean on all verse files (2 pre-existing overview warnings from commented-out UpcomingBookings block); smoke: API 200 (1 Thess 5:11, day 230), /verse/today 200, /overview 307→/login |
+| Final review fixes | complete | 48a0ad9 | all 7 findings resolved, re-review approved, no regressions |
+
+## Final status
+
+- Whole-branch review: **Ready to merge** after fixes.
+- Fix commit `48a0ad9` resolved all 7 findings (asChild nesting, Prettier ×5, clipboard guard, getDayOfYear guard, WhatsApp URL per user, page metadata, year-boundary test). Re-review: fixes approved, no new issues.
+- Verification: 5/5 tests pass, typecheck clean, prettier clean, eslint clean.
+- Process: `.superpowers/sdd/*-brief.md`, `*-report.md`, `review-*.diff` now gitignored; scratch files untracked; only `progress.md` tracked.
 
 ## Minor findings (triage at final review)
 
