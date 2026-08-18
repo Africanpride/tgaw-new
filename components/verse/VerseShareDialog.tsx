@@ -27,7 +27,8 @@ const SHARE_OPTIONS: ShareOption[] = [
   {
     label: "WhatsApp",
     icon: MessageCircle,
-    href: (_url, text) => `https://wa.me/?text=${encodeURIComponent(text)}`,
+    href: (url, text) =>
+      `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
   },
   {
     label: "Facebook",
@@ -54,8 +55,12 @@ export function VerseShareDialog({ verse }: VerseShareDialogProps) {
   const shareText = `"${verse.text}" — ${verse.reference}`
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(`${shareText} ${shareUrl}`)
-    toast.success("Verse copied to clipboard")
+    try {
+      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`)
+      toast.success("Verse copied to clipboard")
+    } catch {
+      toast.error("Could not copy verse")
+    }
   }
 
   return (
@@ -89,7 +94,11 @@ export function VerseShareDialog({ verse }: VerseShareDialogProps) {
               </a>
             </Button>
           ))}
-          <Button variant="ghost" className="justify-start gap-3" onClick={handleCopy}>
+          <Button
+            variant="ghost"
+            className="justify-start gap-3"
+            onClick={handleCopy}
+          >
             <Copy className="size-4" aria-hidden="true" />
             Copy
           </Button>

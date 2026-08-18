@@ -28,4 +28,11 @@ describe("getVerseOfDay", () => {
     const today = new Date().toISOString().split("T")[0]
     expect(getVerseOfDay().date).toBe(today)
   })
+
+  it("cycles back through the list across a year boundary", () => {
+    // Dec 31 2028 is day 366; 365 % VERSES.length must index the last-entry wrap
+    const result = getVerseOfDay("2028-12-31")
+    expect(result.dayOfYear).toBe(366)
+    expect(result.reference).toBe(VERSES[365 % VERSES.length].reference)
+  })
 })

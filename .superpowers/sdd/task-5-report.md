@@ -1,38 +1,42 @@
-# Task 5 Report: OnboardingFlow Wizard Component
+# Task 5 Report: VerseCard (server component)
 
-## Status: DONE
+## What I implemented
 
-## What I Did
+Created `components/verse/VerseCard.tsx` — an async server component that:
 
-Created `components/onboarding/OnboardingFlow.tsx` — a multi-step onboarding wizard with:
+- Imports `BookOpen` from lucide-react, `Badge`, `Card`/`CardContent`, `getVerseOfDay` from `@/lib/services/verseService`, and `VerseShareDialog`.
+- Reads the resolver directly: `const verse = getVerseOfDay()` (no args → defaults to today's UTC date).
+- Renders a `Card` (`border-primary/20 bg-primary/5`) with:
+  - Circular icon container (`bg-primary/10 text-primary`) with `BookOpen` (`aria-hidden="true"`).
+  - Verse text (`text-foreground`), reference + "Verse of the Day" `Badge variant="secondary"`.
+  - `VerseShareDialog` receiving `{ text, reference }` (matches the `Verse` prop type).
 
-- **Cover panel**: Desktop left side with `next/image` background, brand logo using `ShieldCheck` icon
-- **Mobile brand bar**: Compact header shown only on mobile (`md:hidden`)
-- **Stepper**: Desktop shows numbered circles with connecting lines; mobile shows progress bar with step counter
-- **5 steps**: NameStep, ContactStep, AboutStep, TimezoneStep, CompleteStep
-- **Form validation**: `useForm` with `zodResolver(onboardingSchema)`, per-step `form.trigger()` validation
-- **Navigation**: Back/Next buttons with chevron icons, "Finish" on last content step
+Content matches the brief verbatim.
 
-## Fixes Applied (vs Reference)
+## Verification results
 
-1. **Fixed all implicit `any` types**: Changed `form: any` to `form: UseFormReturn<OnboardingValues>` on all step components (NameStep, ContactStep, AboutStep, TimezoneStep)
-2. **Fixed `string | null` type errors**: `@base-ui/react` Select's `onValueChange` passes `string | null` — added null guards (`v && setValue(...)`) and fallback values (`watch("field") ?? ""`)
-3. **Used `message` in Zod schemas**: Schema already uses `message` (from Task 4), not `required_error`
-4. **Corrected imports**: All paths point to `@/lib/schemas/onboardingSchema`, not `@/lib/incoming/...`
-5. **Added `ShieldCheck` icon**: Used for brand logo in cover panel and mobile bar (replacing the plain `<div>` placeholder)
-6. **Added `aria-hidden="true"`** to all decorative icons (Check, ChevronLeft, ChevronRight, ShieldCheck)
-7. **Used `next/link`** for the "Go to dashboard" link (replaced raw `<a>` tag)
-8. **Extracted `AGE_RANGES` constant** for the age range select options
-9. **Removed `as Resolver<OnboardingValues>` cast**: `zodResolver(onboardingSchema)` infers correctly
+- `bun run typecheck` → PASS, no output (`tsc --noEmit` clean).
+- `bunx eslint components/verse/VerseCard.tsx` → PASS, no output.
 
-## Typecheck
+Note: an LSP diagnostic about `verseService.test.ts` (`Cannot find module './verseService'`) appeared in the editor but is stale — the module exists in the same directory and `tsc --noEmit` passes cleanly. No action needed.
 
-`bun run typecheck` passes for our file. The only errors are in `lib/incoming/onboardingSchema.ts` (old reference file using `required_error` instead of `message` — pre-existing, not part of this task).
+## Files changed
+
+- `components/verse/VerseCard.tsx` (new, 31 lines)
 
 ## Commit
 
-- `14db57a` — `feat: add OnboardingFlow wizard component`
+- `38e55d6` feat(verse): add overview verse card
 
-## Concerns
+## Self-review findings
 
-None. The component is complete and type-safe.
+- Matches brief verbatim. ✅
+- Async server component (no `"use client"`); reads `getVerseOfDay()` directly — no client fetch. ✅
+- Typecheck + eslint pass clean. ✅
+- Uses only shadcn semantic tokens (`text-foreground`, `text-muted-foreground`, `text-primary`, `bg-primary/*`, `border-primary/*`) plus Tailwind layout/spacing utilities — no ad-hoc hex colors. ✅
+- Icon has `aria-hidden="true"` per project a11y rule. ✅
+- `getVerseOfDay()` is synchronous; the component is still declared `async` (server component), matching the brief. The resolver's `date`/`dayOfYear` are intentionally unused by the card; only `text`/`reference` are forwarded to `VerseShareDialog`, matching its `Verse` prop type.
+
+## Issues / concerns
+
+None. The brief's note that `getVerseOfDay()` is async is technically inaccurate (it's synchronous), but the verbatim component handles it correctly (`const verse = getVerseOfDay()`, no `await` needed).

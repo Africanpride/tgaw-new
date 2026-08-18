@@ -1,28 +1,39 @@
-# Task 7 Report: POST /api/v1/profile Endpoint
+# Task 7 Report: Mount VerseCard on the overview page
 
-## Status: DONE
+## What I implemented
 
-## What I Did
+Mounted the `VerseCard` async server component (created in Task 5) onto the overview page `app/(dashboard)/overview/page.tsx`, exactly per the task brief — a minimal 2-change edit:
 
-1. Created `app/api/v1/profile/route.ts` with a `POST` handler that:
-   - Authenticates via `auth.api.getSession({ headers: await headers() })`
-   - Validates the request body against `onboardingSchema` (Zod)
-   - Creates a `UserProfile` record and updates the `User` atomically via `prisma.$transaction`
-   - Merges `firstName` + `lastName` into `User.name`
-   - Sets `onboardingComplete: true` on the `User`
-   - Returns `{ success: true }` on success, `{ success: false, error }` on failure
+1. **Import**: Added `import { VerseCard } from "@/components/verse/VerseCard"` immediately after the `AgendaView` import block (after line 17).
+2. **JSX insertion**: Inserted `<VerseCard />` directly between the stat-card grid's closing `</div>` (line 269) and the `<div className="grid gap-6 lg:grid-cols-3">` agenda grid (line 271).
 
-2. Ran `bunx prisma generate` to regenerate the Prisma client (needed after schema additions)
+Nothing else in the file was touched. `git diff` confirms exactly 2 hunks / 3 insertions.
 
-3. Ran `bun run typecheck` — new file passes cleanly. Only pre-existing errors in `lib/incoming/` (unrelated).
+## Verification results
 
-4. Committed: `git add app/api/v1/profile/route.ts && git commit -m "feat: add POST /api/v1/profile endpoint"`
+- `bun run typecheck` → **PASS** (`tsc --noEmit`, no output, exit 0).
+- `bunx eslint "app/(dashboard)/overview/page.tsx"` → **PASS** (exit 0, 0 errors). 2 warnings reported, both **pre-existing** and unrelated to this change:
+  - `10:10 'UpcomingBookings' is defined but never used`
+  - `115:9 'upcomingBookings' is assigned a value but never used`
+  - These stem from a commented-out render block (lines 303–307) that predates this task; they were present before my edit and I did not introduce or fix them.
+
+## Files changed
+
+- `app/(dashboard)/overview/page.tsx` (+3 lines: 1 import, 1 JSX line, 1 blank line)
 
 ## Commit
 
-- `fd29767` — feat: add POST /api/v1/profile endpoint
+- `c63a3c1` — `feat(verse): show verse of the day on overview`
 
-## Concerns
+## Self-review findings
 
-- **Pre-existing type errors**: `lib/incoming/onboardingSchema.ts` has Zod v4 API mismatches (`required_error` not a valid option). These are in the `incoming/` staging directory and unrelated to this task.
-- **Prisma client regeneration**: The `UserProfile` model and `onboardingComplete` field were already in the schema but the generated client was stale. Regeneration resolved the LSP errors.
+- ✅ Import added after the `AgendaView` block, exactly as specified.
+- ✅ `<VerseCard />` inserted directly after the stat-card grid, before the `lg:grid-cols-3` grid.
+- ✅ Touched nothing else in the file (verified via `git diff`).
+- ✅ `bun run typecheck` passes clean.
+- ✅ ESLint passes with 0 errors (only 2 pre-existing warnings unrelated to this task).
+- ✅ `VerseCard` component confirmed to exist at `components/verse/VerseCard.tsx`.
+
+## Issues or concerns
+
+None. The 2 ESLint warnings about `UpcomingBookings`/`upcomingBookings` are pre-existing noise from a commented-out block; could be cleaned up in a follow-up but are out of scope for this task.

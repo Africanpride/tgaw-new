@@ -1,31 +1,73 @@
-# Task 2 Report: Add UserProfile Model and Onboarding Flag
+# Task 2 Report: `getVerseOfDay` resolver
 
 ## Status: DONE
 
-## What You Did
+## What I implemented
 
-Added the `UserProfile` model and `onboardingComplete` flag to the Prisma schema for the TGAW onboarding flow.
+- `lib/services/verseService.ts` — pure resolver `getVerseOfDay(dateStr?: string): VerseOfDay`.
+  - `VerseOfDay` interface extends `Verse` with `date: string` and `dayOfYear: number`.
+  - `getDayOfYear()` computes 1-indexed day-of-year via `Date.UTC` arithmetic (handles leap days: Feb 29 = day 60).
+  - `verse = VERSES[(dayOfYear - 1) % VERSES.length]` — deterministic per date.
+  - Defaults to today's UTC date (`new Date().toISOString().split("T")[0]`).
+  - Consumes `VERSES`, `Verse` from `@/lib/data/verses` (Task 1).
+- `lib/services/verseService.test.ts` — 4 unit tests (Jan 1 → first verse; determinism; leap-day day-of-year; today default).
 
-### Changes Made:
+## TDD Evidence
 
-1. **Added `UserProfile` model** before the `User` model in `prisma/schema.prisma`:
-   - Fields: `id`, `userId` (unique), `user` (relation), `phone`, `country`, `sex`, `ageRange`, `timezone`, `createdAt`, `updatedAt`
-   - Mapped to MongoDB collection `user_profile`
+### RED
 
-2. **Updated `User` model** with two new fields after `notificationPrefs`:
-   - `onboardingComplete Boolean @default(false)` — tracks whether user has completed onboarding
-   - `userProfile UserProfile?` — relation to the new UserProfile model
+Command: `bun test lib/services/verseService.test.ts`
 
-3. **Applied schema changes** to MongoDB database using `bunx prisma db push`:
-   - Created `user_profile` collection
-   - Added unique index on `userId`
+```
+bun test v1.3.14 (0d9b296a)
 
-4. **Regenerated Prisma client** using `bunx prisma generate`
+lib/services/verseService.test.ts:
 
-## Commit Hash(es)
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './verseService' from '/home/tl-wr840n/Documents/Projects/development/tgaw-new/lib/services/verseService.test.ts'
+-------------------------------
 
-- `973cc48` — `feat: add UserProfile model and onboardingComplete flag`
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [145.00ms]
+```
 
-## Any Concerns
+### GREEN
 
-- None. The schema changes were applied cleanly and the database is in sync with the Prisma schema.
+Command: `bun test lib/services/verseService.test.ts`
+
+```
+bun test v1.3.14 (0d9b296a)
+
+ 4 pass
+ 0 fail
+ 8 expect() calls
+Ran 4 tests across 1 file. [73.00ms]
+```
+
+## Verification results
+
+- `bun test lib/services/verseService.test.ts` → **4 pass / 0 fail**, output pristine.
+- `bun run typecheck` (`tsc --noEmit`) → **passes clean** (no output).
+- `bunx eslint lib/services/verseService.ts lib/services/verseService.test.ts lib/data/verses.ts` → **passes clean**, exit 0.
+
+## Files changed
+
+- `lib/services/verseService.ts` (new)
+- `lib/services/verseService.test.ts` (new)
+- `package.json` (new devDependency `@types/bun ^1.3.14`)
+- `bun.lock` (updated by `bun add`)
+
+## Self-review findings
+
+- Both new files match the brief verbatim (test copied exactly; implementation copied exactly).
+- TDD followed: test written first, confirmed RED (`Cannot find module './verseService'`), then implemented, confirmed GREEN (4/4 pass).
+- All verification commands pass clean.
+
+## Issues / concerns (deviation from brief)
+
+- The brief's Step 5 (`bun run typecheck`) initially **failed**: `tsc` could not resolve `bun:test` because `@types/bun` was not installed (`TS2307: Cannot find module 'bun:test'`). This is a pre-existing project gap — this is the project's first test file, so nothing previously exercised `bun:test` under `tsc`.
+- Fix: installed `@types/bun` as a devDependency (`bun add -d @types/bun`). After install, typecheck passes clean. This is the standard fix and does not touch any app code.
+- Commit therefore includes `package.json` + `bun.lock` alongside the two brief-specified files, since without the dependency the repo's `typecheck` script would fail on a fresh checkout. Only the two files were added per the brief's git command; `package.json`/`bun.lock` were added in the same commit for a coherent, green tree.

@@ -1,24 +1,34 @@
-# Task 3: Expose onboardingComplete in Session
+# Task 3 Report: Public API route
 
-**Status:** DONE
+## What was implemented
 
-## What I Did
+Created `app/api/v1/verse/today/route.ts` — a public unauthenticated `GET /api/v1/verse/today` route handler.
 
-Updated `lib/auth.ts` to expose `onboardingComplete` in the custom session object.
+- Consumes `getVerseOfDay` from `@/lib/services/verseService` (created in Task 2).
+- Returns `200 { success: true, data: VerseOfDay }` on success.
+- Returns `500 { success: false, error: string }` on unexpected errors, normalizing the error message via `error instanceof Error ? error.message : String(error)`.
+- Deliberately public: no auth guard, no session check — the verse of the day is shared content.
 
-### Changes
+File content is verbatim from the task brief.
 
-- Added a type assertion for the `user` object to include `onboardingComplete?: boolean`
-- Added `onboardingComplete: extendedUser.onboardingComplete ?? false` to the returned user object in the `customSession` callback
+## Verification results
 
-### Note on Approach
+- `bun run typecheck` → PASS (exit 0, no output)
+- `bunx eslint "app/api/v1/verse/today/route.ts"` → PASS (exit 0, no output)
 
-The plan suggested adding a `select` clause, but the current `customSession` callback doesn't query the database directly — it receives the `user` object from Better Auth. Since `onboardingComplete` is in the Prisma User model (added in Task 2), the field is available on the `user` object at runtime. A type assertion was needed because Better Auth's generated types don't include custom fields.
+Note: an LSP diagnostic reported `Cannot find module './verseService'` in `lib/services/verseService.test.ts` immediately after file creation, but this was a stale LSP diagnostic — `bun run typecheck` (`tsc --noEmit`) passes clean, confirming the module resolution is correct.
 
-## Commit
+## Files changed
 
-- `4cbab84` — `feat: expose onboardingComplete in session`
+- Created: `app/api/v1/verse/today/route.ts` (13 lines)
 
-## Concerns
+## Self-review findings
 
-- **Pre-existing type errors:** `bun run typecheck` shows errors in `lib/incoming/` files (onboarding flow components). These are unrelated to this task and appear to be from other in-progress work.
+- Route file matches the brief verbatim. ✅
+- `bun run typecheck` and eslint both pass clean. ✅
+- Route is public (no auth), as specified. ✅
+- Commit created: `cf5ffd4 feat(verse): add public GET /api/v1/verse/today endpoint` ✅
+
+## Issues or concerns
+
+- **Deferred smoke test**: The brief's Step 3 (manual `curl` smoke test against a running dev server) was intentionally skipped per task instructions. Deferred to Task 8 end-to-end verification. No dev server was started.

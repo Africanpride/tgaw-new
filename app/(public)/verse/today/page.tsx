@@ -1,9 +1,14 @@
 import { BookOpen } from "lucide-react"
 import Link from "next/link"
+import type { Metadata } from "next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getVerseOfDay } from "@/lib/services/verseService"
 import { VerseShareDialog } from "@/components/verse/VerseShareDialog"
+
+export const metadata: Metadata = {
+  title: "Verse of the Day — TGAW",
+}
 
 export default function VerseOfTheDayPage() {
   const verse = getVerseOfDay()
@@ -19,12 +24,14 @@ export default function VerseOfTheDayPage() {
           &ldquo;{verse.text}&rdquo;
         </h1>
         <p className="font-medium text-muted-foreground">{verse.reference}</p>
-        <VerseShareDialog verse={{ text: verse.text, reference: verse.reference }} />
-        <Link href="/" className="cursor-pointer">
-          <Button variant="link" className="cursor-pointer">
+        <VerseShareDialog
+          verse={{ text: verse.text, reference: verse.reference }}
+        />
+        <Button variant="link" asChild>
+          <Link href="/" className="cursor-pointer">
             Go to The Global Altar Watch
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </main>
     </div>
   )

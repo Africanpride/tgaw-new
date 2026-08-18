@@ -18,13 +18,17 @@ export async function VerseCard() {
             &ldquo;{verse.text}&rdquo;
           </p>
           <p className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{verse.reference}</span>
+            <span className="font-medium text-foreground">
+              {verse.reference}
+            </span>
             <Badge variant="secondary" className="shrink-0">
               Verse of the Day
             </Badge>
           </p>
         </div>
-        <VerseShareDialog verse={{ text: verse.text, reference: verse.reference }} />
+        <VerseShareDialog
+          verse={{ text: verse.text, reference: verse.reference }}
+        />
       </CardContent>
     </Card>
   )
