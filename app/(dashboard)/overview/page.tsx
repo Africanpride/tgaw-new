@@ -15,6 +15,7 @@ import {
   type AgendaEvent,
   type AgendaSummary,
 } from "@/components/booking/AgendaView"
+import { VerseCard } from "@/components/verse/VerseCard"
 
 const WINDOW_MIN = 16 * 60
 
@@ -267,6 +268,8 @@ export default async function OverviewPage() {
           className="border-l-4 border-l-blue-500"
         />
       </div>
+
+      <VerseCard />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <AgendaView days={days} summary={summary} />
