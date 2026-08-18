@@ -9,7 +9,7 @@
 | Task 5: VerseCard | complete | 38e55d6 | clean |
 | Task 6: Public /verse/today page | complete | 138f7b1 | clean (Minor: Link wraps Button without asChild → nested interactive element, brief-mandated) |
 | Task 7: Mount VerseCard on overview | complete | c63a3c1 | clean |
-| Task 8: End-to-end verification | in_progress | | |
+| Task 8: End-to-end verification | complete | — | 4/4 tests pass; typecheck clean; eslint clean on all verse files (2 pre-existing overview warnings from commented-out UpcomingBookings block); smoke: API 200 (1 Thess 5:11, day 230), /verse/today 200, /overview 307→/login |
 
 ## Minor findings (triage at final review)
 
