@@ -34,7 +34,7 @@ import { CountryDropdown } from "@/components/country-dropdown"
 import { PhoneInput } from "@/components/phone-input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
@@ -1527,11 +1527,24 @@ export default function SettingsPage() {
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel>
+                                    <AlertDialogCancel
+                                      className={cn(
+                                        buttonVariants({
+                                          variant: "outline",
+                                        }),
+                                        "cursor-pointer",
+                                      )}
+                                    >
                                       Cancel
                                     </AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={handleRevokeOtherSessions}
+                                      className={cn(
+                                        buttonVariants({
+                                          variant: "destructive",
+                                        }),
+                                        "cursor-pointer",
+                                      )}
                                     >
                                       Confirm
                                     </AlertDialogAction>
@@ -1611,7 +1624,14 @@ export default function SettingsPage() {
                                             </AlertDialogDescription>
                                           </AlertDialogHeader>
                                           <AlertDialogFooter>
-                                            <AlertDialogCancel>
+                                            <AlertDialogCancel
+                                              className={cn(
+                                                buttonVariants({
+                                                  variant: "outline",
+                                                }),
+                                                "cursor-pointer",
+                                              )}
+                                            >
                                               Cancel
                                             </AlertDialogCancel>
                                             <AlertDialogAction
@@ -1620,6 +1640,12 @@ export default function SettingsPage() {
                                                   sessionItem.token
                                                 )
                                               }
+                                              className={cn(
+                                                buttonVariants({
+                                                  variant: "destructive",
+                                                }),
+                                                "cursor-pointer",
+                                              )}
                                             >
                                               Terminate
                                             </AlertDialogAction>
@@ -1844,6 +1870,10 @@ export default function SettingsPage() {
                                       setDeleteAccountPassword("")
                                       setDeleteConfirmation("")
                                     }}
+                                    className={cn(
+                                      buttonVariants({ variant: "outline" }),
+                                      "cursor-pointer",
+                                    )}
                                   >
                                     Cancel
                                   </AlertDialogCancel>
