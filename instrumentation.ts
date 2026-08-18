@@ -3,7 +3,11 @@
  * Safely guards performance.measure calls against Turbopack dev HMR negative timestamp errors.
  */
 export function register() {
-  if (typeof globalThis.performance !== "undefined" && typeof globalThis.performance.measure === "function") {
+  if (
+    typeof globalThis.performance !== "undefined" &&
+    typeof globalThis.performance.measure === "function" &&
+    !(globalThis as any).__performanceMeasurePatched
+  ) {
     const originalMeasure = globalThis.performance.measure.bind(globalThis.performance);
     globalThis.performance.measure = function (
       measureName: string,
@@ -19,6 +23,7 @@ export function register() {
         throw err;
       }
     };
+    (globalThis as any).__performanceMeasurePatched = true;
   }
 }
 
