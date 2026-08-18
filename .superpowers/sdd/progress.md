@@ -3,7 +3,7 @@
 | Task | Status | Commits | Review |
 |------|--------|---------|--------|
 | Task 1: Curated verse list | complete | 8c26e78 | clean (Minor: indentation spec-conflict note, report omitted eslint) |
-| Task 2: getVerseOfDay resolver | pending | | |
+| Task 2: getVerseOfDay resolver | complete | 6731499 | clean (Minor: indentation; NaN on malformed input by design) |
 | Task 3: Public API route | pending | | |
 | Task 4: Share dialog | pending | | |
 | Task 5: VerseCard | pending | | |
@@ -14,5 +14,6 @@
 ## Minor findings (triage at final review)
 
 - Task 1: `lib/data/verses.ts` uses 2-space indentation (verbatim per plan brief) while several existing repo files use tabs; Prettier config (`tabWidth: 2`, no `useTabs`) agrees with 2-space. eslint passes either way — non-issue, but future tasks keep the plan's 2-space style.
+- Task 2: same indentation note applies to `verseService.ts`/`verseService.test.ts`. `getDayOfYear` returns NaN for malformed input (brief-mandated, no guard); resolver is only consumed by well-formed internal/API callers.
 
 (recorded as they come up)
