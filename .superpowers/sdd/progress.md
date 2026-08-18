@@ -4,7 +4,7 @@
 |------|--------|---------|--------|
 | Task 1: Curated verse list | complete | 8c26e78 | clean (Minor: indentation spec-conflict note, report omitted eslint) |
 | Task 2: getVerseOfDay resolver | complete | 6731499 | clean (Minor: indentation; NaN on malformed input by design) |
-| Task 3: Public API route | pending | | |
+| Task 3: Public API route | complete | cf5ffd4 | clean |
 | Task 4: Share dialog | pending | | |
 | Task 5: VerseCard | pending | | |
 | Task 6: Public /verse/today page | pending | | |
