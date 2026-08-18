@@ -8,8 +8,8 @@
 | Task 4: Share dialog | complete | 4fc875a | clean (Minor: clipboard.writeText not error-guarded, brief-mandated) |
 | Task 5: VerseCard | complete | 38e55d6 | clean |
 | Task 6: Public /verse/today page | complete | 138f7b1 | clean (Minor: Link wraps Button without asChild → nested interactive element, brief-mandated) |
-| Task 7: Mount VerseCard on overview | pending | | |
-| Task 8: End-to-end verification | pending | | |
+| Task 7: Mount VerseCard on overview | complete | c63a3c1 | clean |
+| Task 8: End-to-end verification | in_progress | | |
 
 ## Minor findings (triage at final review)
 
