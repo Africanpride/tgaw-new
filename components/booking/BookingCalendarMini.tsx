@@ -29,12 +29,15 @@ export function BookingCalendarMini({
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">Pick a day</CardTitle>
       </CardHeader>
-      <CardContent className="flex justify-center">
+      <CardContent>
         <Calendar
           mode="single"
           selected={date}
           onSelect={onDateChange}
-          className="rounded-md"
+          className="w-full rounded-md"
+          classNames={{
+            root: "w-full rdp-root",
+          }}
           components={{
             DayButton: (props) => {
               const dateKey = format(props.day.date, "yyyy-MM-dd");

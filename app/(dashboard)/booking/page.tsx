@@ -215,7 +215,7 @@ export default function BookingPage() {
 
       <div className="flex flex-col gap-6 md:flex-row">
         {/* Left Column: Calendar + My Bookings + Meeting Links */}
-        <div className="space-y-6 md:w-1/4 lg:w-1/5 min-w-0">
+        <div className="space-y-6 md:w-1/4 lg:w-2/5 min-w-0">
           <BookingCalendarMini
             date={date}
             onDateChange={(d) => d && setDate(d)}
@@ -224,16 +224,16 @@ export default function BookingPage() {
             type={type}
           />
 
-          <div className="hidden md:block">
+          {/* <div className="hidden md:block">
             <h3 className="mb-3 font-semibold">
               My Bookings for {format(date, "MMM d")}
             </h3>
-            {/* <MyBookingsStack
+            <MyBookingsStack
               bookings={myBookings}
               onCancel={handleCancelBooking}
               dateLabel={format(date, "MMM d")}
-            /> */}
-          </div>
+            />
+          </div> */}
 
           {meetingLink && (
             <div className="hidden md:block">
@@ -323,13 +323,13 @@ export default function BookingPage() {
         </div>
 
         {/* Right Column: Schedule View */}
-        <div className="md:w-1/4 lg:w-1/5 min-w-0 hidden md:block">
+        {/* <div className="md:w-1/4 lg:w-1/5 min-w-0 hidden md:block">
           <ScheduleView
             bookings={allMyBookings}
             meetingLinks={meetingLink ? { [type]: meetingLink, BIBLE: null, PRAYER: null, PRAISE_WORSHIP: null } as Record<EventType, { url: string; label: string | null } | null> : { BIBLE: null, PRAYER: null, PRAISE_WORSHIP: null } as Record<EventType, { url: string; label: string | null } | null>}
             onCancel={handleCancelBooking}
           />
-        </div>
+        </div> */}
       </div>
 
       <SlotBookingSheet

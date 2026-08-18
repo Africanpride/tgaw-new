@@ -25,6 +25,7 @@ export function SlotTimeline({
   onSelectionChange,
   onEmptyAction,
 }: SlotTimelineProps) {
+  const visibleSlots = slots.filter((s) => !isPastSlot(s) || isCurrentSlot(s));
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -32,31 +33,31 @@ export function SlotTimeline({
 
   useEffect(() => {
     if (!scrollRef.current) return;
-    const current = slots.find((s) => isCurrentSlot(s));
+    const current = visibleSlots.find((s) => isCurrentSlot(s));
     if (!current) return;
     const el = scrollRef.current.querySelector(`[data-slot-id="${current.id}"]`);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, [slots]);
+  }, [visibleSlots]);
 
   const handleSelect = (id: string, shiftKey: boolean) => {
-    const targetSlot = slots.find((s) => s.id === id);
+    const targetSlot = visibleSlots.find((s) => s.id === id);
     if (!targetSlot || targetSlot.isBooked || isPastSlot(targetSlot)) return;
 
     if (shiftKey && lastSelectedId) {
-      const startIndex = slots.findIndex((s) => s.id === lastSelectedId);
-      const endIndex = slots.findIndex((s) => s.id === id);
+      const startIndex = visibleSlots.findIndex((s) => s.id === lastSelectedId);
+      const endIndex = visibleSlots.findIndex((s) => s.id === id);
       const min = Math.min(startIndex, endIndex);
       const max = Math.max(startIndex, endIndex);
       const newSelection: string[] = [];
       let canSelectAll = true;
       for (let i = min; i <= max; i++) {
-        if (slots[i].isBooked || isPastSlot(slots[i])) {
+        if (visibleSlots[i].isBooked || isPastSlot(visibleSlots[i])) {
           canSelectAll = false;
           break;
         }
-        newSelection.push(slots[i].id);
+        newSelection.push(visibleSlots[i].id);
       }
       if (canSelectAll) {
         onSelectionChange(Array.from(new Set([...selectedIds, ...newSelection])));
@@ -71,7 +72,7 @@ export function SlotTimeline({
     }
   };
 
-  if (slots.length === 0) {
+  if (visibleSlots.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-md border py-14 text-center">
         <div className={cn("flex size-12 items-center justify-center rounded-full", accent.iconTile)}>
@@ -93,7 +94,7 @@ export function SlotTimeline({
   return (
     <ScrollArea className="h-[560px] w-full max-w-full overflow-hidden rounded-md border">
       <div ref={scrollRef} className="flex flex-col">
-        {slots.map((slot) => (
+        {visibleSlots.map((slot) => (
           <SlotCell
             key={slot.id}
             slot={slot}
