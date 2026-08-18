@@ -18,4 +18,17 @@
 - Task 4: `navigator.clipboard.writeText` not error-guarded in `VerseShareDialog.tsx:73` (brief-mandated); toast.success fires even if clipboard write fails. Polish candidate: try/catch + error toast.
 - Task 6: `app/(public)/verse/today/page.tsx:39-43` — `<Link>` wraps `<Button>` directly (not `asChild`), nesting a `<button>` inside an `<a>` (invalid HTML). Brief-mandated sample. Idiomatic fix: `Link` + `Button asChild`.
 
+## Final whole-branch review (95aa321..c290586)
+
+Verdict: Ready to merge **with fixes**. No Critical. Fix wave (user approved WhatsApp URL append; all others standard):
+
+1. **Important** — `app/(public)/verse/today/page.tsx:23-27` nested `<a><button>` → use `<Button asChild><Link/></Button>`.
+2. **Important** — Prettier non-compliance on 5 files (`lib/data/verses.ts`, `components/verse/VerseShareDialog.tsx`, `components/verse/VerseCard.tsx`, `app/(public)/verse/today/page.tsx`, `app/api/v1/verse/today/route.ts`) → `bunx prettier --write`.
+3. **Minor** — clipboard not error-guarded (`VerseShareDialog.tsx:56-59`) → try/catch + `toast.error`.
+4. **Minor** — `getDayOfYear` NaN on malformed input (`verseService.ts:8-18`) → add `YYYY-MM-DD` guard.
+5. **Minor (user-approved deviation)** — WhatsApp share to append shareUrl → `wa.me/?text=<text> <url>`.
+6. **Minor** — public page missing `metadata` export → add `metadata: { title: "Verse of the Day — TGAW" }`.
+7. **Minor** — add year-boundary cycle test (`2028-12-31` → `VERSES[365 % 20]`).
+8. **Process** — SDD ledger/report files under `.superpowers/` shouldn't accumulate in git; `progress.md` clobbered prior Onboarding ledger.
+
 (recorded as they come up)
