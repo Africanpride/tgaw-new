@@ -54,7 +54,7 @@ export default async function BannedPage({
           <Ban className="size-12 text-destructive" aria-hidden="true" />
         </div>
         <CardHeader className="pt-8">
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle className="text-2xl">
             Account suspended
           </CardTitle>
           <CardDescription className="mx-auto max-w-sm text-balance">

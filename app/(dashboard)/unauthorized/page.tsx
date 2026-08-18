@@ -9,7 +9,7 @@ export default function UnauthorizedPage() {
 			<Card className="w-full max-w-md text-center">
 				<CardHeader className="flex flex-col items-center gap-2">
 					<ShieldAlert className="size-10 text-destructive" aria-hidden="true" />
-					<CardTitle className="text-2xl font-bold">Access Denied</CardTitle>
+					<CardTitle className="text-2xl">Access Denied</CardTitle>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
 					<p className="text-muted-foreground">

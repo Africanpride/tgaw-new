@@ -233,10 +233,12 @@ function OverrideDialogContent({
   slot,
   onOpenChange,
   onSuccess,
+  onOptimisticAssign,
 }: {
   slot: SlotRow;
   onOpenChange: (v: boolean) => void;
   onSuccess: () => void;
+  onOptimisticAssign: (slotId: string, user: SearchUser, notes?: string) => void;
 }) {
   // Initial values come from props at mount time — no useEffect needed.
   // The parent keys this component by slot.id so it remounts for each new slot.
@@ -251,6 +253,7 @@ function OverrideDialogContent({
       return;
     }
     setSaving(true);
+    onOptimisticAssign(slot.id, targetUser, notes || undefined);
     try {
       const res = await fetch("/api/v1/slots/assign", {
         method: "POST",
@@ -270,9 +273,11 @@ function OverrideDialogContent({
         onSuccess();
       } else {
         toast.error(data.error?.message || data.error || "Failed to assign slot");
+        onSuccess();
       }
     } catch {
       toast.error("An error occurred");
+      onSuccess();
     } finally {
       setSaving(false);
     }
@@ -414,11 +419,13 @@ function OverrideDialog({
   open,
   onOpenChange,
   onSuccess,
+  onOptimisticAssign,
 }: {
   slot: SlotRow | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSuccess: () => void;
+  onOptimisticAssign: (slotId: string, user: SearchUser, notes?: string) => void;
 }) {
   if (!slot) return null;
   return (
@@ -428,6 +435,7 @@ function OverrideDialog({
         slot={slot}
         onOpenChange={onOpenChange}
         onSuccess={onSuccess}
+        onOptimisticAssign={onOptimisticAssign}
       />
     </Dialog>
   );
@@ -571,6 +579,25 @@ export function AdminSlotOverride() {
   const handleDialogSuccess = useCallback(() => {
     if (selectedDate) fetchSlots(toDateString(selectedDate));
   }, [selectedDate, fetchSlots]);
+
+  const handleOptimisticAssign = useCallback(
+    (slotId: string, user: SearchUser, notes?: string) => {
+      setSlots((prev) =>
+        prev.map((s) =>
+          s.id === slotId
+            ? {
+                ...s,
+                isBooked: true,
+                bookedByName: user.name,
+                bookedByImage: user.image,
+                notes: notes ?? s.notes,
+              }
+            : s,
+        ),
+      );
+    },
+    [],
+  );
 
   // Separate booked and available slots (excluding past slots)
   const upcomingSlots = slots.filter((s) => !isPastSlot(s));
@@ -743,6 +770,7 @@ export function AdminSlotOverride() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onSuccess={handleDialogSuccess}
+        onOptimisticAssign={handleOptimisticAssign}
       />
     </>
   );

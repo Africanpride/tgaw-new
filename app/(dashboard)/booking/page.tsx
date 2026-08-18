@@ -116,7 +116,6 @@ export default function BookingPage() {
         for (const t of types) {
           const res = await fetch(`/api/v1/slots?date=${dateStr}&type=${t}&_=${Date.now()}`)
           const data = await res.json()
-          console.log(`[DEBUG] Type ${t}:`, data.success, data.data?.slots?.length, data.data?.slots?.filter((s: SlotData) => s.isOwnBooking).length)
           if (data.success) {
             const ownBookings = (data.data.slots as SlotData[]).filter(
               (s) => s.isOwnBooking
@@ -127,7 +126,6 @@ export default function BookingPage() {
 
         // Sort by start time
         allBookings.sort((a, b) => a.startTime.localeCompare(b.startTime))
-        console.log('[DEBUG] allMyBookings:', allBookings)
         setAllMyBookings(allBookings)
       } catch (error) {
         console.error("Failed to fetch all my bookings", error)
@@ -136,6 +134,43 @@ export default function BookingPage() {
 
     fetchAllMyBookings()
   }, [date])
+
+  // Keep this view fresh when a slot is assigned/cancelled for the current
+  // user elsewhere (admin override, another tab). Refetch without disturbing
+  // an in-progress selection.
+  useEffect(() => {
+    const refetch = async () => {
+      const dateStr = format(date, "yyyy-MM-dd")
+      const types: EventType[] = ["BIBLE", "PRAYER", "PRAISE_WORSHIP"]
+      const allBookings: SlotData[] = []
+
+      for (const t of types) {
+        const res = await fetch(`/api/v1/slots?date=${dateStr}&type=${t}&_=${Date.now()}`)
+        const data = await res.json()
+        if (data.success) {
+          const ownBookings = (data.data.slots as SlotData[]).filter(
+            (s) => s.isOwnBooking
+          )
+          allBookings.push(...ownBookings)
+        }
+      }
+      allBookings.sort((a, b) => a.startTime.localeCompare(b.startTime))
+      setAllMyBookings(allBookings)
+
+      const res = await fetch(`/api/v1/slots?date=${dateStr}&type=${type}&_=${Date.now()}`)
+      const data = await res.json()
+      if (data.success) {
+        setSlots(data.data.slots)
+        setMeetingLink(data.data.meetingLinks[type])
+      }
+    }
+
+    const handleSlotChange = () => {
+      void refetch()
+    }
+    window.addEventListener("slots:changed", handleSlotChange)
+    return () => window.removeEventListener("slots:changed", handleSlotChange)
+  }, [date, type])
 
   const handleTypeChange = (newType: EventType) => {
     setType(newType)
@@ -200,7 +235,7 @@ export default function BookingPage() {
     <div className="max-w-8xl container mx-auto space-y-6 p-4">
       <div className="flex justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Slot Booking</h1>
+          <h1 className="text-3xl tracking-tight">Slot Booking</h1>
           <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
             {format(date, "EEEE, MMMM d")}
             <Badge variant="secondary">{typeLabel}</Badge>

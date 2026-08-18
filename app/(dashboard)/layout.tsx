@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { SlotSyncListener } from "@/components/booking/SlotSyncListener";
 import { auth } from "@/lib/auth";
 
 export default async function DashboardLayout({
@@ -17,6 +18,7 @@ export default async function DashboardLayout({
 
 	return (
 		<SidebarProvider>
+			<SlotSyncListener />
 			<AppSidebar role={role} />
 			<div className="flex min-w-0 flex-1 flex-col">
 				<Topbar />

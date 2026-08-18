@@ -108,7 +108,7 @@ export function AgendaView({ days, summary }: AgendaViewProps) {
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            {eyebrowDate} &middot; My agenda
+            {eyebrowDate} &middot; My Agenda
           </div>
           <h1 className="mt-1 font-heading text-3xl tracking-tight">{heading}</h1>
           <p className="mt-1 text-sm text-muted-foreground">

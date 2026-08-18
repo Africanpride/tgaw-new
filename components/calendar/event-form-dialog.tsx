@@ -136,7 +136,7 @@ export function EventFormDialog({
 							<TypeIcon className={cn("size-4.5", currentTypeConfig.color)} aria-hidden="true" />
 						</div>
 						<div>
-							<DialogTitle className="text-base font-bold tracking-tight">Add New Event</DialogTitle>
+							<DialogTitle className="text-base tracking-tight">Add New Event</DialogTitle>
 							<DialogDescription className="text-xs text-muted-foreground">
 								Schedule a new altar session or watch gathering
 							</DialogDescription>

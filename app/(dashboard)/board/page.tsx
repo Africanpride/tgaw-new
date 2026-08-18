@@ -6,7 +6,7 @@ export default function BoardDashboardPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-2">
         <Shield className="size-6 text-primary" />
-        <h2 className="text-2xl font-bold tracking-tight">Board Dashboard</h2>
+        <h2 className="text-2xl tracking-tight">Board Dashboard</h2>
       </div>
 
       <Card>

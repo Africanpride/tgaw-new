@@ -300,7 +300,7 @@ export function AdminMeetingLinkManager() {
         <div className="space-y-4">
           <div className="flex items-center justify-between border-b border-border/40 pb-2">
             <div>
-              <h3 className="text-sm font-bold tracking-tight">Default Meeting Links (All Days)</h3>
+              <h3 className="text-sm  tracking-tight">Default Meeting Links (All Days)</h3>
               <p className="text-xs text-muted-foreground">
                 These links automatically apply to every calendar day unless overridden for a specific date.
               </p>
@@ -499,7 +499,7 @@ export function AdminMeetingLinkManager() {
         <div className="space-y-4 pt-4 border-t border-border/40">
           <div className="flex items-center justify-between border-b border-border/40 pb-2">
             <div>
-              <h3 className="text-sm font-bold tracking-tight">Date-Specific Link Overrides</h3>
+              <h3 className="text-sm tracking-tight">Date-Specific Link Overrides</h3>
               <p className="text-xs text-muted-foreground">
                 Set a custom meeting URL for a specific date (overrides default link for that day).
               </p>
