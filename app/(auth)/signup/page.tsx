@@ -174,7 +174,7 @@ export default function SignUpPage() {
 					className="h-11 w-full cursor-pointer justify-center gap-2 border-input bg-background text-foreground hover:bg-accent"
 				>
 					<GoogleIcon />
-					Continue with Google
+					Google
 				</Button>
 				<Button
 					variant="outline"
@@ -183,7 +183,7 @@ export default function SignUpPage() {
 					className="h-11 w-full cursor-pointer justify-center gap-2 border-input bg-background text-foreground hover:bg-accent"
 				>
 					<MicrosoftIcon />
-					Continue with Microsoft
+					Microsoft
 				</Button>
 			</div>
 		</AuthShell>

@@ -59,6 +59,7 @@ export async function GET(req: Request) {
 					banned: true,
 					banReason: true,
 					image: true,
+					emailVerified: true,
 					createdAt: true,
 				},
 			}),
@@ -73,6 +74,7 @@ export async function GET(req: Request) {
 			banned: u.banned ?? false,
 			banReason: u.banReason ?? null,
 			image: u.image ?? null,
+			emailVerified: u.emailVerified ?? false,
 			createdAt: u.createdAt ?? null,
 		}))
 

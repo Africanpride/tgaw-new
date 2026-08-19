@@ -30,6 +30,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 const navData = [
@@ -97,6 +98,8 @@ export function AppSidebar({
   const isCoordinator = userRole === "coordinator" || isSuperadmin
   const isBoard = userRole === "board" || isSuperadmin
 
+  const { setOpen, isMobile } = useSidebar()
+
   const roleNavItems = []
 
   if (isCoordinator) {
@@ -153,7 +156,16 @@ export function AppSidebar({
   }
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar
+      collapsible="icon"
+      onMouseEnter={() => {
+        if (!isMobile) setOpen(true)
+      }}
+      onMouseLeave={() => {
+        if (!isMobile) setOpen(false)
+      }}
+      {...props}
+    >
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1.5">
           <ShieldCheck className="size-6" />

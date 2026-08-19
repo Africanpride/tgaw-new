@@ -50,15 +50,6 @@ function AuthShell({
 }) {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
-      <Link
-        href="/"
-        className="absolute left-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-xl bg-background/80 text-sm font-bold text-primary shadow-md backdrop-blur-sm transition-colors hover:bg-background"
-      >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
-      </Link>
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url('${backgroundImage}')` }}
@@ -76,6 +67,19 @@ function AuthShell({
           )}
         >
           {children}
+          <div className="mt-6 flex items-center justify-center gap-3 border-t pt-4 text-xs text-muted-foreground">
+            <Link href="/privacy" className="cursor-pointer transition-colors hover:text-foreground">
+              Privacy Policy
+            </Link>
+            <span aria-hidden="true" className="h-3 w-px bg-border" />
+            <Link href="/terms" className="cursor-pointer transition-colors hover:text-foreground">
+              Terms of Service
+            </Link>
+            <span aria-hidden="true" className="h-3 w-px bg-border" />
+            <Link href="/" className="cursor-pointer transition-colors hover:text-foreground">
+              Back to website
+            </Link>
+          </div>
         </div>
       </div>
     </div>

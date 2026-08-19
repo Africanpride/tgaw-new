@@ -19,7 +19,7 @@ export default async function DashboardLayout({
 	const role = (session.user.role as string) || "member";
 
 	return (
-		<SidebarProvider>
+		<SidebarProvider defaultOpen={false}>
 			<SlotSyncListener />
 			<CommandPalette role={role} />
 			<AppSidebar role={role} />

@@ -210,7 +210,7 @@ export default function LoginPage() {
       </form>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        or sign in with
+        or continue with
       </p>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
@@ -221,7 +221,7 @@ export default function LoginPage() {
           className="h-11 w-full cursor-pointer justify-center gap-2 border-input bg-background text-foreground hover:bg-accent"
         >
           <GoogleIcon />
-          Sign in with Google
+          Google
         </Button>
         <Button
           variant="outline"
@@ -230,7 +230,7 @@ export default function LoginPage() {
           className="h-11 w-full cursor-pointer justify-center gap-2 border-input bg-background text-foreground hover:bg-accent"
         >
           <MicrosoftIcon />
-          Sign in with Microsoft
+          Microsoft
         </Button>
       </div>
 

@@ -115,7 +115,10 @@ export function Topbar() {
 		<header className="sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
 			<SidebarTrigger className="cursor-pointer shrink-0" />
 			<div className="h-4 w-px shrink-0 bg-border" />
-			<Breadcrumb className="min-w-0">
+			<div className="min-w-0 flex-1 sm:hidden">
+				<span className="block truncate text-sm font-semibold">{title}</span>
+			</div>
+			<Breadcrumb className="hidden min-w-0 sm:flex">
 				<BreadcrumbList className="flex-nowrap">
 					{crumbs.map((crumb, idx) => {
 						const isLast = idx === crumbs.length - 1;
@@ -140,7 +143,7 @@ export function Topbar() {
 					})}
 				</BreadcrumbList>
 			</Breadcrumb>
-			<div className="ml-auto flex items-center gap-2">
+			<div className="ml-auto flex shrink-0 items-center gap-2">
 				<Button
 					variant="ghost"
 					size="icon"

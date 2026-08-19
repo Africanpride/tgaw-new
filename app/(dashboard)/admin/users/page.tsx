@@ -59,6 +59,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { authClient, useSession } from "@/lib/auth-client"
+import { resendVerificationEmail } from "@/lib/actions/adminActions"
 import { cn } from "@/lib/utils"
 
 const features = tableFeatures({
@@ -82,6 +83,8 @@ interface User {
   banned: boolean | null
   banReason?: string | null
   image?: string | null
+  emailVerified: boolean
+  createdAt: string | null
 }
 
 const EMPTY_USERS: User[] = []
@@ -105,6 +108,17 @@ function RoleBadge({ role }: { role: string }) {
       {role}
     </Badge>
   )
+}
+
+function formatJoinedDate(value: string | null) {
+  if (!value) return "—"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  })
 }
 
 const ROLE_DESCRIPTIONS: Record<string, string> = {
@@ -223,6 +237,7 @@ export default function UserManagementPage() {
   const [isActing, setIsActing] = useState(false)
   const [roleStep, setRoleStep] = useState<1 | 2>(1)
   const [selectedRole, setSelectedRole] = useState("")
+  const [resendingId, setResendingId] = useState<string | null>(null)
 
   const helper = createColumnHelper<typeof features, User>()
 
@@ -272,6 +287,42 @@ export default function UserManagementPage() {
       cell: ({ row }) => (
         <span className="text-muted-foreground">{row.getValue("email")}</span>
       ),
+    }),
+    helper.accessor("createdAt", {
+      header: "Joined",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {formatJoinedDate(row.getValue("createdAt"))}
+        </span>
+      ),
+    }),
+    helper.accessor("emailVerified", {
+      header: "Verification",
+      cell: ({ row }) => {
+        const user = row.original
+        if (user.emailVerified) {
+          return <Badge variant="secondary">Verified</Badge>
+        }
+        return (
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+            >
+              Unverified
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 cursor-pointer text-xs"
+              disabled={resendingId === user.id}
+              onClick={() => resendVerification(user)}
+            >
+              {resendingId === user.id ? "Sending..." : "Resend email"}
+            </Button>
+          </div>
+        )
+      },
     }),
     helper.accessor("role", {
       header: "Role",
@@ -455,6 +506,17 @@ export default function UserManagementPage() {
     setIsActing(false)
     setTargetUser(null)
     setActionTarget(null)
+  }
+
+  async function resendVerification(user: User) {
+    setResendingId(user.id)
+    const res = await resendVerificationEmail({ email: user.email })
+    if (res.success) {
+      toast.success(`Verification email sent to ${user.email}`)
+    } else {
+      toast.error(res.error || "Failed to send verification email")
+    }
+    setResendingId(null)
   }
 
   async function deleteUser(userId: string) {
