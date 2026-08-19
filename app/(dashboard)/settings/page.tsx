@@ -82,6 +82,7 @@ import {
   setPassword,
   updateProfile,
 } from "@/lib/actions/settingsActions"
+import { AvatarUploadDialog } from "@/components/settings/AvatarUploadDialog"
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -421,6 +422,8 @@ export default function SettingsPage() {
     timezone: string
   } | null>(null)
   const [isProfileLoading, setIsProfileLoading] = useState(true)
+  const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   const reduceMotion = useReducedMotion()
   const { theme, setTheme } = useTheme()
@@ -855,7 +858,7 @@ export default function SettingsPage() {
                           <div className="flex items-center gap-4">
                             <Avatar className="size-14 border">
                               <AvatarImage
-                                src={user?.image ?? undefined}
+                                src={avatarUrl ?? user?.image ?? undefined}
                                 alt={name}
                               />
                               <AvatarFallback>{initials}</AvatarFallback>
@@ -879,6 +882,7 @@ export default function SettingsPage() {
                               variant="outline"
                               size="sm"
                               className="ml-auto cursor-pointer"
+                              onClick={() => setIsAvatarDialogOpen(true)}
                             >
                               Change photo
                             </Button>
@@ -2222,6 +2226,18 @@ export default function SettingsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AvatarUploadDialog
+        open={isAvatarDialogOpen}
+        onOpenChange={setIsAvatarDialogOpen}
+        currentImage={avatarUrl ?? user?.image}
+        userName={name}
+        initials={initials}
+        onAvatarUpdated={(newUrl) => {
+          setAvatarUrl(newUrl)
+          refetchSession?.()
+        }}
+      />
     </div>
   )
 }

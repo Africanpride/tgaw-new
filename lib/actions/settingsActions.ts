@@ -1,11 +1,16 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { phoneSchema } from "@/lib/schemas/phoneSchema";
+import {
+	AVATAR_FOLDER,
+	deleteCloudinaryAsset,
+	getPublicIdFromUrl,
+} from "@/lib/storage/cloudinary";
 
 const notificationPrefsSchema = z.object({
 	email: z.record(z.string(), z.boolean()),
@@ -201,7 +206,9 @@ export async function deleteAccount(input: { password?: string }) {
 
 				await tx.comment.deleteMany({ where: { authorId: userId } });
 				await tx.like.deleteMany({ where: { userId } });
-				await tx.pollOption.deleteMany({ where: { voterIds: { has: userId } } });
+				await tx.pollOption.deleteMany({
+					where: { voterIds: { has: userId } },
+				});
 				await tx.poll.deleteMany({
 					where: { post: { authorId: userId } },
 				});
@@ -212,7 +219,7 @@ export async function deleteAccount(input: { password?: string }) {
 			{
 				timeout: 20000,
 				maxWait: 20000,
-			}
+			},
 		);
 	} catch (err) {
 		console.error("[ERROR] Failed to clean up account data", err);
@@ -245,7 +252,7 @@ const updateProfileSchema = z.object({
 	sex: z.enum(["male", "female"], { message: "Select an option" }),
 	ageRange: z.enum(
 		["under-18", "18-24", "25-34", "35-44", "45-54", "55-64", "65-plus"],
-		{ message: "Select an age range" }
+		{ message: "Select an age range" },
 	),
 	timezone: z.string().min(1, "Select your time zone"),
 });
@@ -309,6 +316,92 @@ export async function updateProfile(input: UpdateProfileValues) {
 		await prisma.userProfile.create({
 			data: { userId, phone, country, sex, ageRange, timezone },
 		});
+	}
+
+	revalidatePath("/settings");
+	return { success: true as const };
+}
+
+const avatarUrlSchema = z
+	.string()
+	.url()
+	.refine((url) => {
+		try {
+			const parsed = new URL(url);
+			const cloud = process.env.CLOUDINARY_CLOUD_NAME;
+			return (
+				parsed.hostname === "res.cloudinary.com" &&
+				!!cloud &&
+				parsed.pathname.startsWith(`/${cloud}/image/upload/`) &&
+				parsed.pathname.includes(`/${AVATAR_FOLDER}/`)
+			);
+		} catch {
+			return false;
+		}
+	}, "Invalid profile image URL");
+
+/**
+ * Deletes the user's previous Cloudinary avatar, but only after the new one
+ * is persisted to the profile — never before, or the in-use image would be lost.
+ */
+async function deleteOldAvatar(
+	oldImage: string | null | undefined,
+	newImage: string,
+) {
+	if (!oldImage) return;
+	const oldPublicId = getPublicIdFromUrl(oldImage);
+	const newPublicId = getPublicIdFromUrl(newImage);
+	if (oldPublicId && oldPublicId !== newPublicId) {
+		await deleteCloudinaryAsset(oldPublicId);
+	}
+}
+
+export async function updateProfileImage(input: { imageUrl: string }) {
+	const validation = avatarUrlSchema.safeParse(input.imageUrl);
+	if (!validation.success) {
+		return { success: false as const, error: "Invalid profile image URL" };
+	}
+
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (!session?.user) return { success: false as const, error: "Unauthorised" };
+
+	const newUrl = validation.data;
+	try {
+		await auth.api.updateUser({
+			body: { image: newUrl },
+			headers: await headers(),
+		});
+	} catch (err) {
+		const message =
+			err instanceof Error ? err.message : "Could not update profile photo";
+		return { success: false as const, error: message };
+	}
+
+	await deleteOldAvatar(session.user.image, newUrl);
+
+	revalidatePath("/settings");
+	return { success: true as const };
+}
+
+export async function removeProfileImage() {
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (!session?.user) return { success: false as const, error: "Unauthorised" };
+
+	const oldImage = session.user.image || null;
+	try {
+		await auth.api.updateUser({
+			body: { image: "" },
+			headers: await headers(),
+		});
+	} catch (err) {
+		const message =
+			err instanceof Error ? err.message : "Could not remove profile photo";
+		return { success: false as const, error: message };
+	}
+
+	if (oldImage) {
+		const publicId = getPublicIdFromUrl(oldImage);
+		if (publicId) await deleteCloudinaryAsset(publicId);
 	}
 
 	revalidatePath("/settings");
