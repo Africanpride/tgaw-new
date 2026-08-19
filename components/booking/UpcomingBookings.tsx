@@ -5,6 +5,7 @@ import { CalendarClock, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { EmptyState } from "@/components/EmptyState";
 import { convertUtcTimeToLocal } from "./slotTime";
 import { cn } from "@/lib/utils";
 
@@ -93,9 +94,12 @@ export function UpcomingBookings({ bookings }: UpcomingBookingsProps) {
         <ScrollArea className="h-64 max-h-64 sm:flex-1 sm:h-auto">
           <div className="flex flex-col gap-2 p-4">
             {dayBookings.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No bookings on this day.
-              </p>
+              <EmptyState
+                icon={CalendarClock}
+                title="No bookings on this day"
+                description="Pick a day with a slot or book a devotional slot to keep your watch alive."
+                className="border-0 bg-transparent py-8"
+              />
             ) : (
               dayBookings.map((booking) => (
                 <div

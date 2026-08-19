@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { CalendarX2, Check, Clock } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SlotData } from "./SlotCell";
@@ -226,12 +226,11 @@ function SlotGridCell({
             </Badge>
             {slot.bookedByName && (
               <span className="hidden min-w-0 items-center gap-1.5 sm:flex">
-                <Avatar className="size-5">
-                  <AvatarImage src={slot.bookedByImage || undefined} />
-                  <AvatarFallback className="text-[8px]">
-                    {slot.bookedByName.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  name={slot.bookedByName}
+                  image={slot.bookedByImage}
+                  className="size-5"
+                />
                 <span className="truncate text-xs font-medium">
                   {slot.bookedByName}
                 </span>

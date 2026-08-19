@@ -1,9 +1,9 @@
 "use client"
 
-import { CircleUser, Globe, LogOut, Settings } from "lucide-react"
+import { Globe, LogOut, Settings } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/UserAvatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,12 +25,6 @@ export function NavUser() {
   const name = user?.name ?? "User"
   const email = user?.email ?? ""
   const role = (user?.role as string) ?? "member"
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
 
   const handleSignOut = async () => {
     await signOut()
@@ -40,10 +34,7 @@ export function NavUser() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
-        <Avatar className="size-9">
-          <AvatarImage src={user?.image ?? undefined} alt={name} />
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
+        <UserAvatar name={user?.name} image={user?.image} className="size-9" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-72 rounded-lg"
@@ -54,10 +45,7 @@ export function NavUser() {
         <DropdownMenuGroup>
           <DropdownMenuLabel className="p-0 font-normal">
             <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-              <Avatar className="size-8">
-                <AvatarImage src={user?.image ?? undefined} alt={name} />
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
+              <UserAvatar name={user?.name} image={user?.image} className="size-8" />
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{name}</span>
                 <span className="flex items-center gap-1.5 text-xs">

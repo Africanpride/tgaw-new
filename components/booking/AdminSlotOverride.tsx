@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -155,12 +155,7 @@ function UserSearchCombobox({
         >
           {value ? (
             <span className="flex items-center gap-2 truncate">
-              <Avatar className="size-5">
-                <AvatarImage src={value.image || undefined} />
-                <AvatarFallback className="text-[9px]">
-                  {value.name.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar name={value.name} image={value.image} className="size-5" />
               {value.name}
             </span>
           ) : (
@@ -203,12 +198,7 @@ function UserSearchCombobox({
                   }}
                   className="flex items-center gap-2"
                 >
-                  <Avatar className="size-6">
-                    <AvatarImage src={u.image || undefined} />
-                    <AvatarFallback className="text-[9px]">
-                      {u.name.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar name={u.name} image={u.image} className="size-6" />
                   <div className="flex flex-col">
                     <span className="text-sm font-medium">{u.name}</span>
                     <span className="text-xs text-muted-foreground">
@@ -343,12 +333,11 @@ function OverrideDialogContent({
             {slot.isBooked && slot.bookedByName && (
               <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 Currently:
-                <Avatar className="size-5">
-                  <AvatarImage src={slot.bookedByImage || undefined} />
-                  <AvatarFallback className="text-[8px]">
-                    {slot.bookedByName.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  name={slot.bookedByName}
+                  image={slot.bookedByImage}
+                  className="size-5"
+                />
                 <span className="font-medium text-foreground">
                   {slot.bookedByName}
                 </span>
@@ -485,12 +474,11 @@ function AdminSlotRow({
       <div className="flex min-w-0 flex-1 items-center gap-2">
         {slot.isBooked ? (
           <>
-            <Avatar className="size-6 shrink-0">
-              <AvatarImage src={slot.bookedByImage || undefined} />
-              <AvatarFallback className="text-[9px]">
-                {(slot.bookedByName || "Member").slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              name={slot.bookedByName}
+              image={slot.bookedByImage}
+              className="size-6 shrink-0"
+            />
             <span className="truncate text-sm font-medium">
               {slot.bookedByName || "Member"}
             </span>

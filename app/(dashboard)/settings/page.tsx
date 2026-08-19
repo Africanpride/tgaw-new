@@ -362,8 +362,8 @@ export default function SettingsPage() {
   const name = user?.name ?? "User"
   const email = user?.email ?? ""
   const role = (user?.role as string) ?? "member"
-  const twoFactorEnabled = !!(user as any)?.twoFactorEnabled
-  const hasPassword = !!(user as any)?.hasPassword
+  const twoFactorEnabled = user?.twoFactorEnabled ?? false
+  const hasPassword = user?.hasPassword ?? false
 
   const [activeTab, setActiveTab] = useState<TabId>("profile")
   const [direction, setDirection] = useState(1)

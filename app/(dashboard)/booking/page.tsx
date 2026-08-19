@@ -177,7 +177,7 @@ export default function BookingPage() {
     router.replace(`/booking?type=${newType}`, { scroll: false })
   }
 
-  const handleConfirmBooking = async (notes: string) => {
+  const handleConfirmBooking = async (notes: string): Promise<boolean> => {
     setIsSubmitting(true)
 
     const result = await bookSlotAction({ slotIds: selectedIds, notes })
@@ -185,15 +185,17 @@ export default function BookingPage() {
     setIsSubmitting(false)
     if (result.success) {
       toast.success("Slots booked successfully")
-      setSheetOpen(false)
+      // The sheet shows a brief success celebration, then closes itself.
       setSelectedIds([])
       // Refresh slots
       const dateStr = format(date, "yyyy-MM-dd")
       const res = await fetch(`/api/v1/slots?date=${dateStr}&type=${type}`)
       const data = await res.json()
       if (data.success) setSlots(data.data.slots)
+      return true
     } else {
       toast.error(result.error || "Failed to book slots")
+      return false
     }
   }
 

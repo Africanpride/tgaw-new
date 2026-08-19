@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, HandHeart, Music, CalendarDays, Clock } from "lucide-react";
+import {
+  BookOpen,
+  Check,
+  HandHeart,
+  Music,
+  CalendarDays,
+  Clock,
+} from "lucide-react";
 import { SlotData } from "./SlotCell";
 import { slotAccent } from "./slotAccent";
 import { EventType } from "@prisma/client";
@@ -24,7 +32,7 @@ interface SlotBookingSheetProps {
   onOpenChange: (open: boolean) => void;
   selectedSlots: SlotData[];
   type: EventType;
-  onConfirm: (notes: string) => Promise<void>;
+  onConfirm: (notes: string) => Promise<boolean>;
   isSubmitting: boolean;
 }
 
@@ -51,6 +59,7 @@ export function SlotBookingSheet({
   isSubmitting,
 }: SlotBookingSheetProps) {
   const [notes, setNotes] = useState("");
+  const [success, setSuccess] = useState(false);
 
   if (selectedSlots.length === 0) return null;
 
@@ -70,9 +79,49 @@ export function SlotBookingSheet({
         : "Worship theme (optional)";
 
   const handleConfirm = async () => {
-    await onConfirm(notes);
-    setNotes("");
+    const ok = await onConfirm(notes);
+    if (ok) {
+      setSuccess(true);
+      setNotes("");
+      setTimeout(() => {
+        setSuccess(false);
+        onOpenChange(false);
+      }, 1200);
+    }
   };
+
+  if (success) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
+          <div className="flex flex-col items-center gap-4 px-6 py-14 text-center">
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className={cn(
+                "flex size-16 items-center justify-center rounded-full text-white",
+                accent.solid,
+              )}
+            >
+              <Check className="size-8" aria-hidden="true" />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+            >
+              <p className="text-lg font-semibold">Your slot is confirmed</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                See you at the altar. The meeting link is ready in your
+                dashboard.
+              </p>
+            </motion.div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

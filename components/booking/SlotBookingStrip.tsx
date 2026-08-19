@@ -43,8 +43,8 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
     setSheetOpen(true);
   };
 
-  const handleConfirm = async (notes: string) => {
-    if (!selectedSlot) return;
+  const handleConfirm = async (notes: string): Promise<boolean> => {
+    if (!selectedSlot) return false;
     setIsSubmitting(true);
     
     const result = await bookSlotAction({ slotIds: [selectedSlot.id], notes });
@@ -52,10 +52,11 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
     setIsSubmitting(false);
     if (result.success) {
       toast.success("Slot booked successfully");
-      setSheetOpen(false);
       setSelectedSlot(null);
+      return true;
     } else {
       toast.error(result.error || "Failed to book slot");
+      return false;
     }
   };
 

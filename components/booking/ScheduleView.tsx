@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EventType } from "@prisma/client";
@@ -169,25 +169,18 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
                         <div className="flex items-center justify-between">
                           <div className="flex items-center" role="group" aria-label={"Attendees for " + typeLabel}>
                             <div className="flex -space-x-1.5">
-                              {booking.bookedByName && booking.bookedByImage && (
-                                <Avatar className="h-5 w-5 border border-card text-[8px]" title={booking.bookedByName}>
-                                  <AvatarImage src={booking.bookedByImage} alt={booking.bookedByName} />
-                                  <AvatarFallback className="text-xs">
-                                    {booking.bookedByName.slice(0, 2).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                              )}
-                              {booking.bookedByName && !booking.bookedByImage && (
-                                <Avatar className="h-5 w-5 border border-card text-[8px]" title={booking.bookedByName}>
-                                  <AvatarFallback className="text-xs">
-                                    {booking.bookedByName.slice(0, 2).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
+                              {booking.bookedByName && (
+                                <UserAvatar
+                                  name={booking.bookedByName}
+                                  image={booking.bookedByImage}
+                                  className="size-5 border border-card"
+                                />
                               )}
                               {booking.isOwnBooking && !booking.bookedByName && (
-                                <Avatar className="h-5 w-5 border border-card text-[8px]" title="You">
-                                  <AvatarFallback className="text-xs">You</AvatarFallback>
-                                </Avatar>
+                                <UserAvatar
+                                  name="You"
+                                  className="size-5 border border-card"
+                                />
                               )}
                             </div>
                             <span className="ml-2 text-[10px] text-muted-foreground">

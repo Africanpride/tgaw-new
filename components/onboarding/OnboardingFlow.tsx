@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
-import Link from "next/link"
 import { useForm, type UseFormReturn } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Check, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react"
@@ -43,10 +43,12 @@ const AGE_RANGES = [
 export function OnboardingFlow({
   onComplete,
 }: {
-  onComplete: (values: OnboardingValues) => void
+  onComplete: (values: OnboardingValues) => Promise<boolean> | boolean
 }) {
   const { data: session } = useSession()
   const [stepIndex, setStepIndex] = useState(0)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const step = ONBOARDING_STEPS[stepIndex]
   const isLastContentStep = stepIndex === ONBOARDING_STEPS.length - 2
   const isCompleteStep = stepIndex === ONBOARDING_STEPS.length - 1
@@ -63,17 +65,27 @@ export function OnboardingFlow({
   }, [session, form])
 
   async function goNext() {
+    setErrorMsg(null)
     const fields = Object.keys(step.schema.shape) as (keyof OnboardingValues)[]
     const valid = fields.length === 0 || (await form.trigger(fields))
     if (!valid) return
 
     if (isLastContentStep) {
-      await onComplete(form.getValues())
+      setIsSubmitting(true)
+      const ok = await onComplete(form.getValues())
+      setIsSubmitting(false)
+      if (!ok) {
+        setErrorMsg(
+          "Failed to save profile. Please check your network and try again."
+        )
+        return
+      }
     }
     setStepIndex((i) => Math.min(i + 1, ONBOARDING_STEPS.length - 1))
   }
 
   function goBack() {
+    setErrorMsg(null)
     setStepIndex((i) => Math.max(i - 1, 0))
   }
 
@@ -83,7 +95,7 @@ export function OnboardingFlow({
         {/* Cover panel */}
         <div className="relative hidden overflow-hidden md:col-span-2 md:block">
           <Image
-            src="/onboarding.jpg"
+            src="/images/onboarding.jpg"
             alt="Community fellowship"
             fill
             sizes="50vw"
@@ -109,15 +121,15 @@ export function OnboardingFlow({
               <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
             </div>
             <span className="text-sm font-semibold">
-              The Global Altar Watch 123
+              The Global Altar Watch
             </span>
           </div>
 
-          <div className="flex flex-1 flex-col justify-center px-6 py-10 sm:px-10 lg:px-16 xl:px-20">
-            <div className="mx-auto w-full max-w-lg">
+          <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 sm:px-10 lg:px-16 xl:px-20">
+            <div className="mx-auto w-full">
               <Stepper stepIndex={stepIndex} />
 
-              <div className="mt-10 min-h-[340px]">
+              <div className="mx-auto mt-10 grid w-full items-center md:px-16">
                 {step.id === "name" && <NameStep form={form} />}
                 {step.id === "contact" && <ContactStep form={form} />}
                 {step.id === "about" && <AboutStep form={form} />}
@@ -125,13 +137,20 @@ export function OnboardingFlow({
                 {isCompleteStep && <CompleteStep />}
               </div>
 
+              {errorMsg && (
+                <div className="mt-4 rounded-md bg-destructive/10 p-3 text-xs font-medium text-destructive">
+                  {errorMsg}
+                </div>
+              )}
+
               {!isCompleteStep && (
-                <div className="mt-8 flex items-center justify-between border-t border-border/50 pt-6">
+                <div className="mx-auto mt-8 flex items-center justify-between border-t border-border/50 pt-6 md:px-12">
                   {stepIndex > 0 ? (
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={goBack}
+                      disabled={isSubmitting}
                       className="gap-1.5 text-muted-foreground hover:text-foreground"
                     >
                       <ChevronLeft className="size-4" aria-hidden="true" />
@@ -140,14 +159,21 @@ export function OnboardingFlow({
                   ) : (
                     <div />
                   )}
-                  <Button
-                    type="button"
-                    onClick={goNext}
-                    className="gap-1.5 px-6"
-                  >
-                    {isLastContentStep ? "Finish" : "Next"}
-                    <ChevronRight className="size-4" aria-hidden="true" />
-                  </Button>
+                  <div className="">
+                    <Button
+                      type="button"
+                      onClick={goNext}
+                      disabled={isSubmitting}
+                      className="gap-1.5 px-6"
+                    >
+                      {isSubmitting
+                        ? "Saving..."
+                        : isLastContentStep
+                          ? "Finish"
+                          : "Next"}
+                      <ChevronRight className="size-4" aria-hidden="true" />
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -273,69 +299,69 @@ function NameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
 }
 
 function ContactStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
-	const { watch, setValue, formState } = form
-	return (
-		<div className="space-y-5">
-			<div>
-				<h2 className="text-lg font-semibold">How can we reach you?</h2>
-				<p className="mt-1 text-sm text-muted-foreground">
-					Used for reminders and account recovery.
-				</p>
-			</div>
-			<div className="space-y-4">
-				<div className="space-y-1.5">
-					<Label htmlFor="phone">
-						Phone number <span className="text-destructive">*</span>
-					</Label>
-					<PhoneInput
-						id="phone"
-						value={watch("phone") ?? ""}
-						onChange={(e) =>
-							setValue("phone", e.target.value, {
-								shouldValidate: true,
-							})
-						}
-						defaultCountry={resolveCountryAlpha2(watch("country"))}
-						onCountryChange={(country) => {
-							if (country) {
-								setValue("country", country.alpha3, {
-									shouldValidate: true,
-								})
-							}
-						}}
-						placeholder="Enter your phone number"
-						className="h-12 w-full"
-						aria-invalid={!!formState.errors.phone}
-					/>
-					{formState.errors.phone && (
-						<p className="text-sm text-destructive">
-							{formState.errors.phone.message}
-						</p>
-					)}
-				</div>
-				<div className="space-y-1.5">
-					<Label>
-						Country <span className="text-destructive">*</span>
-					</Label>
-					<CountryDropdown
-						defaultValue={resolveCountryAlpha3(watch("country"))}
-						onChange={(country) =>
-							setValue("country", country.alpha3, {
-								shouldValidate: true,
-							})
-						}
-						className="h-12 w-full"
-						placeholder="Select your country"
-					/>
-					{formState.errors.country && (
-						<p className="text-sm text-destructive">
-							{formState.errors.country.message}
-						</p>
-					)}
-				</div>
-			</div>
-		</div>
-	)
+  const { watch, setValue, formState } = form
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-lg font-semibold">How can we reach you?</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Used for reminders and account recovery.
+        </p>
+      </div>
+      <div className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="phone">
+            Phone number <span className="text-destructive">*</span>
+          </Label>
+          <PhoneInput
+            id="phone"
+            value={watch("phone") ?? ""}
+            onChange={(e) =>
+              setValue("phone", e.target.value, {
+                shouldValidate: true,
+              })
+            }
+            defaultCountry={resolveCountryAlpha2(watch("country"))}
+            onCountryChange={(country) => {
+              if (country) {
+                setValue("country", country.alpha3, {
+                  shouldValidate: true,
+                })
+              }
+            }}
+            placeholder="Enter your phone number"
+            className="h-12 w-full"
+            aria-invalid={!!formState.errors.phone}
+          />
+          {formState.errors.phone && (
+            <p className="text-sm text-destructive">
+              {formState.errors.phone.message}
+            </p>
+          )}
+        </div>
+        <div className="space-y-1.5">
+          <Label>
+            Country <span className="text-destructive">*</span>
+          </Label>
+          <CountryDropdown
+            defaultValue={resolveCountryAlpha3(watch("country"))}
+            onChange={(country) =>
+              setValue("country", country.alpha3, {
+                shouldValidate: true,
+              })
+            }
+            className="h-12 w-full"
+            placeholder="Select your country"
+          />
+          {formState.errors.country && (
+            <p className="text-sm text-destructive">
+              {formState.errors.country.message}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
@@ -357,11 +383,9 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <button
               type="button"
-              onClick={() =>
-                setValue("sex", "male", { shouldValidate: true })
-              }
+              onClick={() => setValue("sex", "male", { shouldValidate: true })}
               className={cn(
-                "flex items-start gap-4 rounded-xl border p-5 text-left transition-all cursor-pointer",
+                "flex cursor-pointer items-start gap-4 rounded-xl border p-5 text-left transition-all",
                 sex === "male"
                   ? "border-primary bg-primary/5 ring-2 ring-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/50"
@@ -407,7 +431,7 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
                 setValue("sex", "female", { shouldValidate: true })
               }
               className={cn(
-                "flex items-start gap-4 rounded-xl border p-5 text-left transition-all cursor-pointer",
+                "flex cursor-pointer items-start gap-4 rounded-xl border p-5 text-left transition-all",
                 sex === "female"
                   ? "border-primary bg-primary/5 ring-2 ring-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/50"
@@ -530,19 +554,20 @@ function TimezoneStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
 }
 
 function CompleteStep() {
+  const router = useRouter()
   return (
     <div className="flex flex-col items-center justify-center space-y-4 text-center">
       <div className="flex size-14 items-center justify-center rounded-full bg-primary/10">
         <Check className="size-7 text-primary" aria-hidden="true" />
       </div>
       <div>
-        <h2 className="text-lg font-semibold">You&apos;re all set</h2>
+        <h2 className="text-lg font-semibold">You're all set</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Your profile is ready. Let&apos;s find your first slot.
+          Your profile is ready. Let's find your first slot.
         </p>
       </div>
-      <Button className="w-full" asChild>
-        <Link href="/overview">Go to dashboard</Link>
+      <Button className="" onClick={() => router.push("/overview")}>
+        Go to dashboard
       </Button>
     </div>
   )

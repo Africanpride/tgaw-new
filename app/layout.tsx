@@ -16,6 +16,18 @@ export const metadata: Metadata = {
   icons: {
     icon: "/images/logo.png",
   },
+  openGraph: {
+    title: "The Global Altar Watch",
+    description:
+      "Your Daily Faith Companion — devotion, prayer, and fellowship worldwide.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Global Altar Watch",
+    description:
+      "Your Daily Faith Companion — devotion, prayer, and fellowship worldwide.",
+  },
 }
 
 const geistSans = Geist({

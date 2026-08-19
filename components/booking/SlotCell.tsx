@@ -1,10 +1,10 @@
 "use client";
 
-import { motion } from "motion/react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { motion, useReducedMotion } from "motion/react";
 import { Badge } from "@/components/ui/badge";
 import { Check, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/UserAvatar";
 import type { SlotAccent } from "./slotAccent";
 import {
   convertUtcTimeToLocal,
@@ -37,11 +37,14 @@ interface SlotCellProps {
 export function SlotCell({ slot, isSelected, onSelect, accent, isCurrent }: SlotCellProps) {
   const isAvailable = !slot.isBooked && !isPastSlot(slot);
   const past = isPastSlot(slot);
+  const reduceMotion = useReducedMotion();
 
   return (
     <motion.div
       layout={isSelected}
       transition={{ type: "spring", stiffness: 400, damping: 32 }}
+      whileHover={!past && isAvailable && !reduceMotion ? { scale: 1.01, x: 2 } : undefined}
+      whileTap={!past && isAvailable && !reduceMotion ? { scale: 0.99 } : undefined}
       onClick={(e) => onSelect(slot.id, e.shiftKey)}
       role="button"
       tabIndex={isAvailable ? 0 : -1}
@@ -94,12 +97,11 @@ export function SlotCell({ slot, isSelected, onSelect, accent, isCurrent }: Slot
             </Badge>
             {slot.bookedByName && (
               <div className="flex items-center gap-2">
-                <Avatar className="size-6">
-                  <AvatarImage src={slot.bookedByImage || undefined} />
-                  <AvatarFallback className="text-[10px]">
-                    {slot.bookedByName.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  name={slot.bookedByName}
+                  image={slot.bookedByImage}
+                  className="size-6"
+                />
                 <span className="hidden text-sm font-medium sm:inline">
                   {slot.bookedByName}
                 </span>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { CalendarX2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CalendarX2, ChevronDown } from "lucide-react";
 import { SlotCell, SlotData } from "./SlotCell";
 import { isPastSlot, isCurrentSlot } from "./slotTime";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { slotAccent } from "./slotAccent";
 import { EventType } from "@prisma/client";
 import { cn } from "@/lib/utils";
+
+const INITIAL_VISIBLE = 8;
 
 interface SlotTimelineProps {
   slots: SlotData[];
@@ -25,11 +27,17 @@ export function SlotTimeline({
   onSelectionChange,
   onEmptyAction,
 }: SlotTimelineProps) {
-  const visibleSlots = slots.filter((s) => !isPastSlot(s) || isCurrentSlot(s));
+  const visibleSlots = useMemo(
+    () => slots.filter((s) => !isPastSlot(s) || isCurrentSlot(s)),
+    [slots],
+  );
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const accent = slotAccent[type];
+
+  const shownSlots = expanded ? visibleSlots : visibleSlots.slice(0, INITIAL_VISIBLE);
 
   useEffect(() => {
     if (!scrollRef.current) return;
@@ -94,7 +102,7 @@ export function SlotTimeline({
   return (
     <ScrollArea className="h-[560px] w-full max-w-full overflow-hidden rounded-md border">
       <div ref={scrollRef} className="flex flex-col">
-        {visibleSlots.map((slot) => (
+        {shownSlots.map((slot) => (
           <SlotCell
             key={slot.id}
             slot={slot}
@@ -104,6 +112,16 @@ export function SlotTimeline({
             isCurrent={isCurrentSlot(slot)}
           />
         ))}
+        {!expanded && visibleSlots.length > INITIAL_VISIBLE && (
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className="flex min-h-11 cursor-pointer items-center justify-center gap-1.5 border-t bg-muted/30 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          >
+            Show {visibleSlots.length - INITIAL_VISIBLE} more slots
+            <ChevronDown className="size-4" aria-hidden="true" />
+          </button>
+        )}
       </div>
     </ScrollArea>
   );

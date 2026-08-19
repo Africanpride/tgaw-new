@@ -76,6 +76,9 @@ export async function proxy(req: NextRequest) {
 	if (!profile && !isOnboardingPath) {
 		return NextResponse.redirect(new URL(ONBOARDING_PATH, req.url));
 	}
+	if (profile && isOnboardingPath) {
+		return NextResponse.redirect(new URL("/overview", req.url));
+	}
 
 	const role = (session.user.role as string) || "member";
 

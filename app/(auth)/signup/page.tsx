@@ -90,7 +90,7 @@ export default function SignUpPage() {
 			<AuthBrand />
 
 			<h1 className="text-2xl text-card-foreground sm:text-3xl">
-				Create an account
+				Begin your watch
 			</h1>
 			<p className="mt-2 text-sm text-muted-foreground">
 				Already have an account?{" "}

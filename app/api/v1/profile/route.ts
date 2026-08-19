@@ -26,9 +26,11 @@ export async function POST(req: Request) {
 
   const userId = session.user.id!
 
-  // Create the onboarding profile
-  await prisma.userProfile.create({
-    data: { userId, phone, country, sex, ageRange, timezone },
+  // Upsert the onboarding profile
+  await prisma.userProfile.upsert({
+    where: { userId },
+    create: { userId, phone, country, sex, ageRange, timezone },
+    update: { phone, country, sex, ageRange, timezone },
   })
 
   // Update the user's name through Better Auth (works for email & OAuth users)

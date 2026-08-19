@@ -80,12 +80,16 @@ const options = {
   },
   emailVerification: {
     sendOnSignIn: true,
-    sendVerificationEmail: async ({ user, url }) =>
-      sendEmail(
+    sendVerificationEmail: async ({ user, url }) => {
+      const verifyUrl = new URL(url);
+      verifyUrl.searchParams.set("callbackURL", "/overview");
+      await sendEmail(
         user.email,
         "Verify your TGAW email",
-        `<p>Hi ${user.name},</p><p>Welcome to The Global Altar Watch. Click the link below to verify your email address and activate your account:</p><p><a href="${url}">Verify email</a></p><p>If you didn't create an account, you can safely ignore this email.</p>`
-      ),
+        `<p>Hi ${user.name},</p><p>Welcome to The Global Altar Watch. Click the link below to verify your email address and activate your account:</p><p><a href="${verifyUrl.toString()}">Verify email</a></p><p>If you didn't create an account, you can safely ignore this email.</p>`
+      );
+    },
+    autoSignInAfterVerification: true,
   },
   account: {
     accountLinking: {
