@@ -65,6 +65,15 @@ const db = client.db()
 const options = {
   appName: "TGAW",
   database: mongodbAdapter(db, { client }),
+  advanced: {
+    database: {
+      // Generate plain string ids so auth collections are queryable via
+      // Prisma's `String @id @map("_id")` (Prisma cannot match native BSON
+      // ObjectId ids). A custom function tells the mongo adapter to keep id
+      // fields as strings instead of wrapping them in ObjectId.
+      generateId: () => crypto.randomUUID(),
+    },
+  },
   session: {
     freshAge: 0,
   },
