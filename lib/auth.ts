@@ -5,6 +5,7 @@ import { haveIBeenPwned, openAPI } from "better-auth/plugins"
 import { admin, customSession, twoFactor } from "better-auth/plugins"
 import { MongoClient } from "mongodb"
 import { sendEmail } from "@/lib/notifications/email"
+import { preserveUserSetProfileOnLink } from "@/lib/auth/oauthLinkProfileGuard"
 
 // ---------------------------------------------------------------------------
 // Custom Access Control for TGAW five-tier role system
@@ -120,10 +121,16 @@ const options = {
       clientSecret: process.env.MICROSOFT_CLIENT_SECRET as string,
       tenantId: "common",
       prompt: "select_account",
+      // Re-copy the provider's name/avatar onto an existing user on every
+      // OAuth sign-in (not just the first link). This also heals accounts that
+      // were linked before the sync existed. The update.before hook below
+      // keeps any avatar/name the user set for themselves.
+      overrideUserInfoOnSignIn: true,
     },
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      overrideUserInfoOnSignIn: true,
     },
   },
   plugins: [
@@ -160,6 +167,10 @@ const options = {
           }
           return { data: user };
         },
+      },
+      update: {
+        before: async (user, context) =>
+          preserveUserSetProfileOnLink(user, context),
       },
     },
   },
