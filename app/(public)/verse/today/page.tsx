@@ -10,8 +10,10 @@ export const metadata: Metadata = {
   title: "Verse of the Day — TGAW",
 }
 
-export default function VerseOfTheDayPage() {
-  const verse = getVerseOfDay()
+export const dynamic = "force-dynamic"
+
+export default async function VerseOfTheDayPage() {
+  const verse = await getVerseOfDay()
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

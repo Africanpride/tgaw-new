@@ -5,7 +5,7 @@ import { getVerseOfDay } from "@/lib/services/verseService"
 import { VerseShareDialog } from "@/components/verse/VerseShareDialog"
 
 export async function VerseCard() {
-  const verse = getVerseOfDay()
+  const verse = await getVerseOfDay()
 
   return (
     <Card className="border-primary/20 bg-primary/5">

@@ -3,7 +3,7 @@ import { getVerseOfDay } from "@/lib/services/verseService"
 
 export async function GET() {
   try {
-    return NextResponse.json({ success: true, data: getVerseOfDay() })
+    return NextResponse.json({ success: true, data: await getVerseOfDay() })
   } catch (error: unknown) {
     return NextResponse.json(
       {

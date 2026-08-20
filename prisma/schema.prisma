@@ -336,6 +336,17 @@ model BookingConfig {
 }
 
 
+model VerseOfDay {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  date        String   @unique
+  text        String
+  reference   String
+  translation String
+  fetchedAt   DateTime @default(now())
+
+  @@map("verse_of_day")
+}
+
 model UserProfile {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @unique
