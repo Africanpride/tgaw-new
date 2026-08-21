@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { motion } from "motion/react"
-import { CalendarX2, Check, Clock } from "lucide-react"
+import { CalendarX2, CalendarClock, Check, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { UserAvatar } from "@/components/UserAvatar"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { SlotData } from "./SlotCell"
 import { convertUtcTimeToLocal, isCurrentSlot, isPastSlot } from "./slotTime"
 import { slotAccent } from "./slotAccent"
 import type { SlotAccent } from "./slotAccent"
+import { EventBlockBadge } from "./EventBlockPopover"
 import { EventType } from "@prisma/client"
 import { cn } from "@/lib/utils"
 
@@ -171,7 +172,7 @@ function SlotGridCell({
       aria-disabled={!isAvailable}
       aria-label={`${convertUtcTimeToLocal(slot.startTime)} to ${convertUtcTimeToLocal(
         slot.endTime
-      )} slot, ${past ? "past" : isBlocked ? "blocked by event" : isAvailable ? (isSelected ? "selected" : "available") : "booked"}${isCurrent ? " (current)" : ""}`}
+      )} slot, ${past ? "past" : isBlocked ? `reserved for special event${slot.event ? ` ${slot.event.title}` : ""}` : isAvailable ? (isSelected ? "selected" : "available") : "booked"}${isCurrent ? " (current)" : ""}`}
       onKeyDown={(e) => {
         if (isAvailable && (e.key === "Enter" || e.key === " ")) {
           e.preventDefault()
@@ -184,7 +185,7 @@ function SlotGridCell({
         past ? "cursor-default opacity-40" : "cursor-pointer",
         isBlocked &&
           !past &&
-          "cursor-not-allowed border-destructive bg-destructive/10 opacity-60",
+          "cursor-not-allowed border-violet-500/40 bg-violet-500/10 dark:bg-violet-500/20",
         !past && isAvailable && "hover:bg-muted/50",
         !past && !isAvailable && !isBlocked && "cursor-not-allowed opacity-60",
         isSelected && isAvailable && cn(accent.tint, "border-primary/40"),
@@ -224,14 +225,10 @@ function SlotGridCell({
             Past
           </span>
         ) : isBlocked ? (
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="destructive"
-              className="text-destructive-foreground bg-destructive"
-            >
-              Unavailable
-            </Badge>
-          </div>
+          <EventBlockBadge event={slot.event}>
+            <CalendarClock className="size-3" aria-hidden="true" />
+            Event
+          </EventBlockBadge>
         ) : isAvailable ? (
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span

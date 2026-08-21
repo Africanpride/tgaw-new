@@ -13,6 +13,20 @@ export interface SlotAccent {
   available: string;
 }
 
+/**
+ * Shared visual language for slots blocked by a Special Event (precedence):
+ * violet, matching SPECIAL events' identity on /calendar. Used by the
+ * devotion strips and the /booking timeline/grid alike.
+ */
+export const EVENT_BLOCK = {
+  text: "text-violet-700 dark:text-violet-300",
+  solid: "bg-violet-600 text-white dark:bg-violet-500",
+  tint: "bg-violet-500/10 dark:bg-violet-500/20",
+  tintStrong: "bg-violet-500/15 dark:bg-violet-500/25",
+  rail: "border-l-violet-500",
+  border: "border-violet-500/40",
+} as const;
+
 export const slotAccent: Record<string, SlotAccent> = {
   BIBLE: {
     text: "text-purple-700 dark:text-purple-300",

@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/db/prisma";
 import { EventType, Prisma } from "@prisma/client";
 import { addDays, addMonths, endOfMonth, format, parse, startOfMonth } from "date-fns";
+import { eventEndTime } from "./eventBlockService";
+import {
+  collectDisplacedBookings,
+  enrichSlotsWithEvents,
+  type EventSummary,
+} from "./slotEventEnrichment";
 
 /**
  * Generate 48 slots per day for a given date range.
@@ -205,8 +211,28 @@ export async function getSlotsForDate(date: string, type?: EventType, currentUse
       bookedByImage,
       notes: isOwnBooking || (userRole === "leader" || userRole === "superadmin") ? slot.notes : null,
       eventId: slot.eventId,
+      event: null as EventSummary | null,
     };
   });
+
+  // Special-event precedence: attach blocking event details + displaced bookings.
+  const blockedEventIds = [...new Set(slots.filter((s) => s.eventId).map((s) => s.eventId!))];
+  const blockedEvents = blockedEventIds.length
+    ? await prisma.event.findMany({
+        where: { id: { in: blockedEventIds } },
+        select: { id: true, title: true, time: true, duration: true, zoomUrl: true },
+      })
+    : [];
+  const eventSummaries: EventSummary[] = blockedEvents.map((e) => ({
+    id: e.id,
+    title: e.title,
+    startTime: e.time,
+    endTime: eventEndTime(e.time, e.duration),
+    zoomUrl: e.zoomUrl ?? null,
+  }));
+
+  const enrichedSlots = enrichSlotsWithEvents(formattedSlots, eventSummaries);
+  const displacedBookings = collectDisplacedBookings(enrichedSlots, currentUserId);
 
   const userBookingCounts: Record<string, number> = { BIBLE: 0, PRAYER: 0, PRAISE_WORSHIP: 0 };
   if (currentUserId) {
@@ -230,10 +256,11 @@ export async function getSlotsForDate(date: string, type?: EventType, currentUse
   };
 
   return {
-    slots: formattedSlots,
+    slots: enrichedSlots,
     meetingLinks: meetingLinksMap,
     config,
     userBookingCounts,
+    displacedBookings,
   };
 }
 

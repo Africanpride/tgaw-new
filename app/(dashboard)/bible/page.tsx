@@ -2,6 +2,7 @@ import { BookOpen, CalendarDays, Clock, Timer } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SlotBookingStrip } from "@/components/booking/SlotBookingStrip";
+import { DisplacedBookingNotice } from "@/components/booking/DisplacedBookingNotice";
 import { getSlotsForDate } from "@/lib/services/slotService";
 import { format, parse } from "date-fns";
 import { auth } from "@/lib/auth";
@@ -29,7 +30,7 @@ export default async function BiblePage(props: {
 
 	const session = await auth.api.getSession({ headers: await headers() });
 
-	const { slots, meetingLinks } = await getSlotsForDate(
+	const { slots, meetingLinks, displacedBookings } = await getSlotsForDate(
 		dateStr,
 		"BIBLE",
 		session?.user?.id,
@@ -83,12 +84,13 @@ export default async function BiblePage(props: {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						{myBookings.length === 0 ? (
+						{myBookings.length === 0 && (displacedBookings?.length ?? 0) === 0 ? (
 							<p className="text-sm text-muted-foreground">
 								No reading sessions scheduled for this day.
 							</p>
 						) : (
 							<div className="space-y-3">
+								<DisplacedBookingNotice bookings={displacedBookings ?? []} slotNoun="Bible reading" />
 								{myBookings.map((booking) => (
 									<div
 										key={booking.id}

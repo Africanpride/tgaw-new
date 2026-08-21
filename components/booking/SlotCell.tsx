@@ -2,11 +2,13 @@
 
 import { motion, useReducedMotion } from "motion/react"
 import { Badge } from "@/components/ui/badge"
-import { Check, Clock } from "lucide-react"
+import { CalendarClock, Check, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { UserAvatar } from "@/components/UserAvatar"
-import type { SlotAccent } from "./slotAccent"
+import { type SlotAccent, EVENT_BLOCK } from "./slotAccent"
 import { convertUtcTimeToLocal, isPastSlot } from "./slotTime"
+import { EventBlockBadge } from "./EventBlockPopover"
+import type { EventSummary } from "@/lib/services/slotEventEnrichment"
 
 export { convertUtcTimeToLocal, isPastSlot }
 
@@ -22,6 +24,7 @@ export interface SlotData {
   bookedByImage: string | null
   notes: string | null
   eventId: string | null
+  event?: EventSummary | null
 }
 
 interface SlotCellProps {
@@ -63,7 +66,7 @@ export function SlotCell({
       aria-disabled={!isAvailable}
       aria-label={`${convertUtcTimeToLocal(slot.startTime)} to ${convertUtcTimeToLocal(
         slot.endTime
-      )} slot, ${past ? "past" : isBlocked ? "blocked by event" : isAvailable ? (isSelected ? "selected" : "available") : "booked"}${isCurrent ? " (current)" : ""}`}
+      )} slot, ${past ? "past" : isBlocked ? `reserved for special event${slot.event ? ` ${slot.event.title}` : ""}` : isAvailable ? (isSelected ? "selected" : "available") : "booked"}${isCurrent ? " (current)" : ""}`}
       onKeyDown={(e) => {
         if (isAvailable && (e.key === "Enter" || e.key === " ")) {
           e.preventDefault()
@@ -78,7 +81,7 @@ export function SlotCell({
           : "min-h-[44px] cursor-pointer py-2",
         isBlocked &&
           !past &&
-          "cursor-not-allowed border-l-destructive bg-destructive/10 opacity-60",
+          cn("cursor-not-allowed", EVENT_BLOCK.rail, EVENT_BLOCK.tint),
         !past && isAvailable && "hover:bg-muted/50",
         !past && !isAvailable && !isBlocked && "cursor-not-allowed opacity-60",
         isSelected && isAvailable && cn(accent.tint, accent.rail),
@@ -97,14 +100,10 @@ export function SlotCell({
             Past
           </span>
         ) : isBlocked ? (
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="destructive"
-              className="text-destructive-foreground bg-destructive"
-            >
-              Unavailable
-            </Badge>
-          </div>
+          <EventBlockBadge event={slot.event}>
+            <CalendarClock className="size-3" aria-hidden="true" />
+            Event
+          </EventBlockBadge>
         ) : isAvailable ? (
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <span

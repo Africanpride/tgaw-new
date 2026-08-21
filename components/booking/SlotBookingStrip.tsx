@@ -17,8 +17,9 @@ import { SlotBookingSheet } from "./SlotBookingSheet";
 import { bookSlotAction } from "@/actions/slotActions";
 import { toast } from "sonner";
 import Link from "next/link";
-import { ArrowRight, Check, Clock } from "lucide-react";
-import { slotAccent } from "./slotAccent";
+import { ArrowRight, CalendarClock, Check, Clock } from "lucide-react";
+import { slotAccent, EVENT_BLOCK } from "./slotAccent";
+import { EventBlockPopover } from "./EventBlockPopover";
 
 interface SlotBookingStripProps {
   slots: SlotData[];
@@ -38,7 +39,7 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
   const accent = slotAccent[type];
 
   const handleSelect = (slot: SlotData) => {
-    if (slot.isBooked || isPastSlot(slot)) return;
+    if (slot.isBooked || isPastSlot(slot) || slot.eventId) return;
     setSelectedSlot(slot);
     setSheetOpen(true);
   };
@@ -86,52 +87,89 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
         >
           <CarouselContent className="-ml-2 px-10">
             {slots.map((slot) => {
-              const isAvailable = !slot.isBooked && !isPastSlot(slot);
               const past = isPastSlot(slot);
+              const blocked = !!slot.eventId;
+              const isAvailable = !slot.isBooked && !past && !blocked;
               const isCurrent = slot.id === initialSlotId;
+
+              const cell = (
+                <div
+                  data-slot-id={slot.id}
+                  onClick={() => handleSelect(slot)}
+                  role="button"
+                  tabIndex={isAvailable ? 0 : undefined}
+                  aria-disabled={!isAvailable}
+                  aria-label={`${convertUtcTimeToLocal(slot.startTime)} slot, ${
+                    past
+                      ? "past"
+                      : blocked
+                        ? `reserved for special event${slot.event ? ` ${slot.event.title}` : ""}`
+                        : isAvailable
+                          ? "available"
+                          : slot.isOwnBooking
+                            ? "your booking"
+                            : "booked"
+                  }${isCurrent ? " (current)" : ""}`}
+                  onKeyDown={(e) => {
+                    if (isAvailable && (e.key === "Enter" || e.key === " ")) {
+                      e.preventDefault();
+                      handleSelect(slot);
+                    }
+                  }}
+                  className={cn(
+                    "flex flex-col items-center justify-center rounded-lg border transition-all duration-200 shrink-0 select-none",
+                    past
+                      ? "w-20 h-14 opacity-40 cursor-default bg-muted/30 border-dashed"
+                      : "w-24 h-16 p-3 shadow-2xs cursor-pointer focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+                    !past && blocked && cn("cursor-not-allowed", EVENT_BLOCK.tint, EVENT_BLOCK.border),
+                    !past && isAvailable && accent.available,
+                    !past && slot.isBooked && !slot.isOwnBooking && cn(accent.booked, "cursor-not-allowed opacity-80"),
+                    !past && slot.isOwnBooking && cn(accent.mine, "opacity-100 font-semibold"),
+                    isCurrent && !past && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                  )}
+                >
+                  <span className={cn("font-medium tabular-nums", past ? "text-xs text-muted-foreground" : "text-sm")}>
+                    {convertUtcTimeToLocal(slot.startTime)}
+                  </span>
+                  <span className={cn(
+                    "text-xs mt-1 flex items-center gap-1 font-medium",
+                    past ? "text-[10px] text-muted-foreground/70" :
+                    blocked ? EVENT_BLOCK.text :
+                    slot.isOwnBooking ? accent.text :
+                    slot.isBooked ? "text-muted-foreground" :
+                    "text-muted-foreground/80"
+                  )}>
+                    {past ? (
+                      <>
+                        <Clock className="size-2.5" aria-hidden="true" />
+                        Past
+                      </>
+                    ) : blocked ? (
+                      <>
+                        <CalendarClock className="size-3" aria-hidden="true" />
+                        Event
+                      </>
+                    ) : slot.isOwnBooking ? (
+                      <>
+                        <Check className="size-3 text-emerald-500" aria-hidden="true" />
+                        Mine
+                      </>
+                    ) : isAvailable ? (
+                      "Available"
+                    ) : (
+                      "Booked"
+                    )}
+                  </span>
+                </div>
+              );
+
               return (
                 <CarouselItem key={slot.id} className="basis-auto pl-2">
-                  <div
-                    data-slot-id={slot.id}
-                    onClick={() => handleSelect(slot)}
-                    className={cn(
-                      "flex flex-col items-center justify-center rounded-lg border transition-all duration-200 shrink-0 cursor-pointer select-none",
-                      past
-                        ? "w-20 h-14 opacity-40 cursor-default bg-muted/30 border-dashed"
-                        : "w-24 h-16 p-3 shadow-2xs",
-                      !past && isAvailable && accent.available,
-                      !past && slot.isBooked && !slot.isOwnBooking && cn(accent.booked, "cursor-not-allowed opacity-80"),
-                      !past && slot.isOwnBooking && cn(accent.mine, "opacity-100 font-semibold"),
-                      isCurrent && !past && "ring-2 ring-primary ring-offset-2 ring-offset-background",
-                    )}
-                  >
-                    <span className={cn("font-medium tabular-nums", past ? "text-xs text-muted-foreground" : "text-sm")}>
-                      {convertUtcTimeToLocal(slot.startTime)}
-                    </span>
-                    <span className={cn(
-                      "text-xs mt-1 flex items-center gap-1 font-medium",
-                      past ? "text-[10px] text-muted-foreground/70" :
-                      slot.isOwnBooking ? accent.text :
-                      slot.isBooked ? "text-muted-foreground" :
-                      "text-muted-foreground/80"
-                    )}>
-                      {past ? (
-                        <>
-                          <Clock className="size-2.5" aria-hidden="true" />
-                          Past
-                        </>
-                      ) : slot.isOwnBooking ? (
-                        <>
-                          <Check className="size-3 text-emerald-500" aria-hidden="true" />
-                          Mine
-                        </>
-                      ) : isAvailable ? (
-                        "Available"
-                      ) : (
-                        "Booked"
-                      )}
-                    </span>
-                  </div>
+                  {!past && blocked && slot.event ? (
+                    <EventBlockPopover event={slot.event}>{cell}</EventBlockPopover>
+                  ) : (
+                    cell
+                  )}
                 </CarouselItem>
               );
             })}
