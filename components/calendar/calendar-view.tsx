@@ -60,6 +60,10 @@ export interface CalendarItem {
 	passage?: string | null;
 	zoomUrl?: string | null;
 	zoomLabel?: string | null;
+	rawEventId?: string;
+	rawDate?: string;
+	rawTime?: string;
+	blockTypes?: string[];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -249,6 +253,7 @@ export function CalendarView({
 	userTimezone?: string;
 	initialMonth?: string;
 	canCreate?: boolean;
+	canManage?: boolean;
 	className?: string;
 }) {
 	const router = useRouter();

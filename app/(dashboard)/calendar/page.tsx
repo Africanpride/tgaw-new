@@ -127,6 +127,10 @@ export default async function CalendarPage(props: {
 		notes: event.notes,
 		passage: event.passage,
 		zoomUrl: event.zoomUrl,
+		rawEventId: event.id,
+		rawDate: event.date,
+		rawTime: event.time,
+		blockTypes: event.blockTypes ?? [],
 	}));
 
 	return (
@@ -143,6 +147,10 @@ export default async function CalendarPage(props: {
 				userTimezone={userTimezone}
 				initialMonth={format(monthStart, "yyyy-MM")}
 				canCreate={
+					session.user.role === "superadmin" ||
+					session.user.role === "coordinator"
+				}
+				canManage={
 					session.user.role === "superadmin" ||
 					session.user.role === "coordinator"
 				}
