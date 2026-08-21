@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import {
@@ -36,6 +36,7 @@ import {
   type CreateEventInput,
 } from "@/lib/schemas/eventSchema"
 import { cn } from "@/lib/utils"
+import type { CalendarItem } from "./calendar-view"
 
 const EVENT_TYPES = [
   {
@@ -80,14 +81,21 @@ const EVENT_TYPES = [
   },
 ]
 
+export interface EventFormDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  mode?: "create" | "edit"
+  event?: CalendarItem | null
+}
+
 export function EventFormDialog({
   open,
   onOpenChange,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}) {
+  mode = "create",
+  event,
+}: EventFormDialogProps) {
   const router = useRouter()
+  const isEdit = mode === "edit" && Boolean(event)
 
   const {
     register,
@@ -125,16 +133,62 @@ export function EventFormDialog({
     displacingCount: number
   } | null>(null)
 
-  async function createEvent(values: CreateEventInput, confirmed: boolean) {
+  useEffect(() => {
+    if (open) {
+      if (mode === "edit" && event) {
+        reset({
+          type: event.type,
+          title: event.title ?? "",
+          passage: event.passage ?? "",
+          date: event.rawDate ?? event.date,
+          time: event.rawTime ?? event.startTime,
+          duration: event.duration ?? 30,
+          zoomUrl: event.zoomUrl ?? "",
+          notes: event.notes ?? "",
+        })
+        if (event.blockTypes && Array.isArray(event.blockTypes)) {
+          setSelectedBlockTypes(
+            new Set(
+              event.blockTypes as ("BIBLE" | "PRAYER" | "PRAISE_WORSHIP")[]
+            )
+          )
+        } else {
+          setSelectedBlockTypes(new Set())
+        }
+      } else {
+        reset({
+          type: "BIBLE",
+          title: "",
+          passage: "",
+          date: new Date().toISOString().split("T")[0],
+          time: "09:00",
+          duration: 30,
+          zoomUrl: "",
+          notes: "",
+        })
+        setSelectedBlockTypes(new Set())
+      }
+      setPreviewWarning(null)
+    }
+  }, [open, mode, event, reset])
+
+  async function submitEvent(values: CreateEventInput, confirmed: boolean) {
+    const isEditMode = mode === "edit" && event?.rawEventId
+    const url = isEditMode
+      ? `/api/v1/events/${event.rawEventId}`
+      : "/api/v1/events"
+    const method = isEditMode ? "PATCH" : "POST"
+
     const body = isSpecial
       ? {
           ...values,
           blockTypes: [...selectedBlockTypes],
-          ...(confirmed ? { _confirm: true } : {}),
+          ...(confirmed ? { _confirm: true } : { _preview: true }),
         }
-      : { ...values, ...(confirmed ? { _confirm: true } : {}) }
-    const res = await fetch("/api/v1/events", {
-      method: "POST",
+      : { ...values, ...(confirmed ? { _confirm: true } : { _preview: true }) }
+
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     })
@@ -143,63 +197,89 @@ export function EventFormDialog({
   }
 
   async function onSubmit(values: CreateEventInput) {
+    const isEditMode = mode === "edit" && event?.rawEventId
+
     // Step 1: preview — if the event would displace booked slots, ask first.
     if (!previewWarning) {
-      const preview = await createEvent(values, false)
-      if (preview.success && preview.data?.willDisplace) {
-        setPreviewWarning({
-          blockedSlotCount: preview.data.blockedSlotCount,
-          displacingCount: preview.data.displacingCount,
-        })
-        return
+      if (!isEditMode) {
+        const preview = await submitEvent(values, false)
+        if (preview.success && preview.data?.willDisplace) {
+          setPreviewWarning({
+            blockedSlotCount: preview.data.blockedSlotCount,
+            displacingCount: preview.data.displacingCount,
+          })
+          return
+        }
+        if (
+          preview.code === "NEEDS_CONFIRM" ||
+          (preview.data?.displacingCount && preview.data.displacingCount > 0)
+        ) {
+          setPreviewWarning({
+            blockedSlotCount:
+              preview.data?.blockedSlotCount ?? preview.data?.displacingCount,
+            displacingCount: preview.data.displacingCount,
+          })
+          return
+        }
       }
-      // No displacement risk — just create it.
-      if (preview.success) {
-        const json = await createEvent(values, true)
-        if (json.success) {
-          toast.success("Event created successfully")
-          onOpenChange(false)
-          reset()
-          router.refresh()
+
+      // Direct submission
+      const json = await submitEvent(values, true)
+      if (json.success) {
+        toast.success(
+          isEditMode ? "Event updated successfully" : "Event created successfully"
+        )
+        onOpenChange(false)
+        reset()
+        router.refresh()
+      } else {
+        if (json.code === "NEEDS_CONFIRM" || json.data?.willDisplace) {
+          setPreviewWarning({
+            blockedSlotCount:
+              json.data?.blockedSlotCount ?? json.data?.displacingCount ?? 1,
+            displacingCount: json.data?.displacingCount ?? 1,
+          })
         } else {
           toast.error(
             typeof json.error === "string"
               ? json.error
+              : isEditMode
+              ? "Could not update event"
               : "Could not create event"
           )
         }
-      } else {
-        toast.error(
-          typeof preview.error === "string"
-            ? preview.error
-            : "Could not create event"
-        )
       }
       return
     }
 
-    // Step 2: user confirmed the override — create with _confirm.
-    const json = await createEvent(values, true)
+    // Step 2: user confirmed the override.
+    const json = await submitEvent(values, true)
     if (json.success) {
-      toast.success("Event created successfully")
+      toast.success(
+        isEditMode ? "Event updated successfully" : "Event created successfully"
+      )
       onOpenChange(false)
       reset()
       setPreviewWarning(null)
       router.refresh()
     } else {
       toast.error(
-        typeof json?.error === "string" ? json.error : "Could not create event"
+        typeof json?.error === "string"
+          ? json.error
+          : isEditMode
+          ? "Could not update event"
+          : "Could not create event"
       )
     }
   }
 
   // Reset any preview warning when the dialog closes.
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
       setPreviewWarning(null)
       setSelectedBlockTypes(new Set())
     }
-    onOpenChange(open)
+    onOpenChange(nextOpen)
   }
 
   return (
@@ -226,10 +306,12 @@ export function EventFormDialog({
             </div>
             <div>
               <DialogTitle className="text-base tracking-tight">
-                Add New Event
+                {isEdit ? "Edit Event" : "Add New Event"}
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Schedule a new altar session or watch gathering
+                {isEdit
+                  ? "Update event details, timing, or blocking settings"
+                  : "Schedule a new altar session or watch gathering"}
               </DialogDescription>
             </div>
           </div>
@@ -483,7 +565,7 @@ export function EventFormDialog({
                 This event will override{" "}
                 <strong>{previewWarning.blockedSlotCount}</strong> slot(s),
                 including {previewWarning.displacingCount} already-booked
-                slot(s). Those users will be released. Create it anyway?
+                slot(s). Those users will be released. {isEdit ? "Update it anyway?" : "Create it anyway?"}
               </span>
             </div>
           )}
@@ -523,10 +605,12 @@ export function EventFormDialog({
                     className="size-3.5 animate-spin"
                     aria-hidden="true"
                   />
-                  {previewWarning ? "Overriding..." : "Creating..."}
+                  {previewWarning ? "Overriding..." : isEdit ? "Saving..." : "Creating..."}
                 </>
               ) : previewWarning ? (
                 "Confirm & Override"
+              ) : isEdit ? (
+                "Save Changes"
               ) : (
                 "Create Event"
               )}
