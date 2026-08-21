@@ -16,7 +16,8 @@ import {
   type AgendaSummary,
 } from "@/components/booking/AgendaView"
 import { VerseCard } from "@/components/verse/VerseCard"
-import { ZoomBanner } from "@/components/zoom/ZoomBanner"
+import { MeetingBanner } from "@/components/meetings/MeetingBanner"
+import { getActiveSlotHosts } from "@/lib/services/slotService"
 
 const WINDOW_MIN = 16 * 60
 
@@ -148,6 +149,8 @@ export default async function OverviewPage() {
       })
     : []
 
+  const activeHosts = await getActiveSlotHosts()
+
   const buildEvents = (date: string, blocks: SlotBlock[]): AgendaEvent[] =>
     blocks.map((block) => {
       const link =
@@ -240,7 +243,7 @@ export default async function OverviewPage() {
         </p>
       </div>
       <VerseCard />
-      <ZoomBanner />
+      <MeetingBanner initialHosts={activeHosts} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Day Streak"

@@ -119,7 +119,7 @@ export default async function WorshipPage(props: {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<Clock className="size-5" />
-							Zoom Meeting Links
+							Meeting Links
 						</CardTitle>
 					</CardHeader>
 					<CardContent>

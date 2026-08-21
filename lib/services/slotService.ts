@@ -445,3 +445,77 @@ export async function getDefaultMeetingLinks(): Promise<{
   }
   return map;
 }
+
+export interface ActiveSlotLike {
+  type: EventType | string;
+  startTime: string;
+  endTime: string;
+  bookedBy: string | null;
+}
+
+export type ActiveHostsMap = Record<EventType, string | null>;
+
+/**
+ * Determine, per slot type, the user who currently hosts an active (in-progress)
+ * booked slot. A slot is active when nowHHMM is within [startTime, endTime).
+ * Ignores unbooked slots; picks the first active booked slot per type.
+ */
+export function getActiveHostsForTime(
+  slots: ActiveSlotLike[],
+  nowHHMM: string
+): ActiveHostsMap {
+  const activeByType = new Map<EventType, string>();
+  for (const s of slots) {
+    if (!s.bookedBy) continue;
+    if (s.startTime <= nowHHMM && nowHHMM < s.endTime) {
+      const t = s.type as EventType;
+      if (!activeByType.has(t)) activeByType.set(t, s.bookedBy);
+    }
+  }
+  return {
+    BIBLE: activeByType.get(EventType.BIBLE) ?? null,
+    PRAYER: activeByType.get(EventType.PRAYER) ?? null,
+    PRAISE_WORSHIP: activeByType.get(EventType.PRAISE_WORSHIP) ?? null,
+  };
+}
+
+/**
+ * Fetch the currently active slot hosts for today (UTC), resolving each
+ * booker's display name. Returns a map per slot type.
+ */
+export async function getActiveSlotHosts(): Promise<ActiveHostsMap> {
+  const now = new Date();
+  const today = now.toISOString().split("T")[0];
+  const nowHHMM = now.toISOString().slice(11, 16);
+
+  const slots = await prisma.slot.findMany({
+    where: { date: today, bookedBy: { not: null } },
+    select: { type: true, startTime: true, endTime: true, bookedBy: true },
+  });
+
+  const activeUserIds = slots
+    .filter(
+      (s) => s.bookedBy && s.startTime <= nowHHMM && nowHHMM < s.endTime
+    )
+    .map((s) => s.bookedBy!) as string[];
+  const uniqueIds = [...new Set(activeUserIds)];
+
+  const userMap = new Map<string, string>();
+  if (uniqueIds.length > 0) {
+    const users = await prisma.user.findMany({
+      where: { id: { in: uniqueIds } },
+      select: { id: true, name: true, email: true },
+    });
+    for (const u of users) {
+      userMap.set(u.id, u.name || u.email || "Member");
+    }
+  }
+
+  const hosts = getActiveHostsForTime(slots, nowHHMM);
+  const resolved = { BIBLE: null, PRAYER: null, PRAISE_WORSHIP: null } as ActiveHostsMap;
+  for (const type of [EventType.BIBLE, EventType.PRAYER, EventType.PRAISE_WORSHIP]) {
+    const id = hosts[type];
+    resolved[type] = id ? userMap.get(id) ?? null : null;
+  }
+  return resolved;
+}

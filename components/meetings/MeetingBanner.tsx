@@ -19,17 +19,24 @@ type MeetingLinks = {
   PRAISE_WORSHIP: MeetingLink
 }
 
+type ActiveHosts = {
+  BIBLE: string | null
+  PRAYER: string | null
+  PRAISE_WORSHIP: string | null
+}
+
 const DEFAULT_TITLES = {
-  BIBLE: "Bible Reading Zoom",
+  BIBLE: "Bible Reading",
   PRAYER: "Morning Intercession",
-  PRAISE_WORSHIP: "Praise & Worship Zoom",
+  PRAISE_WORSHIP: "Praise & Worship",
 }
 
-interface ZoomBannerProps {
+interface MeetingBannerProps {
   initialLinks?: MeetingLinks
+  initialHosts?: ActiveHosts
 }
 
-export function ZoomBanner({ initialLinks }: ZoomBannerProps) {
+export function MeetingBanner({ initialLinks, initialHosts }: MeetingBannerProps) {
   const [links, setLinks] = useState<MeetingLinks>(
     initialLinks ?? {
       BIBLE: { url: null, label: null },
@@ -112,25 +119,25 @@ export function ZoomBanner({ initialLinks }: ZoomBannerProps) {
   const sections: Array<{
     key: keyof MeetingLinks
     title: string
-    host: string
+    host: string | null
     passcode: string
   }> = [
     {
       key: "BIBLE",
       title: links.BIBLE.label || DEFAULT_TITLES.BIBLE,
-      host: "Pastor Amos Boateng",
+      host: initialHosts?.BIBLE ?? null,
       passcode: "TGAW2026",
     },
     {
       key: "PRAYER",
       title: links.PRAYER.label || DEFAULT_TITLES.PRAYER,
-      host: "Pastor Amos Boateng",
+      host: initialHosts?.PRAYER ?? null,
       passcode: "TGAW2026",
     },
     {
       key: "PRAISE_WORSHIP",
       title: links.PRAISE_WORSHIP.label || DEFAULT_TITLES.PRAISE_WORSHIP,
-      host: "Pastor Amos Boateng",
+      host: initialHosts?.PRAISE_WORSHIP ?? null,
       passcode: "TGAW2026",
     },
   ]
@@ -141,6 +148,7 @@ export function ZoomBanner({ initialLinks }: ZoomBannerProps) {
         const link = links[section.key]
         const meetingId = extractMeetingId(link.url)
         const hasUrl = Boolean(link.url)
+        const isLive = Boolean(section.host)
 
         return (
           <Card
@@ -157,12 +165,14 @@ export function ZoomBanner({ initialLinks }: ZoomBannerProps) {
                     <h4 className="truncate text-sm font-semibold text-foreground">
                       {section.title}
                     </h4>
-                    <Badge
-                      variant="secondary"
-                      className="shrink-0 bg-emerald-500/15 text-[10px] font-medium text-emerald-600 dark:text-emerald-400"
-                    >
-                      Live
-                    </Badge>
+                    {isLive && (
+                      <Badge
+                        variant="secondary"
+                        className="shrink-0 bg-emerald-500/15 text-[10px] font-medium text-emerald-600 dark:text-emerald-400"
+                      >
+                        Live
+                      </Badge>
+                    )}
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
                     <span>Meeting ID: {meetingId}</span>
@@ -170,7 +180,7 @@ export function ZoomBanner({ initialLinks }: ZoomBannerProps) {
                     <span>Passcode: {section.passcode}</span>
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground truncate">
-                    Host: {section.host}
+                    Host: {section.host ?? "—"}
                   </p>
                 </div>
               </div>

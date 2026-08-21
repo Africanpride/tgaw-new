@@ -1,6 +1,6 @@
 "use client"
 
-import { Globe, LogOut, Settings } from "lucide-react"
+import { Globe, LogOut, Settings, Video } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { UserAvatar } from "@/components/UserAvatar"
@@ -15,8 +15,41 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useSidebar } from "@/components/ui/sidebar"
 import { signOut, useSession } from "@/lib/auth-client"
+import { cn } from "@/lib/utils"
 
-export function NavUser() {
+interface ZoomSessionLink {
+  id: string
+  label: string
+  url: string
+  isActive: boolean
+}
+
+const DEFAULT_ZOOM_LINKS: ZoomSessionLink[] = [
+  {
+    id: "bible",
+    label: "Bible Reading",
+    url: "https://zoom.us/j/89234156701",
+    isActive: true,
+  },
+  {
+    id: "prayer",
+    label: "Morning Intercession",
+    url: "https://zoom.us/j/89234156702",
+    isActive: true,
+  },
+  {
+    id: "worship",
+    label: "Praise & Worship",
+    url: "https://zoom.us/j/89234156703",
+    isActive: false,
+  },
+]
+
+interface NavUserProps {
+  zoomLinks?: ZoomSessionLink[]
+}
+
+export function NavUser({ zoomLinks = DEFAULT_ZOOM_LINKS }: NavUserProps) {
   const { data: session } = useSession()
   const { isMobile } = useSidebar()
   const router = useRouter()
@@ -58,6 +91,43 @@ export function NavUser() {
             </div>
           </DropdownMenuLabel>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        {zoomLinks.length > 0 && (
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="uppercase tracking-wide">
+              Live Meetings
+            </DropdownMenuLabel>
+            {zoomLinks.map((link) => (
+              <DropdownMenuItem
+                key={link.id}
+                className={cn(
+                  "cursor-pointer",
+                  link.isActive && "bg-emerald-500/5"
+                )}
+                render={
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="cursor-pointer"
+                  />
+                }
+              >
+                <Video className="size-4" aria-hidden="true" />
+                {link.isActive && (
+                  <span
+                    className="relative flex size-2"
+                    aria-hidden="true"
+                  >
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                    <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+                  </span>
+                )}
+                {link.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem
