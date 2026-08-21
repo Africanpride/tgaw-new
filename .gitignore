@@ -49,3 +49,6 @@ next-env.d.ts
 .superpowers/sdd/*-brief.md
 .superpowers/sdd/*-report.md
 .superpowers/sdd/review-*.diff
+
+# AI session logs / scratch artifacts
+session-ses_*.md
