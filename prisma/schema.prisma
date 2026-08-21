@@ -287,12 +287,23 @@ enum Role {
 
 model CoordinatorAssignment {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String
-  timezone  String
+  userId    String                            // coordinator user.id
+  timezone  String                            // one assigned timezone per row
   createdAt DateTime @default(now())
 
   @@unique([userId, timezone])
   @@index([userId])
+}
+
+// Online presence: one row per signed-in user whose client heartbeats.
+// A raw Mongo TTL index on lastSeenAt (expireAfterSeconds: 300) auto-removes
+// stale rows, so "online" == row exists. Created by scripts/presence-ttl.ts.
+model Presence {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @unique
+  lastSeenAt DateTime @updatedAt
+
+  @@index([lastSeenAt])
 }
 
 model Slot {

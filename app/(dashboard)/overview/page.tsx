@@ -1,4 +1,4 @@
-import { BookOpen, Clock, Flame, Timer } from "lucide-react"
+import { BookOpen, CalendarDays, Clock, Flame, Heart } from "lucide-react"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import type { EventType } from "@prisma/client"
@@ -16,7 +16,12 @@ import {
 } from "@/components/booking/AgendaView"
 import { VerseCard } from "@/components/verse/VerseCard"
 import { MeetingBanner, type SpecialEventMeeting } from "@/components/meetings/MeetingBanner"
-import { getActiveSlotHosts } from "@/lib/services/slotService"
+import {
+  getActiveSlotHosts,
+  getBookingConfig,
+  getUserSlotStats,
+} from "@/lib/services/slotService"
+import { formatMinutes } from "@/lib/services/slotStats"
 import { eventEndTime } from "@/lib/services/eventBlockService"
 
 const WINDOW_MIN = 16 * 60
@@ -147,6 +152,10 @@ export default async function OverviewPage() {
     : []
 
   const activeHosts = await getActiveSlotHosts()
+  const [stats, bookingConfig] = await Promise.all([
+    user.id ? getUserSlotStats(user.id) : Promise.resolve(null),
+    getBookingConfig(),
+  ])
 
   // Upcoming / in-progress org-wide Special Events for the meeting banner.
   const now = new Date()
@@ -280,32 +289,32 @@ export default async function OverviewPage() {
       <MeetingBanner initialHosts={activeHosts} initialSpecialEvents={specialEvents} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Day Streak"
-          value={0}
-          description="Keep it going!"
+          title="Sessions Today"
+          value={sessionCount}
+          description={sessionCount > 0 ? "On today's watch" : "Nothing booked yet"}
+          icon={CalendarDays}
+          className="border-l-4 border-l-blue-500"
+        />
+        <StatCard
+          title="Sessions This Week"
+          value={stats?.weekSessions ?? 0}
+          description="Keep the rhythm going!"
           icon={Flame}
           className="border-l-4 border-l-orange-500"
         />
         <StatCard
-          title="Chapters Read"
-          value="—"
-          description="This month"
-          icon={BookOpen}
-          className="border-l-4 border-l-purple-500"
-        />
-        <StatCard
           title="Prayer Sessions"
-          value="—"
+          value={stats?.monthByType["PRAYER"] ?? 0}
           description="This month"
-          icon={Timer}
+          icon={Heart}
           className="border-l-4 border-l-red-500"
         />
         <StatCard
           title="Total Time"
-          value="—"
-          description="Hours invested"
+          value={formatMinutes(stats?.monthMinutes ?? 0)}
+          description="Devotion this month"
           icon={Clock}
-          className="border-l-4 border-l-blue-500"
+          className="border-l-4 border-l-purple-500"
         />
       </div>
 
@@ -316,24 +325,41 @@ export default async function OverviewPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="size-5" />
-              Weekly Progress
+              Weekly Watch Coverage
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <div className="flex items-center justify-between text-sm">
-              <span>Bible Reading Plan</span>
-              <span className="text-muted-foreground">0%</span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-secondary">
-              <div className="h-full w-0 rounded-full bg-primary" />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span>Prayer Goal</span>
-              <span className="text-muted-foreground">0%</span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-secondary">
-              <div className="h-full w-0 rounded-full bg-primary" />
-            </div>
+            {(
+              [
+                { type: "BIBLE", cap: bookingConfig.maxBibleSlotsPerDay, bar: "bg-purple-500" },
+                { type: "PRAYER", cap: bookingConfig.maxPrayerSlotsPerDay, bar: "bg-red-500" },
+                {
+                  type: "PRAISE_WORSHIP",
+                  cap: bookingConfig.maxWorshipSlotsPerDay,
+                  bar: "bg-amber-500",
+                },
+              ] as const
+            ).map(({ type, cap, bar }) => {
+              const capacity = cap * 7
+              const booked = stats?.weekByType[type] ?? 0
+              const percent = capacity > 0 ? Math.min(100, Math.round((booked / capacity) * 100)) : 0
+              return (
+                <div key={type}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span>{slotTypeLabel(type)}</span>
+                    <span className="text-muted-foreground">
+                      {booked}/{capacity} &middot; {percent}%
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-2 w-full rounded-full bg-secondary">
+                    <div
+                      className={`h-full rounded-full ${bar} transition-[width] duration-500`}
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
           </CardContent>
         </Card>
         <div className="lg:col-span-1">

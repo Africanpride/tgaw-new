@@ -28,7 +28,7 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -60,6 +60,7 @@ import {
 } from "@/components/ui/table"
 import { authClient, useSession } from "@/lib/auth-client"
 import { resendVerificationEmail } from "@/lib/actions/adminActions"
+import { useOnlineUserIds } from "@/components/presence/PresenceProvider"
 import { cn } from "@/lib/utils"
 
 const features = tableFeatures({
@@ -226,6 +227,7 @@ function RoleStepIndicator({ step }: { step: 1 | 2 }) {
 export default function UserManagementPage() {
   const { data: session } = useSession()
   const currentUserId = session?.user?.id
+  const onlineIds = useOnlineUserIds()
   const [users, setUsers] = useState<User[]>(EMPTY_USERS)
   const [loading, setLoading] = useState(true)
   const [sorting, setSorting] = useState<SortingState>([])
@@ -278,6 +280,13 @@ export default function UserManagementPage() {
                 .toUpperCase()
                 .slice(0, 2)}
             </AvatarFallback>
+            {onlineIds.has(row.original.id) && (
+              <AvatarBadge
+                className="bg-green-600 dark:bg-green-800"
+                aria-label="Online now"
+                title="Online now"
+              />
+            )}
           </Avatar>
           <span className="font-medium">{row.getValue("name")}</span>
         </div>

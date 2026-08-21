@@ -1,5 +1,6 @@
 export interface SlotAccent {
   text: string;
+  iconText: string;
   tabFill: string;
   solid: string;
   tint: string;
@@ -30,6 +31,7 @@ export const EVENT_BLOCK = {
 export const slotAccent: Record<string, SlotAccent> = {
   BIBLE: {
     text: "text-purple-700 dark:text-purple-300",
+    iconText: "text-purple-500",
     tabFill: "bg-purple-200 dark:bg-purple-800",
     solid: "bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600",
     tint: "bg-purple-500/10 dark:bg-purple-500/20",
@@ -44,6 +46,7 @@ export const slotAccent: Record<string, SlotAccent> = {
   },
   PRAYER: {
     text: "text-red-700 dark:text-red-300",
+    iconText: "text-red-500",
     tabFill: "bg-red-200 dark:bg-red-800",
     solid: "bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600",
     tint: "bg-red-500/10 dark:bg-red-500/20",
@@ -58,6 +61,7 @@ export const slotAccent: Record<string, SlotAccent> = {
   },
   PRAISE_WORSHIP: {
     text: "text-amber-700 dark:text-amber-300",
+    iconText: "text-amber-500",
     tabFill: "bg-amber-200 dark:bg-amber-800",
     solid: "bg-amber-600 text-white hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600",
     tint: "bg-amber-500/10 dark:bg-amber-500/20",

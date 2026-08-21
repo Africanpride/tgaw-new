@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db/prisma";
 import { EventType, Prisma } from "@prisma/client";
 import { addDays, addMonths, endOfMonth, format, parse, startOfMonth } from "date-fns";
 import { eventEndTime } from "./eventBlockService";
+import { computeSlotStats, statsQueryRange } from "./slotStats";
+import type { SlotStats } from "./slotStats";
 import {
   collectDisplacedBookings,
   enrichSlotsWithEvents,
@@ -272,6 +274,17 @@ export async function getUserBookingCountForDate(userId: string, date: string, t
       bookedBy: userId,
     },
   });
+}
+
+/** Honest per-user usage stats (week/month sessions, derived time). */
+export async function getUserSlotStats(userId: string): Promise<SlotStats> {
+  const today = new Date();
+  const { from, to } = statsQueryRange(today);
+  const slots = await prisma.slot.findMany({
+    where: { bookedBy: userId, date: { gte: from, lte: to } },
+    select: { date: true, type: true },
+  });
+  return computeSlotStats(slots, today);
 }
 
 export async function checkCrossTypeOverlap(userId: string, date: string, startTime: string, endTime: string, excludeType: EventType) {
