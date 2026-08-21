@@ -26,17 +26,17 @@
 - Consumes: Prisma `Event` model and auth session role.
 - Produces: Enhanced `CalendarItem` type with `rawEventId?: string`, `rawDate?: string`, `rawTime?: string`, `blockTypes?: string[]`, and `canManage` boolean passed down to `CalendarView`.
 
-- [ ] **Step 1: Update `CalendarItem` interface in `components/calendar/calendar-view.tsx`**
+- [x] **Step 1: Update `CalendarItem` interface in `components/calendar/calendar-view.tsx`**
 Add `rawEventId?: string`, `rawDate?: string`, `rawTime?: string`, `blockTypes?: string[]` to `CalendarItem`.
 
-- [ ] **Step 2: Update `app/(dashboard)/calendar/page.tsx`**
+- [x] **Step 2: Update `app/(dashboard)/calendar/page.tsx`**
 Map `rawEventId: event.id`, `rawDate: event.date`, `rawTime: event.time`, `blockTypes: event.blockTypes ?? []` onto `eventItems` and pass `canManage={session.user.role === "superadmin" || session.user.role === "coordinator"}` to `<CalendarView />`.
 
-- [ ] **Step 3: Run typecheck**
+- [x] **Step 3: Run typecheck**
 Run: `bun run typecheck`
 Expected: `tsc --noEmit` exits with 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add components/calendar/calendar-view.tsx app/(dashboard)/calendar/page.tsx
 git commit -m "feat(calendar): extend CalendarItem with raw event data and canManage prop"
@@ -53,21 +53,21 @@ git commit -m "feat(calendar): extend CalendarItem with raw event data and canMa
 - Consumes: `CalendarItem` and `mode?: "create" | "edit"`
 - Produces: Reusable `EventFormDialog` supporting both creation (`POST /api/v1/events`) and updates (`PATCH /api/v1/events/:id`).
 
-- [ ] **Step 1: Update `EventFormDialog` props and form reset on initial item change**
+- [x] **Step 1: Update `EventFormDialog` props and form reset on initial item change**
 Add `mode?: "create" | "edit"` and `event?: CalendarItem | null` to `EventFormDialogProps`.
 When `event` changes and `open` is true, populate form values with `event`'s `title`, `type`, `passage`, `rawDate`, `rawTime`, `duration`, `zoomUrl`, `notes`, and `blockTypes`.
 
-- [ ] **Step 2: Update submission logic for edit mode**
+- [x] **Step 2: Update submission logic for edit mode**
 When `mode === "edit"` and `event?.rawEventId` is present:
 - Send `PATCH /api/v1/events/${event.rawEventId}`.
 - If response contains `willDisplace`, display the displacement warning.
 - On success, toast "Event updated successfully", close dialog, and call `router.refresh()`.
 
-- [ ] **Step 3: Run typecheck**
+- [x] **Step 3: Run typecheck**
 Run: `bun run typecheck`
 Expected: `tsc --noEmit` exits with 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add components/calendar/event-form-dialog.tsx
 git commit -m "feat(calendar): add edit mode to EventFormDialog"
@@ -85,23 +85,23 @@ git commit -m "feat(calendar): add edit mode to EventFormDialog"
 - Consumes: `canManage?: boolean`, `onEdit?: (item: CalendarItem) => void`, `onDelete?: (item: CalendarItem) => void`.
 - Produces: Interactive Edit and Delete actions for events with confirmation dialog and automatic slot unblocking.
 
-- [ ] **Step 1: Update `CalendarDetailPopover` with Edit & Delete action buttons**
+- [x] **Step 1: Update `CalendarDetailPopover` with Edit & Delete action buttons**
 When `item.source === "event"` and `canManage === true`:
 - Render **Edit** button (opens edit modal).
 - Render **Delete** button with `AlertDialog` confirmation prompt: "Delete this event? This will unblock any slots reserved for this event and restore displaced bookings."
 
-- [ ] **Step 2: Wire edit and delete handlers in `CalendarView`**
+- [x] **Step 2: Wire edit and delete handlers in `CalendarView`**
 In `CalendarView`:
 - State for `editingEvent: CalendarItem | null` and `isEditOpen: boolean`.
 - Handle `onDelete`: calls `DELETE /api/v1/events/${item.rawEventId}`, shows toast "Event deleted", and calls `router.refresh()`.
 - Pass `onEdit` and `onDelete` to each `CalendarDetailPopover`.
 - Render `EventFormDialog` with `mode="edit"` and `event={editingEvent}`.
 
-- [ ] **Step 3: Run typecheck**
+- [x] **Step 3: Run typecheck**
 Run: `bun run typecheck`
 Expected: `tsc --noEmit` exits with 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add components/calendar/calendar-detail-popover.tsx components/calendar/calendar-view.tsx
 git commit -m "feat(calendar): add edit and delete actions to calendar detail popover"
@@ -114,14 +114,14 @@ git commit -m "feat(calendar): add edit and delete actions to calendar detail po
 **Files:**
 - Test across all calendar and slot services.
 
-- [ ] **Step 1: Run unit tests**
+- [x] **Step 1: Run unit tests**
 Run: `bun test`
 Expected: All 38+ tests pass.
 
-- [ ] **Step 2: Run linter**
+- [x] **Step 2: Run linter**
 Run: `bun run lint`
 Expected: 0 errors.
 
-- [ ] **Step 3: Run full Next.js build**
+- [x] **Step 3: Run full Next.js build**
 Run: `bun run build`
 Expected: Build succeeds.
