@@ -23,6 +23,7 @@ import {
 import { motion, useReducedMotion } from "motion/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -158,6 +159,9 @@ function DayCell({
 	selected,
 	events,
 	timezone,
+	canManage,
+	onEdit,
+	onDelete,
 	onSelect,
 }: {
 	day: Date;
@@ -165,6 +169,9 @@ function DayCell({
 	selected: Date;
 	events: CalendarItem[];
 	timezone: string;
+	canManage?: boolean;
+	onEdit?: (item: CalendarItem) => void;
+	onDelete?: (item: CalendarItem) => void;
 	onSelect: (day: Date) => void;
 }) {
 	const shouldReduceMotion = useReducedMotion();
@@ -219,6 +226,9 @@ function DayCell({
 						<CalendarDetailPopover
 							item={item}
 							timezone={timezone}
+							canManage={canManage}
+							onEdit={onEdit}
+							onDelete={onDelete}
 						>
 							<button
 								type="button"
@@ -247,6 +257,7 @@ export function CalendarView({
 	userTimezone = "UTC",
 	initialMonth,
 	canCreate = false,
+	canManage = false,
 	className,
 }: {
 	items?: CalendarItem[];
@@ -276,6 +287,42 @@ export function CalendarView({
 		React.useState<Set<string>>(FILTER_DEFAULT_ON);
 	const [sidebarOpen, setSidebarOpen] = React.useState(false);
 	const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
+	const [editingEvent, setEditingEvent] = React.useState<CalendarItem | null>(null);
+	const [isEditOpen, setIsEditOpen] = React.useState(false);
+
+	const handleEdit = React.useCallback((item: CalendarItem) => {
+		setEditingEvent(item);
+		setIsEditOpen(true);
+	}, []);
+
+	const handleDelete = React.useCallback(
+		async (item: CalendarItem) => {
+			const eventId = item.rawEventId;
+			if (!eventId) {
+				toast.error("Missing event ID");
+				return;
+			}
+			try {
+				const res = await fetch(`/api/v1/events/${eventId}`, {
+					method: "DELETE",
+				});
+				const json = await res.json();
+				if (json.success) {
+					toast.success("Event deleted");
+					router.refresh();
+				} else {
+					toast.error(
+						typeof json.error === "string"
+							? json.error
+							: "Could not delete event",
+					);
+				}
+			} catch {
+				toast.error("Could not delete event");
+			}
+		},
+		[router],
+	);
 
 	const monthCells = React.useMemo(
 		() => buildMonthCells(visibleMonth),
@@ -517,6 +564,9 @@ export function CalendarView({
 										selected={selectedDate}
 										events={filteredEvents}
 										timezone={userTimezone}
+										canManage={canManage}
+										onEdit={handleEdit}
+										onDelete={handleDelete}
 										onSelect={setSelectedDate}
 									/>
 								))}
@@ -529,6 +579,15 @@ export function CalendarView({
 			<EventFormDialog
 				open={createDialogOpen}
 				onOpenChange={setCreateDialogOpen}
+			/>
+			<EventFormDialog
+				open={isEditOpen}
+				onOpenChange={(open) => {
+					setIsEditOpen(open);
+					if (!open) setEditingEvent(null);
+				}}
+				mode="edit"
+				event={editingEvent}
 			/>
 		</div>
 	);

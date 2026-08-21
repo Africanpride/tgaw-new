@@ -6,11 +6,24 @@ import {
 	CalendarDays,
 	Clock,
 	ExternalLink,
+	Pencil,
+	Trash2,
 	X,
 } from "lucide-react";
 import * as React from "react";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Popover,
 	PopoverContent,
@@ -64,15 +77,23 @@ function useIsDesktop(): boolean {
 function ItemDetail({
 	item,
 	timezone,
+	canManage,
+	onEdit,
+	onDelete,
 	onClose,
 }: {
 	item: CalendarItem;
 	timezone: string;
+	canManage?: boolean;
+	onEdit?: (item: CalendarItem) => void;
+	onDelete?: (item: CalendarItem) => void;
 	onClose: () => void;
 }) {
 	const endTime =
 		item.endTime ??
 		(item.duration ? addMinutesToTime(item.startTime, item.duration) : null);
+
+	const isEvent = item.source === "event";
 
 	return (
 		<div className="space-y-4">
@@ -140,6 +161,58 @@ function ItemDetail({
 					</a>
 				)}
 			</div>
+
+			{isEvent && canManage && (
+				<div className="flex items-center justify-end gap-2 border-t pt-3">
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						className="h-8 gap-1.5 text-xs"
+						onClick={() => {
+							onEdit?.(item);
+							onClose();
+						}}
+					>
+						<Pencil className="size-3.5" aria-hidden="true" />
+						Edit
+					</Button>
+					<AlertDialog>
+						<AlertDialogTrigger asChild>
+							<Button
+								type="button"
+								variant="destructive"
+								size="sm"
+								className="h-8 gap-1.5 text-xs"
+							>
+								<Trash2 className="size-3.5" aria-hidden="true" />
+								Delete
+							</Button>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Delete this event?</AlertDialogTitle>
+								<AlertDialogDescription>
+									This will unblock any slots reserved for this event and
+									restore displaced bookings.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Cancel</AlertDialogCancel>
+								<AlertDialogAction
+									className={buttonVariants({ variant: "destructive" })}
+									onClick={() => {
+										onDelete?.(item);
+										onClose();
+									}}
+								>
+									Delete Event
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
+				</div>
+			)}
 		</div>
 	);
 }
@@ -148,10 +221,16 @@ export function CalendarDetailPopover({
 	children,
 	item,
 	timezone,
+	canManage,
+	onEdit,
+	onDelete,
 }: {
 	children: React.ReactNode;
 	item: CalendarItem;
 	timezone?: string;
+	canManage?: boolean;
+	onEdit?: (item: CalendarItem) => void;
+	onDelete?: (item: CalendarItem) => void;
 }) {
 	const [open, setOpen] = React.useState(false);
 	const isDesktop = useIsDesktop();
@@ -160,6 +239,9 @@ export function CalendarDetailPopover({
 		<ItemDetail
 			item={item}
 			timezone={timezone ?? "UTC"}
+			canManage={canManage}
+			onEdit={onEdit}
+			onDelete={onDelete}
 			onClose={() => setOpen(false)}
 		/>
 	);
