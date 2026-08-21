@@ -15,8 +15,9 @@ import {
   type AgendaSummary,
 } from "@/components/booking/AgendaView"
 import { VerseCard } from "@/components/verse/VerseCard"
-import { MeetingBanner } from "@/components/meetings/MeetingBanner"
+import { MeetingBanner, type SpecialEventMeeting } from "@/components/meetings/MeetingBanner"
 import { getActiveSlotHosts } from "@/lib/services/slotService"
+import { eventEndTime } from "@/lib/services/eventBlockService"
 
 const WINDOW_MIN = 16 * 60
 
@@ -32,6 +33,14 @@ function slotTypeLabel(type: string): string {
 function toMinutes(t: string): number {
   const [h, m] = t.split(":").map(Number)
   return h * 60 + m
+}
+
+/** Build a Date from a YYYY-MM-DD + HH:MM pair in UTC (handles "24:00" rollover). */
+function utcDateTime(date: string, hhmm: string): Date {
+  const [h, m] = hhmm.split(":").map(Number)
+  const d = new Date(`${date}T00:00:00Z`)
+  d.setUTCMinutes(d.getUTCMinutes() + h * 60 + m)
+  return d
 }
 
 function deriveInitials(name?: string): string {
@@ -139,6 +148,43 @@ export default async function OverviewPage() {
 
   const activeHosts = await getActiveSlotHosts()
 
+  // Upcoming / in-progress org-wide Special Events for the meeting banner.
+  const now = new Date()
+  const specialCandidates = (
+    await prisma.event.findMany({
+      where: { type: "SPECIAL", date: { gte: today } },
+      orderBy: [{ date: "asc" }, { time: "asc" }],
+      take: 10,
+    })
+  )
+    .map((event) => ({ event, endTime: eventEndTime(event.time, event.duration) }))
+    .filter(({ event, endTime }) => utcDateTime(event.date, endTime) > now)
+    .slice(0, 3)
+
+  const specialHostIds = [...new Set(specialCandidates.map(({ event }) => event.userId))]
+  const specialHostUsers = specialHostIds.length
+    ? await prisma.user.findMany({
+        where: { id: { in: specialHostIds } },
+        select: { id: true, name: true },
+      })
+    : []
+  const specialHostNameMap = new Map(specialHostUsers.map((u) => [u.id, u.name]))
+
+  const specialEvents: SpecialEventMeeting[] = specialCandidates.map(
+    ({ event, endTime }) => ({
+      id: event.id,
+      title: event.title,
+      date: event.date,
+      startTime: event.time,
+      endTime,
+      zoomUrl: event.zoomUrl,
+      hostName: specialHostNameMap.get(event.userId) ?? null,
+      isLive:
+        now >= utcDateTime(event.date, event.time) &&
+        now < utcDateTime(event.date, endTime),
+    })
+  )
+
   const buildEvents = (date: string, blocks: SlotBlock[]): AgendaEvent[] =>
     blocks.map((block) => {
       const link =
@@ -231,7 +277,7 @@ export default async function OverviewPage() {
         </p>
       </div>
       <VerseCard />
-      <MeetingBanner initialHosts={activeHosts} />
+      <MeetingBanner initialHosts={activeHosts} initialSpecialEvents={specialEvents} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Day Streak"
