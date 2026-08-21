@@ -59,8 +59,8 @@ export default async function CalendarPage(props: {
 	});
 	const userTimezone = profile?.timezone ?? "UTC";
 
-	// Fetch the user's booked slots, owned events, and org-wide Special Events.
-	const [slots, events, specialEvents] = await Promise.all([
+	// Fetch the user's booked slots and visible events (user's own events + org-wide Special Events).
+	const [slots, events] = await Promise.all([
 		prisma.slot.findMany({
 			where: {
 				bookedBy: session.user.id,
@@ -70,16 +70,11 @@ export default async function CalendarPage(props: {
 		}),
 		prisma.event.findMany({
 			where: {
-				userId: session.user.id,
 				date: { gte: startDate, lte: endDate },
-			},
-			orderBy: [{ date: "asc" }, { time: "asc" }],
-		}),
-		// Org-wide Special Events visible to every member.
-		prisma.event.findMany({
-			where: {
-				type: "SPECIAL",
-				date: { gte: startDate, lte: endDate },
+				OR: [
+					{ userId: session.user.id },
+					{ type: "SPECIAL" },
+				],
 			},
 			orderBy: [{ date: "asc" }, { time: "asc" }],
 		}),
@@ -125,22 +120,7 @@ export default async function CalendarPage(props: {
 		source: "event",
 		type: event.type,
 		title: event.title,
-		color: "blue",
-		date: utcSlotToLocalDate(event.date, event.time).toISOString(),
-		startTime: convertTimeToTimezone(event.time, event.date, userTimezone),
-		duration: event.duration,
-		notes: event.notes,
-		passage: event.passage,
-		zoomUrl: event.zoomUrl,
-	}));
-
-	// Org-wide Special Events shown to everyone (violet, own event rendering).
-	const specialEventItems: CalendarItem[] = specialEvents.map((event) => ({
-		id: `event-${event.id}`,
-		source: "event",
-		type: "SPECIAL",
-		title: event.title,
-		color: "violet",
+		color: event.type === "SPECIAL" ? "violet" : "blue",
 		date: utcSlotToLocalDate(event.date, event.time).toISOString(),
 		startTime: convertTimeToTimezone(event.time, event.date, userTimezone),
 		duration: event.duration,
@@ -159,7 +139,7 @@ export default async function CalendarPage(props: {
 			</div>
 
 			<CalendarView
-				items={[...slotItems, ...eventItems, ...specialEventItems]}
+				items={[...slotItems, ...eventItems]}
 				userTimezone={userTimezone}
 				initialMonth={format(monthStart, "yyyy-MM")}
 				canCreate={

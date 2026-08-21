@@ -204,7 +204,7 @@ export function EventFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex max-h-[88vh] flex-col gap-0 overflow-hidden border-border/60 p-0 shadow-2xl sm:max-w-xl">
+      <DialogContent className="flex max-h-[88vh] flex-col gap-0 overflow-hidden border-border/60 p-0 shadow-2xl sm:max-w-2xl">
         {/* Category-Accented Header */}
         <DialogHeader
           className={cn(
