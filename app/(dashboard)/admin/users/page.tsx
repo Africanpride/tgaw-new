@@ -233,6 +233,7 @@ export default function UserManagementPage() {
   const [globalFilter, setGlobalFilter] = useState("")
   const [targetUser, setTargetUser] = useState<User | null>(null)
   const [actionTarget, setActionTarget] = useState<ActionTarget>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState("")
   const [banReason, setBanReason] = useState("")
   const [isActing, setIsActing] = useState(false)
   const [roleStep, setRoleStep] = useState<1 | 2>(1)
@@ -397,6 +398,7 @@ export default function UserManagementPage() {
               title="Delete user"
               disabled={isSelf}
               onClick={() => {
+                setDeleteConfirm("")
                 setTargetUser(user)
                 setActionTarget("delete")
               }}
@@ -531,6 +533,7 @@ export default function UserManagementPage() {
       toast.error(result.error?.message || "Failed to delete user")
     }
     setIsActing(false)
+    setDeleteConfirm("")
     setTargetUser(null)
     setActionTarget(null)
   }
@@ -781,6 +784,7 @@ export default function UserManagementPage() {
         open={actionTarget === "delete" && !!targetUser}
         onOpenChange={(open) => {
           if (!open && !isActing) {
+            setDeleteConfirm("")
             setTargetUser(null)
             setActionTarget(null)
           }
@@ -794,11 +798,27 @@ export default function UserManagementPage() {
               of their data. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="delete-confirm">
+              Type{" "}
+              <span className="font-semibold text-foreground">delete account</span>{" "}
+              to confirm
+            </Label>
+            <Input
+              id="delete-confirm"
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder="delete account"
+              autoComplete="off"
+              autoFocus
+            />
+          </div>
           <DialogFooter>
             <Button
               variant="outline"
               disabled={isActing}
               onClick={() => {
+                setDeleteConfirm("")
                 setTargetUser(null)
                 setActionTarget(null)
               }}
@@ -807,7 +827,7 @@ export default function UserManagementPage() {
             </Button>
             <Button
               variant="destructive"
-              disabled={isActing}
+              disabled={isActing || deleteConfirm.trim() !== "delete account"}
               onClick={() => targetUser && deleteUser(targetUser.id)}
             >
               <Trash2 className="mr-2 size-4" aria-hidden="true" />
