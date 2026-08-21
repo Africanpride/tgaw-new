@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import {
@@ -97,6 +97,34 @@ export function EventFormDialog({
   const router = useRouter()
   const isEdit = mode === "edit" && Boolean(event)
 
+  const defaultValues: CreateEventInput = useMemo(() => {
+    if (mode === "edit" && event) {
+      return {
+        type: event.type,
+        title: event.title ?? "",
+        passage: event.passage ?? "",
+        date: event.rawDate ?? event.date,
+        time: event.rawTime ?? event.startTime,
+        duration: event.duration ?? 30,
+        zoomUrl: event.zoomUrl ?? "",
+        notes: event.notes ?? "",
+        blockTypes:
+          (event.blockTypes as ("BIBLE" | "PRAYER" | "PRAISE_WORSHIP")[]) ?? [],
+      }
+    }
+    return {
+      type: "BIBLE",
+      title: "",
+      passage: "",
+      date: new Date().toISOString().split("T")[0],
+      time: "09:00",
+      duration: 30,
+      zoomUrl: "",
+      notes: "",
+      blockTypes: [],
+    }
+  }, [mode, event])
+
   const {
     register,
     handleSubmit,
@@ -106,71 +134,24 @@ export function EventFormDialog({
     formState: { errors, isSubmitting },
   } = useForm<CreateEventInput>({
     resolver: zodResolver(createEventSchema),
-    defaultValues: {
-      type: "BIBLE",
-      title: "",
-      passage: "",
-      date: new Date().toISOString().split("T")[0],
-      time: "09:00",
-      duration: 30,
-      zoomUrl: "",
-      notes: "",
+    values: open ? defaultValues : undefined,
+    resetOptions: {
+      keepDirtyValues: false,
     },
   })
 
   const type = useWatch({ control, name: "type" }) ?? "BIBLE"
+  const blockTypes = useWatch({ control, name: "blockTypes" }) ?? []
   const currentTypeConfig =
     EVENT_TYPES.find((t) => t.id === type) ?? EVENT_TYPES[0]
   const TypeIcon = currentTypeConfig.icon
 
   const isSpecial = type === "SPECIAL"
 
-  const [selectedBlockTypes, setSelectedBlockTypes] = useState<
-    Set<"BIBLE" | "PRAYER" | "PRAISE_WORSHIP">
-  >(new Set())
   const [previewWarning, setPreviewWarning] = useState<{
     blockedSlotCount: number
     displacingCount: number
   } | null>(null)
-
-  useEffect(() => {
-    if (open) {
-      if (mode === "edit" && event) {
-        reset({
-          type: event.type,
-          title: event.title ?? "",
-          passage: event.passage ?? "",
-          date: event.rawDate ?? event.date,
-          time: event.rawTime ?? event.startTime,
-          duration: event.duration ?? 30,
-          zoomUrl: event.zoomUrl ?? "",
-          notes: event.notes ?? "",
-        })
-        if (event.blockTypes && Array.isArray(event.blockTypes)) {
-          setSelectedBlockTypes(
-            new Set(
-              event.blockTypes as ("BIBLE" | "PRAYER" | "PRAISE_WORSHIP")[]
-            )
-          )
-        } else {
-          setSelectedBlockTypes(new Set())
-        }
-      } else {
-        reset({
-          type: "BIBLE",
-          title: "",
-          passage: "",
-          date: new Date().toISOString().split("T")[0],
-          time: "09:00",
-          duration: 30,
-          zoomUrl: "",
-          notes: "",
-        })
-        setSelectedBlockTypes(new Set())
-      }
-      setPreviewWarning(null)
-    }
-  }, [open, mode, event, reset])
 
   async function submitEvent(values: CreateEventInput, confirmed: boolean) {
     const isEditMode = mode === "edit" && event?.rawEventId
@@ -182,7 +163,7 @@ export function EventFormDialog({
     const body = isSpecial
       ? {
           ...values,
-          blockTypes: [...selectedBlockTypes],
+          blockTypes: values.blockTypes ?? [],
           ...(confirmed ? { _confirm: true } : { _preview: true }),
         }
       : { ...values, ...(confirmed ? { _confirm: true } : { _preview: true }) }
@@ -277,7 +258,6 @@ export function EventFormDialog({
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setPreviewWarning(null)
-      setSelectedBlockTypes(new Set())
     }
     onOpenChange(nextOpen)
   }
@@ -337,7 +317,7 @@ export function EventFormDialog({
                     onClick={() => {
                       setValue("type", t.id, { shouldValidate: true })
                       if (t.id !== "SPECIAL") {
-                        setSelectedBlockTypes(new Set())
+                        setValue("blockTypes", [], { shouldValidate: true })
                         setPreviewWarning(null)
                       }
                     }}
@@ -401,7 +381,7 @@ export function EventFormDialog({
                   { id: "PRAYER" as const, label: "Prayer" },
                   { id: "PRAISE_WORSHIP" as const, label: "Praise & Worship" },
                 ].map((opt) => {
-                  const checked = selectedBlockTypes.has(opt.id)
+                  const checked = (blockTypes as string[]).includes(opt.id)
                   return (
                     <label
                       key={opt.id}
@@ -410,10 +390,11 @@ export function EventFormDialog({
                       <Checkbox
                         checked={checked}
                         onCheckedChange={(value) => {
-                          const next = new Set(selectedBlockTypes)
-                          if (value) next.add(opt.id)
-                          else next.delete(opt.id)
-                          setSelectedBlockTypes(next)
+                          const current = (blockTypes as ("BIBLE" | "PRAYER" | "PRAISE_WORSHIP")[]) ?? []
+                          const next = value
+                            ? [...current, opt.id]
+                            : current.filter((t) => t !== opt.id)
+                          setValue("blockTypes", next, { shouldValidate: true })
                         }}
                         className="data-[state=checked]:bg-violet-500"
                       />
