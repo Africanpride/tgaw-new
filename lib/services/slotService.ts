@@ -204,6 +204,7 @@ export async function getSlotsForDate(date: string, type?: EventType, currentUse
       bookedByName,
       bookedByImage,
       notes: isOwnBooking || (userRole === "leader" || userRole === "superadmin") ? slot.notes : null,
+      eventId: slot.eventId,
     };
   });
 

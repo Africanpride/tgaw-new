@@ -51,7 +51,8 @@ export function SlotTimeline({
 
   const handleSelect = (id: string, shiftKey: boolean) => {
     const targetSlot = visibleSlots.find((s) => s.id === id);
-    if (!targetSlot || targetSlot.isBooked || isPastSlot(targetSlot)) return;
+    const isBlocked = !!targetSlot?.eventId;
+    if (!targetSlot || targetSlot.isBooked || isPastSlot(targetSlot) || isBlocked) return;
 
     if (shiftKey && lastSelectedId) {
       const startIndex = visibleSlots.findIndex((s) => s.id === lastSelectedId);
@@ -61,7 +62,8 @@ export function SlotTimeline({
       const newSelection: string[] = [];
       let canSelectAll = true;
       for (let i = min; i <= max; i++) {
-        if (visibleSlots[i].isBooked || isPastSlot(visibleSlots[i])) {
+        const slotIsBlocked = !!visibleSlots[i].eventId;
+        if (visibleSlots[i].isBooked || isPastSlot(visibleSlots[i]) || slotIsBlocked) {
           canSelectAll = false;
           break;
         }

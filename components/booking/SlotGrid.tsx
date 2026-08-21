@@ -1,29 +1,25 @@
-"use client";
+"use client"
 
-import { useEffect, useRef, useState } from "react";
-import { motion } from "motion/react";
-import { CalendarX2, Check, Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { UserAvatar } from "@/components/UserAvatar";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { SlotData } from "./SlotCell";
-import {
-  convertUtcTimeToLocal,
-  isCurrentSlot,
-  isPastSlot,
-} from "./slotTime";
-import { slotAccent } from "./slotAccent";
-import type { SlotAccent } from "./slotAccent";
-import { EventType } from "@prisma/client";
-import { cn } from "@/lib/utils";
+import { useEffect, useRef, useState } from "react"
+import { motion } from "motion/react"
+import { CalendarX2, Check, Clock } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { UserAvatar } from "@/components/UserAvatar"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { SlotData } from "./SlotCell"
+import { convertUtcTimeToLocal, isCurrentSlot, isPastSlot } from "./slotTime"
+import { slotAccent } from "./slotAccent"
+import type { SlotAccent } from "./slotAccent"
+import { EventType } from "@prisma/client"
+import { cn } from "@/lib/utils"
 
 interface SlotGridProps {
-  slots: SlotData[];
-  type: EventType;
-  selectedIds: string[];
-  onSelectionChange: (ids: string[]) => void;
-  onEmptyAction?: () => void;
+  slots: SlotData[]
+  type: EventType
+  selectedIds: string[]
+  onSelectionChange: (ids: string[]) => void
+  onEmptyAction?: () => void
 }
 
 export function SlotGrid({
@@ -33,54 +29,66 @@ export function SlotGrid({
   onSelectionChange,
   onEmptyAction,
 }: SlotGridProps) {
-  const visibleSlots = slots.filter((s) => !isPastSlot(s) || isCurrentSlot(s));
-  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const visibleSlots = slots.filter((s) => !isPastSlot(s) || isCurrentSlot(s))
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-  const accent = slotAccent[type];
+  const accent = slotAccent[type]
 
   useEffect(() => {
-    if (!scrollRef.current) return;
-    const current = visibleSlots.find((s) => isCurrentSlot(s));
-    if (!current) return;
-    const el = scrollRef.current.querySelector(`[data-slot-id="${current.id}"]`);
+    if (!scrollRef.current) return
+    const current = visibleSlots.find((s) => isCurrentSlot(s))
+    if (!current) return
+    const el = scrollRef.current.querySelector(`[data-slot-id="${current.id}"]`)
     if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.scrollIntoView({ behavior: "smooth", block: "center" })
     }
-  }, [visibleSlots]);
+  }, [visibleSlots])
 
   const handleSelect = (id: string, shiftKey: boolean) => {
-    const targetSlot = visibleSlots.find((s) => s.id === id);
-    if (!targetSlot || targetSlot.isBooked || isPastSlot(targetSlot)) return;
+    const targetSlot = visibleSlots.find((s) => s.id === id)
+    const isBlocked = !!targetSlot?.eventId
+    if (
+      !targetSlot ||
+      targetSlot.isBooked ||
+      isPastSlot(targetSlot) ||
+      isBlocked
+    )
+      return
 
     if (shiftKey && lastSelectedId) {
-      const startIndex = visibleSlots.findIndex((s) => s.id === lastSelectedId);
-      const endIndex = visibleSlots.findIndex((s) => s.id === id);
-      const min = Math.min(startIndex, endIndex);
-      const max = Math.max(startIndex, endIndex);
-      const newSelection: string[] = [];
-      let canSelectAll = true;
+      const startIndex = visibleSlots.findIndex((s) => s.id === lastSelectedId)
+      const endIndex = visibleSlots.findIndex((s) => s.id === id)
+      const min = Math.min(startIndex, endIndex)
+      const max = Math.max(startIndex, endIndex)
+      const newSelection: string[] = []
+      let canSelectAll = true
       for (let i = min; i <= max; i++) {
-        if (visibleSlots[i].isBooked || isPastSlot(visibleSlots[i])) {
-          canSelectAll = false;
-          break;
+        const slotIsBlocked = !!visibleSlots[i].eventId
+        if (
+          visibleSlots[i].isBooked ||
+          isPastSlot(visibleSlots[i]) ||
+          slotIsBlocked
+        ) {
+          canSelectAll = false
+          break
         }
-        newSelection.push(visibleSlots[i].id);
+        newSelection.push(visibleSlots[i].id)
       }
       if (canSelectAll) {
         onSelectionChange(
-          Array.from(new Set([...selectedIds, ...newSelection])),
-        );
+          Array.from(new Set([...selectedIds, ...newSelection]))
+        )
       }
     } else {
       onSelectionChange(
         selectedIds.includes(id)
           ? selectedIds.filter((sId) => sId !== id)
-          : [...selectedIds, id],
-      );
-      setLastSelectedId(id);
+          : [...selectedIds, id]
+      )
+      setLastSelectedId(id)
     }
-  };
+  }
 
   if (visibleSlots.length === 0) {
     return (
@@ -88,7 +96,7 @@ export function SlotGrid({
         <div
           className={cn(
             "flex size-12 items-center justify-center rounded-full",
-            accent.iconTile,
+            accent.iconTile
           )}
         >
           <CalendarX2 className="size-6" aria-hidden="true" />
@@ -99,12 +107,17 @@ export function SlotGrid({
           devotional watch.
         </p>
         {onEmptyAction && (
-          <Button variant="outline" size="sm" onClick={onEmptyAction} className="mt-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onEmptyAction}
+            className="mt-1"
+          >
             Pick another day
           </Button>
         )}
       </div>
-    );
+    )
   }
 
   return (
@@ -125,15 +138,15 @@ export function SlotGrid({
         ))}
       </div>
     </ScrollArea>
-  );
+  )
 }
 
 interface SlotGridCellProps {
-  slot: SlotData;
-  isSelected: boolean;
-  onSelect: (id: string, shiftKey: boolean) => void;
-  accent: SlotAccent;
-  isCurrent?: boolean;
+  slot: SlotData
+  isSelected: boolean
+  onSelect: (id: string, shiftKey: boolean) => void
+  accent: SlotAccent
+  isCurrent?: boolean
 }
 
 function SlotGridCell({
@@ -143,8 +156,9 @@ function SlotGridCell({
   accent,
   isCurrent,
 }: SlotGridCellProps) {
-  const past = isPastSlot(slot);
-  const isAvailable = !slot.isBooked && !past;
+  const past = isPastSlot(slot)
+  const isBlocked = !!slot.eventId
+  const isAvailable = !slot.isBooked && !past && !isBlocked
 
   return (
     <motion.div
@@ -156,25 +170,28 @@ function SlotGridCell({
       aria-pressed={isSelected}
       aria-disabled={!isAvailable}
       aria-label={`${convertUtcTimeToLocal(slot.startTime)} to ${convertUtcTimeToLocal(
-        slot.endTime,
-      )} slot, ${past ? "past" : isAvailable ? (isSelected ? "selected" : "available") : "booked"}${isCurrent ? " (current)" : ""}`}
+        slot.endTime
+      )} slot, ${past ? "past" : isBlocked ? "blocked by event" : isAvailable ? (isSelected ? "selected" : "available") : "booked"}${isCurrent ? " (current)" : ""}`}
       onKeyDown={(e) => {
         if (isAvailable && (e.key === "Enter" || e.key === " ")) {
-          e.preventDefault();
-          onSelect(slot.id, e.shiftKey);
+          e.preventDefault()
+          onSelect(slot.id, e.shiftKey)
         }
       }}
       data-slot-id={slot.id}
       className={cn(
-        "flex min-h-[64px] flex-col gap-1.5 rounded-md border p-3 text-left transition-colors select-none outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-        past
-          ? "cursor-default opacity-40"
-          : "cursor-pointer",
+        "flex min-h-[64px] flex-col gap-1.5 rounded-md border p-3 text-left transition-colors outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        past ? "cursor-default opacity-40" : "cursor-pointer",
+        isBlocked &&
+          !past &&
+          "cursor-not-allowed border-destructive bg-destructive/10 opacity-60",
         !past && isAvailable && "hover:bg-muted/50",
-        !past && !isAvailable && "cursor-not-allowed opacity-60",
+        !past && !isAvailable && !isBlocked && "cursor-not-allowed opacity-60",
         isSelected && isAvailable && cn(accent.tint, "border-primary/40"),
-        slot.isOwnBooking && !past && cn(accent.tintStrong, "border-primary/20"),
-        isCurrent && !past && "ring-1 ring-inset ring-primary/30",
+        slot.isOwnBooking &&
+          !past &&
+          cn(accent.tintStrong, "border-primary/20"),
+        isCurrent && !past && "ring-1 ring-primary/30 ring-inset"
       )}
     >
       <div className="flex items-center justify-between gap-2">
@@ -192,7 +209,7 @@ function SlotGridCell({
             transition={{ type: "spring", stiffness: 500, damping: 25 }}
             className={cn(
               "flex size-5 shrink-0 items-center justify-center rounded-full",
-              accent.solid,
+              accent.solid
             )}
           >
             <Check className="size-3" aria-hidden="true" />
@@ -206,12 +223,21 @@ function SlotGridCell({
             <Clock className="size-3" aria-hidden="true" />
             Past
           </span>
+        ) : isBlocked ? (
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="destructive"
+              className="text-destructive-foreground bg-destructive"
+            >
+              Unavailable
+            </Badge>
+          </div>
         ) : isAvailable ? (
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span
               className={cn(
                 "size-1.5 rounded-full",
-                isSelected ? accent.dotStrong : "bg-muted-foreground/40",
+                isSelected ? accent.dotStrong : "bg-muted-foreground/40"
               )}
             />
             {isSelected ? "Selected" : "Available"}
@@ -240,5 +266,5 @@ function SlotGridCell({
         )}
       </div>
     </motion.div>
-  );
+  )
 }
