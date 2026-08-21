@@ -3,7 +3,7 @@
 import { Bell, Monitor, Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { NavUser } from "@/components/nav-user";
 import { useTheme } from "@/components/theme-provider";
 import {
@@ -103,13 +103,20 @@ export function Topbar() {
 	const { theme, setTheme } = useTheme();
 	const title = pageTitles[pathname] || "Dashboard";
 	const crumbs = breadcrumbMap[pathname] ?? [{ label: title }];
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
 	const cycleTheme = () => {
 		const idx = themes.indexOf((theme ?? "system") as (typeof themes)[number]);
 		setTheme(themes[(idx + 1) % themes.length]);
 	};
 
-	const Icon = themeIcons[(theme ?? "system") as keyof typeof themeIcons];
+	const Icon = mounted
+		? themeIcons[(theme ?? "system") as keyof typeof themeIcons]
+		: Monitor;
 
 	return (
 		<header className="sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
