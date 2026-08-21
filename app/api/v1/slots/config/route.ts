@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { getBookingConfig, updateBookingConfig } from "@/lib/services/slotService";
 import { updateBookingConfigSchema } from "@/lib/schemas/slotSchema";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
   const role = session?.user?.role as string;
   if (!session?.user || (role !== "leader" && role !== "superadmin")) {

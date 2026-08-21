@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ReportStatus } from "@prisma/client"
 
 interface Report {
   id: string

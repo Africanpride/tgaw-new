@@ -14,25 +14,55 @@ const ThemeContext = React.createContext<ThemeContextValue | undefined>(
 	undefined,
 );
 
+function resolveTheme(t: Theme): "light" | "dark" {
+	if (t === "system") {
+		return typeof window !== "undefined" &&
+			window.matchMedia("(prefers-color-scheme: dark)").matches
+			? "dark"
+			: "light";
+	}
+	return t;
+}
+
+function applyTheme(t: Theme): "light" | "dark" {
+	const resolved = resolveTheme(t);
+	const root = document.documentElement;
+	root.classList.remove("light", "dark");
+	root.classList.add(resolved);
+	root.style.colorScheme = resolved;
+	return resolved;
+}
+
+function getInitialTheme(): Theme {
+	if (typeof window === "undefined") return "system";
+	const stored = localStorage.getItem("theme") as Theme | null;
+	return stored ?? "system";
+}
+
 function ThemeProvider({ children }: { children: React.ReactNode }) {
-	const [theme, setThemeState] = React.useState<Theme>("system");
+	const [theme, setThemeState] = React.useState<Theme>(getInitialTheme);
 	const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(
-		"light",
+		() => resolveTheme(getInitialTheme()),
 	);
-	const [mounted, setMounted] = React.useState(false);
+	const mounted = React.useSyncExternalStore(
+		() => () => {},
+		() => true,
+		() => false,
+	);
 
 	React.useEffect(() => {
-		setMounted(true);
 		const stored = localStorage.getItem("theme") as Theme | null;
 		const initial = stored ?? "system";
-		setThemeState(initial);
 		applyTheme(initial);
 	}, []);
 
 	React.useEffect(() => {
 		if (!mounted) return;
 		const mql = window.matchMedia("(prefers-color-scheme: dark)");
-		const onChange = () => applyTheme(theme);
+		const onChange = () => {
+			const res = applyTheme(theme);
+			setResolvedTheme(res);
+		};
 		mql.addEventListener("change", onChange);
 		return () => mql.removeEventListener("change", onChange);
 	}, [theme, mounted]);
@@ -53,35 +83,21 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 				return;
 			if (e.key?.toLowerCase() !== "d") return;
 			if (isTypingTarget(e.target)) return;
-			setThemeState((prev) => {
-				const next = resolvedTheme === "dark" ? "light" : "dark";
-				localStorage.setItem("theme", next);
-				applyTheme(next);
-				return next;
-			});
+			const next = resolvedTheme === "dark" ? "light" : "dark";
+			localStorage.setItem("theme", next);
+			applyTheme(next);
+			setThemeState(next);
+			setResolvedTheme(next);
 		}
 		window.addEventListener("keydown", onKeyDown);
 		return () => window.removeEventListener("keydown", onKeyDown);
 	}, [mounted, resolvedTheme]);
 
-	function applyTheme(t: Theme) {
-		const resolved =
-			t === "system"
-				? window.matchMedia("(prefers-color-scheme: dark)").matches
-					? "dark"
-					: "light"
-				: t;
-		setResolvedTheme(resolved);
-		const root = document.documentElement;
-		root.classList.remove("light", "dark");
-		root.classList.add(resolved);
-		root.style.colorScheme = resolved;
-	}
-
 	function setTheme(t: Theme) {
 		setThemeState(t);
 		localStorage.setItem("theme", t);
-		applyTheme(t);
+		const res = applyTheme(t);
+		setResolvedTheme(res);
 	}
 
 	return (

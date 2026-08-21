@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { EventType } from "@prisma/client";
+import type { BookableType } from "@/lib/services/slotService";
 import {
   Carousel,
   CarouselContent,
@@ -22,7 +22,7 @@ import { slotAccent } from "./slotAccent";
 
 interface SlotBookingStripProps {
   slots: SlotData[];
-  type: EventType;
+  type: BookableType;
   initialSlotId?: string;
 }
 

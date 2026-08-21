@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-export const eventTypeSchema = z.enum(["BIBLE", "PRAYER", "PRAISE_WORSHIP"]);
+export const eventTypeSchema = z.enum([
+	"BIBLE",
+	"PRAYER",
+	"PRAISE_WORSHIP",
+	"SPECIAL",
+]);
 
 export const createEventSchema = z.object({
 	type: eventTypeSchema,
@@ -12,6 +17,10 @@ export const createEventSchema = z.object({
 	capacity: z.number().int().positive().nullable().optional(),
 	zoomUrl: z.string().url().optional().or(z.literal("")),
 	notes: z.string().optional(),
+	/** Types the coordinator chooses to block (SPECIAL events only). */
+	blockTypes: z
+		.array(z.enum(["BIBLE", "PRAYER", "PRAISE_WORSHIP"]))
+		.optional(),
 });
 
 export const updateEventSchema = createEventSchema.partial();

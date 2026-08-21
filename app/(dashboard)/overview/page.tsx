@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
-import { UpcomingBookings } from "@/components/booking/UpcomingBookings"
 import { CommunityActivity } from "@/components/dashboard/CommunityActivity"
 import {
   AgendaView,
@@ -112,17 +111,6 @@ export default async function OverviewPage() {
     startTime: slot.startTime,
     endTime: slot.endTime,
     notes: slot.notes,
-  }))
-
-  const upcomingBookings = mySlots.map((slot) => ({
-    id: slot.id,
-    event: {
-      type: slot.type,
-      title: slotTypeLabel(slot.type),
-      date: slot.date,
-      time: slot.startTime,
-      duration: 30,
-    },
   }))
 
   const todaySlots = mySlots.filter((slot) => slot.date === today)

@@ -396,7 +396,15 @@ export default function SettingsPage() {
   const [isRegenerating, setIsRegenerating] = useState(false)
 
   // Session state
-  const [userSessions, setUserSessions] = useState<any[]>([])
+  const [userSessions, setUserSessions] = useState<
+    Array<{
+      id: string
+      token: string
+      ipAddress?: string | null
+      userAgent?: string | null
+      createdAt: Date | string
+    }>
+  >([])
   const [isSessionsLoading, setIsSessionsLoading] = useState(false)
 
   // Export state
@@ -421,7 +429,6 @@ export default function SettingsPage() {
       "under-18" | "18-24" | "25-34" | "35-44" | "45-54" | "55-64" | "65-plus"
     timezone: string
   } | null>(null)
-  const [isProfileLoading, setIsProfileLoading] = useState(true)
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
@@ -431,14 +438,12 @@ export default function SettingsPage() {
 
   // Load profile data on mount
   useEffect(() => {
-    setIsProfileLoading(true)
     getProfile()
       .then((res) => {
         if (res.success && res.profile) {
           setProfileData(res.profile)
         }
       })
-      .finally(() => setIsProfileLoading(false))
   }, [])
 
   // Load preferences and sessions on tab change / mount
@@ -446,7 +451,10 @@ export default function SettingsPage() {
     if (activeTab === "notifications") {
       getNotificationPrefs().then((res) => {
         if (res.success && res.prefs) {
-          const p = res.prefs as any
+          const p = res.prefs as {
+            email?: Record<string, boolean>
+            push?: Record<string, boolean>
+          }
           setNotifPrefs({
             emailNewMessage: p.email?.NEW_MESSAGE ?? true,
             emailPrayerUpdate: p.email?.PRAYER_UPDATE ?? true,
@@ -528,7 +536,7 @@ export default function SettingsPage() {
       } else {
         toast.error(res.error || "Failed to update profile")
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to update profile details")
     }
   }
@@ -606,8 +614,8 @@ export default function SettingsPage() {
       } else {
         toast.error("Could not generate setup token. Check your password.")
       }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to begin 2FA setup")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to begin 2FA setup")
     } finally {
       setIs2FALoading(false)
     }
@@ -625,8 +633,8 @@ export default function SettingsPage() {
         await refetchSession()
         setTwoFactorStep("backup")
       }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to verify setup code")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to verify setup code")
     } finally {
       setIs2FALoading(false)
     }
@@ -646,8 +654,8 @@ export default function SettingsPage() {
         setIsDisableModalOpen(false)
         setTwoFactorPassword("")
       }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to disable 2FA")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to disable 2FA")
     } finally {
       setIs2FALoading(false)
     }
@@ -670,8 +678,8 @@ export default function SettingsPage() {
       setBackupCodes(res.data.backupCodes)
       setRegenStep("done")
       toast.success("Backup codes generated")
-    } catch (err: any) {
-      toast.error(err.message || "Failed to generate backup codes")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to generate backup codes")
     } finally {
       setIsRegenerating(false)
     }
@@ -1571,7 +1579,7 @@ export default function SettingsPage() {
                             ) : (
                               userSessions.map((sessionItem) => {
                                 const { device, browser } = parseUA(
-                                  sessionItem.userAgent
+                                  sessionItem.userAgent ?? undefined
                                 )
                                 const isCurrent =
                                   sessionItem.id === currentSessionId

@@ -18,6 +18,7 @@ import { MeetingLinkCard } from "@/components/booking/MeetingLinkCard"
 import { SlotData } from "@/components/booking/SlotCell"
 import { convertUtcTimeToLocal, isPastSlot } from "@/components/booking/slotTime"
 import { slotAccent } from "@/components/booking/slotAccent"
+import type { BookableType } from "@/lib/services/slotService"
 import { bookSlotAction, cancelSlotAction } from "@/actions/slotActions"
 import { toast } from "sonner"
 import { useSearchParams, useRouter } from "next/navigation"
@@ -36,7 +37,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import { CalendarX2, Clock, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ScheduleView } from "@/components/booking/ScheduleView"
 
 export default function BookingPage() {
   const searchParams = useSearchParams()
@@ -373,7 +373,7 @@ export default function BookingPage() {
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         selectedSlots={selectedSlots}
-        type={type}
+        type={type as BookableType}
         onConfirm={handleConfirmBooking}
         isSubmitting={isSubmitting}
       />

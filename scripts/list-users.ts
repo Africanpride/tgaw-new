@@ -8,7 +8,7 @@ const result = await prisma.$runCommandRaw({
 	projection: { email: 1, name: 1, role: 1 },
 });
 
-const users = (result as any).cursor.firstBatch;
+const users = (result as { cursor: { firstBatch: unknown[] } }).cursor.firstBatch;
 console.log(JSON.stringify(users, null, 2));
 
 await prisma.$disconnect();

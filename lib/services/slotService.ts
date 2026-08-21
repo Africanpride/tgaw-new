@@ -152,7 +152,12 @@ export async function getSlotsForDate(date: string, type?: EventType, currentUse
     if (objectIds.length > 0) {
       const rawUsers = (await prisma.user.findRaw({
         filter: { _id: { $in: objectIds } }
-      })) as unknown as any[];
+      })) as unknown as Array<{
+        _id: { $oid: string };
+        name?: string;
+        email?: string;
+        image?: string | null;
+      }>;
       for (const ru of rawUsers) {
         users.push({
           id: ru._id.$oid,
@@ -202,10 +207,10 @@ export async function getSlotsForDate(date: string, type?: EventType, currentUse
     };
   });
 
-  const userBookingCounts = { BIBLE: 0, PRAYER: 0, PRAISE_WORSHIP: 0 };
+  const userBookingCounts: Record<string, number> = { BIBLE: 0, PRAYER: 0, PRAISE_WORSHIP: 0 };
   if (currentUserId) {
-    for (const t of ["BIBLE", "PRAYER", "PRAISE_WORSHIP"] as EventType[]) {
-      userBookingCounts[t] = await getUserBookingCountForDate(currentUserId, date, t);
+    for (const t of ["BIBLE", "PRAYER", "PRAISE_WORSHIP"] as const) {
+      userBookingCounts[t] = await getUserBookingCountForDate(currentUserId, date, t as EventType);
     }
   }
 
@@ -287,6 +292,11 @@ export async function bookSlots(slotIds: string[], userId: string, notes?: strin
   // 3. Not already booked check
   if (slots.some(s => s.bookedBy)) {
     throw new Error("One or more slots are already booked");
+  }
+
+  // 3b. Not blocked by an event
+  if (slots.some(s => s.eventId)) {
+    throw new Error("One or more slots are blocked by an event");
   }
 
   // 4. Cross-type overlap check
@@ -453,7 +463,13 @@ export interface ActiveSlotLike {
   bookedBy: string | null;
 }
 
-export type ActiveHostsMap = Record<EventType, string | null>;
+export type ActiveHostsMap = {
+  BIBLE: string | null;
+  PRAYER: string | null;
+  PRAISE_WORSHIP: string | null;
+};
+
+export type BookableType = "BIBLE" | "PRAYER" | "PRAISE_WORSHIP";
 
 /**
  * Determine, per slot type, the user who currently hosts an active (in-progress)
@@ -478,7 +494,6 @@ export function getActiveHostsForTime(
     PRAISE_WORSHIP: activeByType.get(EventType.PRAISE_WORSHIP) ?? null,
   };
 }
-
 /**
  * Fetch the currently active slot hosts for today (UTC), resolving each
  * booker's display name. Returns a map per slot type.

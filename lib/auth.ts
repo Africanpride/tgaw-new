@@ -188,7 +188,7 @@ export const auth = betterAuth({
         user: {
           ...user,
           image: user.image ?? null,
-          hasPassword: !!(user as any).passwordHash,
+          hasPassword: !!(user as { passwordHash?: string | null }).passwordHash,
           onboardingComplete: extendedUser.onboardingComplete ?? false,
         },
         session,

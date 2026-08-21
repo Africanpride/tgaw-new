@@ -9,6 +9,7 @@
 **Tech Stack:** React 19, React Hook Form, Zod resolver, Lucide React icons, shadcn Dialog & Button UI.
 
 ## Global Constraints
+
 - Preserve full Zod schema validation using `createEventSchema`.
 - Maintain clean accessibility (`aria-hidden` on icons, keyboard navigable buttons).
 - Use shadcn semantic variables and Tailwind v4 styling.
@@ -18,9 +19,11 @@
 ### Task 1: Redesign EventFormDialog Component
 
 **Files:**
+
 - Modify: `components/calendar/event-form-dialog.tsx`
 
 **Interfaces:**
+
 - Consumes: `open: boolean`, `onOpenChange: (open: boolean) => void`
 - Produces: Premium category-accented `EventFormDialog` component.
 
@@ -162,7 +165,7 @@ export function EventFormDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-lg overflow-hidden p-0 gap-0 border-border/60 shadow-2xl">
+			<DialogContent className="sm:max-w-xl overflow-hidden p-0 gap-0 border-border/60 shadow-2xl">
 				{/* Category-Accented Header */}
 				<DialogHeader className={cn("px-6 pt-6 pb-4 transition-colors border-b border-border/40", currentTypeConfig.bg)}>
 					<div className="flex items-center gap-3">

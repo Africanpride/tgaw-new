@@ -754,7 +754,7 @@ export default function UserManagementPage() {
           <DialogHeader>
             <DialogTitle>Unban {targetUser?.name}</DialogTitle>
             <DialogDescription>
-              Restore {targetUser?.name ?? "this user"}'s access to TGAW?
+              Restore {targetUser?.name ?? "this user"}&apos;s access to TGAW?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

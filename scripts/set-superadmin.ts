@@ -21,7 +21,7 @@ for (const email of superadminEmails) {
 		limit: 1,
 	});
 
-	const users = (findResult as any).cursor.firstBatch;
+	const users = (findResult as { cursor: { firstBatch: Array<{ _id: string | { $oid: string }; email?: string; name?: string }> } }).cursor.firstBatch;
 
 	if (!users || users.length === 0) {
 		console.log(`No user found with email: ${email}`);

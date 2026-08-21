@@ -1,5 +1,3 @@
-import type { EventType } from "@prisma/client";
-
 export interface SlotAccent {
   text: string;
   tabFill: string;
@@ -15,7 +13,7 @@ export interface SlotAccent {
   available: string;
 }
 
-export const slotAccent: Record<EventType, SlotAccent> = {
+export const slotAccent: Record<string, SlotAccent> = {
   BIBLE: {
     text: "text-purple-700 dark:text-purple-300",
     tabFill: "bg-purple-200 dark:bg-purple-800",

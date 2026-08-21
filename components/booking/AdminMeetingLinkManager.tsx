@@ -1,9 +1,9 @@
 "use client"
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { format } from "date-fns"
-import { EventType } from "@prisma/client"
+import type { BookableType } from "@/lib/services/slotService"
 import { toast } from "sonner"
 import { BookOpen, Check, Copy, Flame, Link2, Loader2, Music, Save, Trash2, Video } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -53,7 +53,7 @@ interface MeetingLinkData {
 }
 
 export function AdminMeetingLinkManager() {
-  const [type, setType] = useState<EventType>("BIBLE")
+  const [type, setType] = useState<BookableType>("BIBLE")
   const [date, setDate] = useState<Date>(new Date())
   const [url, setUrl] = useState("")
   const [label, setLabel] = useState("")
@@ -63,39 +63,39 @@ export function AdminMeetingLinkManager() {
   const [copied, setCopied] = useState<string | null>(null)
 
   // Default links state per activity type
-  const [defaultLinks, setDefaultLinks] = useState<Record<EventType, MeetingLinkData | null>>({
+  const [defaultLinks, setDefaultLinks] = useState<Record<BookableType, MeetingLinkData | null>>({
     BIBLE: null,
     PRAYER: null,
     PRAISE_WORSHIP: null,
   })
-  const [defaultInputs, setDefaultInputs] = useState<Record<EventType, { url: string; label: string }>>({
+  const [defaultInputs, setDefaultInputs] = useState<Record<BookableType, { url: string; label: string }>>({
     BIBLE: { url: "", label: "" },
     PRAYER: { url: "", label: "" },
     PRAISE_WORSHIP: { url: "", label: "" },
   })
-  const [savingDefaultType, setSavingDefaultType] = useState<EventType | null>(null)
+  const [savingDefaultType, setSavingDefaultType] = useState<BookableType | null>(null)
   const [isLoadingDefaults, setIsLoadingDefaults] = useState(true)
 
   const [deleteTarget, setDeleteTarget] = useState<{
-    type: EventType
+    type: BookableType
     date: string
   } | null>(null)
   const reduceMotion = useReducedMotion()
 
   // Default-tab underline animation state
   const defaultTabItems = [
-    { id: "BIBLE" as EventType, label: "Bible", icon: BookOpen },
-    { id: "PRAYER" as EventType, label: "Prayer", icon: Flame },
-    { id: "PRAISE_WORSHIP" as EventType, label: "Worship", icon: Music },
+    { id: "BIBLE" as BookableType, label: "Bible", icon: BookOpen },
+    { id: "PRAYER" as BookableType, label: "Prayer", icon: Flame },
+    { id: "PRAISE_WORSHIP" as BookableType, label: "Worship", icon: Music },
   ] as const
-  const [activeDefaultTab, setActiveDefaultTab] = useState<EventType>("BIBLE")
+  const [activeDefaultTab, setActiveDefaultTab] = useState<BookableType>("BIBLE")
   const [hoveredDefaultTab, setHoveredDefaultTab] = useState<string | null>(null)
   const [defaultTabDir, setDefaultTabDir] = useState(1)
   const handleDefaultTabChange = (newId: string) => {
     const prevIdx = defaultTabItems.findIndex((t) => t.id === activeDefaultTab)
     const nextIdx = defaultTabItems.findIndex((t) => t.id === newId)
     setDefaultTabDir(nextIdx > prevIdx ? 1 : -1)
-    setActiveDefaultTab(newId as EventType)
+    setActiveDefaultTab(newId as BookableType)
   }
 
   const accent = slotAccent[type]
@@ -107,7 +107,7 @@ export function AdminMeetingLinkManager() {
         : "Praise & Worship"
 
   // Load default links for all 3 activity types
-  const loadDefaults = async () => {
+  const loadDefaults = useCallback(async () => {
     setIsLoadingDefaults(true)
     try {
       const res = await fetch("/api/v1/slots?date=DEFAULT")
@@ -138,11 +138,13 @@ export function AdminMeetingLinkManager() {
     } finally {
       setIsLoadingDefaults(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    loadDefaults()
-  }, [])
+    void (async () => {
+      await loadDefaults()
+    })()
+  }, [loadDefaults])
 
   // Load specific date link
   useEffect(() => {
@@ -170,7 +172,7 @@ export function AdminMeetingLinkManager() {
     }
   }, [type, date])
 
-  const handleSaveDefault = async (t: EventType) => {
+  const handleSaveDefault = async (t: BookableType) => {
     const input = defaultInputs[t]
     if (!input.url.trim()) {
       toast.error("Meeting URL is required")
@@ -202,7 +204,7 @@ export function AdminMeetingLinkManager() {
     }
   }
 
-  const handleDeleteDefault = (t: EventType) => {
+  const handleDeleteDefault = (t: BookableType) => {
     setDeleteTarget({ type: t, date: "DEFAULT" })
   }
 
@@ -512,7 +514,7 @@ export function AdminMeetingLinkManager() {
               <Label htmlFor="ml-type">Slot type</Label>
               <Select
                 value={type}
-                onValueChange={(v) => setType(v as EventType)}
+                onValueChange={(v) => setType(v as BookableType)}
               >
                 <SelectTrigger id="ml-type" className="w-full">
                   <SelectValue placeholder="Select type" />

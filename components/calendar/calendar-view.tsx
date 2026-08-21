@@ -43,12 +43,12 @@ import { EventFormDialog } from "./event-form-dialog";
 
 export type CalendarItemSource = "slot" | "event";
 
-export type CalendarItemColor = "purple" | "red" | "amber" | "blue";
+export type CalendarItemColor = "purple" | "red" | "amber" | "blue" | "violet";
 
 export interface CalendarItem {
 	id: string;
 	source: CalendarItemSource;
-	type: "BIBLE" | "PRAYER" | "PRAISE_WORSHIP";
+	type: "BIBLE" | "PRAYER" | "PRAISE_WORSHIP" | "SPECIAL";
 	title: string;
 	color: CalendarItemColor;
 	/** ISO date string (serializable from the server component). */
@@ -71,6 +71,7 @@ const CALENDAR_COLORS: Record<CalendarItemColor, string> = {
 	red: "bg-red-500",
 	amber: "bg-amber-500",
 	blue: "bg-blue-500",
+	violet: "bg-violet-500",
 };
 
 const CALENDAR_FILTERS = [
@@ -102,6 +103,13 @@ const CALENDAR_FILTERS = [
 		iconColor: "text-blue-500",
 		icon: CalendarDays,
 	},
+	{
+		id: "SPECIAL",
+		label: "Special Events",
+		color: "bg-violet-500",
+		iconColor: "text-violet-500",
+		icon: CalendarDays,
+	},
 ] as const;
 
 const FILTER_DEFAULT_ON = new Set<string>(
@@ -126,7 +134,9 @@ function matchesActiveFilters(
 	for (const filter of CALENDAR_FILTERS) {
 		if (!activeFilters.has(filter.id)) continue;
 		if (filter.id === "EVENTS") {
-			if (item.source === "event") return true;
+			if (item.source === "event" && item.type !== "SPECIAL") return true;
+		} else if (filter.id === "SPECIAL") {
+			if (item.type === "SPECIAL") return true;
 		} else if (item.source === "slot" && item.type === filter.id) {
 			return true;
 		}
@@ -232,11 +242,13 @@ export function CalendarView({
 	items = [],
 	userTimezone = "UTC",
 	initialMonth,
+	canCreate = false,
 	className,
 }: {
 	items?: CalendarItem[];
 	userTimezone?: string;
 	initialMonth?: string;
+	canCreate?: boolean;
 	className?: string;
 }) {
 	const router = useRouter();
@@ -314,6 +326,7 @@ export function CalendarView({
 				<div className="hidden xl:block w-80 flex-shrink-0 border-r">
 					<div className="flex h-full flex-col rounded-lg bg-background">
 						<div className="p-6 border-b">
+{canCreate && (
 							<Button
 								className="w-full"
 								onClick={() => setCreateDialogOpen(true)}
@@ -321,6 +334,7 @@ export function CalendarView({
 								<Plus className="size-4" aria-hidden="true" />
 								Add New Event
 							</Button>
+						)}
 						</div>
 						<div className="flex justify-center">
 							<Calendar
@@ -470,6 +484,7 @@ export function CalendarView({
 					{items.length === 0 ? (
 						<CalendarEmptyState
 							onCreateEvent={() => setCreateDialogOpen(true)}
+							canCreate={canCreate}
 						/>
 					) : (
 						<div className="flex-1 bg-background">

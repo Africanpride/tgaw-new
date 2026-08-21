@@ -31,12 +31,14 @@ const COLOR_DOT: Record<CalendarItemColor, string> = {
 	red: "bg-red-500",
 	amber: "bg-amber-500",
 	blue: "bg-blue-500",
+	violet: "bg-violet-500",
 };
 
 const TYPE_LABEL: Record<CalendarItem["type"], string> = {
 	BIBLE: "Bible Reading",
 	PRAYER: "Prayer",
 	PRAISE_WORSHIP: "Praise & Worship",
+	SPECIAL: "Special Event",
 };
 
 function addMinutesToTime(time: string, minutes: number): string {

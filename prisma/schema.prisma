@@ -11,20 +11,22 @@ enum EventType {
   BIBLE
   PRAYER
   PRAISE_WORSHIP
+  SPECIAL
 }
 
 model Event {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String
+  userId    String                        // owner/host — plain string from session user.id
   type      EventType
   title     String
-  passage   String?
-  date      String
-  time      String
-  duration  Int
-  capacity  Int?
+  passage   String?                       // Bible passage or prayer focus
+  date      String                        // YYYY-MM-DD
+  time      String                        // HH:MM (24h)
+  duration  Int                           // minutes
+  capacity  Int?                          // max bookings; null = unlimited
   zoomUrl   String?
   notes     String?
+  blockTypes String[]                     // SPECIAL: which slot types to block
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   bookings  EventBooking[]
@@ -300,6 +302,8 @@ model Slot {
   startTime String                       // HH:MM (UTC, e.g. "08:00")
   endTime   String                       // HH:MM (UTC, e.g. "08:30")
   bookedBy  String?                      // user.id of who booked it (null = available)
+  previousBookerId String?               // user.id displaced by an event block (restored on unblock)
+  eventId   String?                      // Event.id that blocks this slot (null = not event-blocked)
   notes     String?                      // optional context from user
   assignedBy String?                     // user.id of leader who assigned it (null = self-booked)
   createdAt DateTime  @default(now())
@@ -308,6 +312,7 @@ model Slot {
   @@unique([type, date, startTime])      // one slot per type per date per time
   @@index([date])
   @@index([bookedBy])
+  @@index([eventId])
   @@index([type, date])
 }
 

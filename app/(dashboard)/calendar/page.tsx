@@ -18,6 +18,7 @@ const SLOT_COLOR_MAP: Record<EventType, CalendarItemColor> = {
 	BIBLE: "purple",
 	PRAYER: "red",
 	PRAISE_WORSHIP: "amber",
+	SPECIAL: "violet",
 };
 
 function slotTypeLabel(type: EventType): string {
@@ -28,6 +29,8 @@ function slotTypeLabel(type: EventType): string {
 			return "Prayer";
 		case "PRAISE_WORSHIP":
 			return "Praise & Worship";
+		case "SPECIAL":
+			return "Special Event";
 	}
 }
 
@@ -56,8 +59,8 @@ export default async function CalendarPage(props: {
 	});
 	const userTimezone = profile?.timezone ?? "UTC";
 
-	// Fetch the user's booked slots and owned events for the month range.
-	const [slots, events] = await Promise.all([
+	// Fetch the user's booked slots, owned events, and org-wide Special Events.
+	const [slots, events, specialEvents] = await Promise.all([
 		prisma.slot.findMany({
 			where: {
 				bookedBy: session.user.id,
@@ -68,6 +71,14 @@ export default async function CalendarPage(props: {
 		prisma.event.findMany({
 			where: {
 				userId: session.user.id,
+				date: { gte: startDate, lte: endDate },
+			},
+			orderBy: [{ date: "asc" }, { time: "asc" }],
+		}),
+		// Org-wide Special Events visible to every member.
+		prisma.event.findMany({
+			where: {
+				type: "SPECIAL",
 				date: { gte: startDate, lte: endDate },
 			},
 			orderBy: [{ date: "asc" }, { time: "asc" }],
@@ -123,6 +134,21 @@ export default async function CalendarPage(props: {
 		zoomUrl: event.zoomUrl,
 	}));
 
+	// Org-wide Special Events shown to everyone (violet, own event rendering).
+	const specialEventItems: CalendarItem[] = specialEvents.map((event) => ({
+		id: `event-${event.id}`,
+		source: "event",
+		type: "SPECIAL",
+		title: event.title,
+		color: "violet",
+		date: utcSlotToLocalDate(event.date, event.time).toISOString(),
+		startTime: convertTimeToTimezone(event.time, event.date, userTimezone),
+		duration: event.duration,
+		notes: event.notes,
+		passage: event.passage,
+		zoomUrl: event.zoomUrl,
+	}));
+
 	return (
 		<div className="flex flex-col gap-6">
 			<div>
@@ -133,9 +159,13 @@ export default async function CalendarPage(props: {
 			</div>
 
 			<CalendarView
-				items={[...slotItems, ...eventItems]}
+				items={[...slotItems, ...eventItems, ...specialEventItems]}
 				userTimezone={userTimezone}
 				initialMonth={format(monthStart, "yyyy-MM")}
+				canCreate={
+					session.user.role === "superadmin" ||
+					session.user.role === "coordinator"
+				}
 			/>
 		</div>
 	);

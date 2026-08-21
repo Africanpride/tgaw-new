@@ -1,4 +1,4 @@
-import type { EventType } from "@prisma/client"
+import type { BookableType } from "@/lib/services/slotService"
 import { CalendarCheck2, Video } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import { convertUtcTimeToLocal } from "./slotTime"
 
 export interface AgendaEvent {
   id: string
-  type: EventType
+  type: string
   title: string
   note?: string | null
   startTime: string
@@ -37,10 +37,14 @@ interface AgendaViewProps {
   summary: AgendaSummary
 }
 
-const typeBar: Record<EventType, string> = {
+const typeBar: Record<BookableType, string> = {
   BIBLE: "bg-purple-500",
   PRAYER: "bg-red-500",
   PRAISE_WORSHIP: "bg-amber-500",
+}
+
+function typeBarFor(type: string): string {
+  return typeBar[type as BookableType] ?? "bg-violet-500"
 }
 
 function formatDuration(min: number): string {
@@ -146,7 +150,7 @@ export function AgendaView({ days, summary }: AgendaViewProps) {
                 </div>
                 <div className="flex items-center gap-3">
                   <span
-                    className={cn("h-12 w-1 shrink-0 rounded-full", typeBar[evt.type])}
+                    className={cn("h-12 w-1 shrink-0 rounded-full", typeBarFor(evt.type))}
                     aria-hidden="true"
                   />
                   <div className="min-w-0 flex-1">

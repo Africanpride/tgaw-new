@@ -11,7 +11,14 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Check, Settings } from "lucide-react";
 
-export function AdminBookingConfig({ initialConfig }: { initialConfig: any }) {
+export interface BookingConfigData {
+  maxBibleSlotsPerDay?: number;
+  maxPrayerSlotsPerDay?: number;
+  maxWorshipSlotsPerDay?: number;
+  visibilityMode?: number;
+}
+
+export function AdminBookingConfig({ initialConfig }: { initialConfig: BookingConfigData | null }) {
   const [config, setConfig] = useState(initialConfig || {
     maxBibleSlotsPerDay: 2,
     maxPrayerSlotsPerDay: 2,
@@ -41,7 +48,7 @@ export function AdminBookingConfig({ initialConfig }: { initialConfig: any }) {
       } else {
         toast.error(data.error?.message || "Failed to update configuration");
       }
-    } catch (e) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsSaving(false);
@@ -68,8 +75,8 @@ export function AdminBookingConfig({ initialConfig }: { initialConfig: any }) {
               <Input 
                 id="maxBible" 
                 type="number" 
-                value={config.maxBibleSlotsPerDay} 
-                onChange={(e) => setConfig({ ...config, maxBibleSlotsPerDay: e.target.value })} 
+                value={config.maxBibleSlotsPerDay ?? 2} 
+                onChange={(e) => setConfig({ ...config, maxBibleSlotsPerDay: Number(e.target.value) })} 
                 min={0} max={48} 
               />
             </div>
@@ -78,8 +85,8 @@ export function AdminBookingConfig({ initialConfig }: { initialConfig: any }) {
               <Input 
                 id="maxPrayer" 
                 type="number" 
-                value={config.maxPrayerSlotsPerDay} 
-                onChange={(e) => setConfig({ ...config, maxPrayerSlotsPerDay: e.target.value })} 
+                value={config.maxPrayerSlotsPerDay ?? 2} 
+                onChange={(e) => setConfig({ ...config, maxPrayerSlotsPerDay: Number(e.target.value) })} 
                 min={0} max={48} 
               />
             </div>
@@ -88,8 +95,8 @@ export function AdminBookingConfig({ initialConfig }: { initialConfig: any }) {
               <Input 
                 id="maxWorship" 
                 type="number" 
-                value={config.maxWorshipSlotsPerDay} 
-                onChange={(e) => setConfig({ ...config, maxWorshipSlotsPerDay: e.target.value })} 
+                value={config.maxWorshipSlotsPerDay ?? 2} 
+                onChange={(e) => setConfig({ ...config, maxWorshipSlotsPerDay: Number(e.target.value) })} 
                 min={0} max={48} 
               />
             </div>
@@ -99,7 +106,7 @@ export function AdminBookingConfig({ initialConfig }: { initialConfig: any }) {
         <div className="space-y-4">
           <h3 className="font-medium text-sm">Visibility Mode</h3>
           <RadioGroup 
-            value={config.visibilityMode.toString()} 
+            value={String(config.visibilityMode ?? 4)} 
             onValueChange={(v) => setConfig({ ...config, visibilityMode: Number(v) })}
             className="gap-2"
           >
@@ -109,7 +116,7 @@ export function AdminBookingConfig({ initialConfig }: { initialConfig: any }) {
               { value: "3", title: "3. Full Transparency", desc: "Show names + prominent empty slots." },
               { value: "4", title: "4. Role-Scoped (Default)", desc: "Leaders see names, members only see availability." },
             ].map((mode) => {
-              const selected = config.visibilityMode.toString() === mode.value;
+              const selected = String(config.visibilityMode ?? 4) === mode.value;
               return (
                 <label
                   key={mode.value}

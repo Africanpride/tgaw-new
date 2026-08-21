@@ -19,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { cn } from "@/lib/utils"
 import {
   ONBOARDING_STEPS,
@@ -561,9 +560,9 @@ function CompleteStep() {
         <Check className="size-7 text-primary" aria-hidden="true" />
       </div>
       <div>
-        <h2 className="text-lg font-semibold">You're all set</h2>
+        <h2 className="text-lg font-semibold">You&apos;re all set</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Your profile is ready. Let's find your first slot.
+          Your profile is ready. Let&apos;s find your first slot.
         </p>
       </div>
       <Button className="" onClick={() => router.push("/overview")}>

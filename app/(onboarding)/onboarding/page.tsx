@@ -1,6 +1,5 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow"
 import type { OnboardingValues } from "@/lib/schemas/onboardingSchema"
 

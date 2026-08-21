@@ -57,19 +57,18 @@ export default function FeedPage() {
 		linkUrl: "",
 	});
 
-	async function fetchPosts() {
-		try {
-			const res = await fetch("/api/v1/posts?limit=20");
-			const data = await res.json();
-			if (data.success) setPosts(data.data);
-		} finally {
-			setLoading(false);
-		}
-	}
-
 	useEffect(() => {
+		async function fetchPosts() {
+			try {
+				const res = await fetch("/api/v1/posts?limit=20");
+				const data = await res.json();
+				if (data.success) setPosts(data.data);
+			} finally {
+				setLoading(false);
+			}
+		}
 		fetchPosts();
-	}, [fetchPosts]);
+	}, []);
 
 	async function createPost() {
 		const body: Record<string, unknown> = {

@@ -24,25 +24,25 @@ import {
 } from "lucide-react";
 import { SlotData } from "./SlotCell";
 import { slotAccent } from "./slotAccent";
-import { EventType } from "@prisma/client";
+import type { BookableType } from "@/lib/services/slotService";
 import { cn } from "@/lib/utils";
 
 interface SlotBookingSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedSlots: SlotData[];
-  type: EventType;
+  type: BookableType;
   onConfirm: (notes: string) => Promise<boolean>;
   isSubmitting: boolean;
 }
 
-const TYPE_ICON: Record<EventType, typeof BookOpen> = {
+const TYPE_ICON: Record<BookableType, typeof BookOpen> = {
   BIBLE: BookOpen,
   PRAYER: HandHeart,
   PRAISE_WORSHIP: Music,
 };
 
-const TYPE_LABEL: Record<EventType, string> = {
+const TYPE_LABEL: Record<BookableType, string> = {
   BIBLE: "Bible Reading",
   PRAYER: "Prayer",
   PRAISE_WORSHIP: "Praise & Worship",
