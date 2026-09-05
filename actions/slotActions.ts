@@ -22,22 +22,25 @@ export async function bookSlotAction(data: { slotIds: string[], notes?: string }
   try {
     const bookedSlots = await bookSlots(validation.data.slotIds, session.user.id, validation.data.notes);
     
-    try {
-      const h = await headers();
-      const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? null;
-      const ua = h.get("user-agent") ?? null;
-      const dbUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { role: true } });
-      await logAudit({
-        actorId: session.user.id,
-        actorRole: dbUser?.role ?? (session.user as { role?: string })?.role ?? null,
-        action: "SLOT_BOOK",
-        targetType: "Slot",
-        targetId: validation.data.slotIds.join(","),
-        metadata: { slotIds: validation.data.slotIds, count: bookedSlots.length, notes: validation.data.notes ?? null, slots: bookedSlots.map((s) => ({ id: s.id, type: s.type, date: s.date, startTime: s.startTime })) },
-        ip,
-        userAgent: ua,
-      });
-    } catch {}
+    // fire-and-forget — 7d TTL, do not block booking
+    void (async () => {
+      try {
+        const h = await headers();
+        const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? null;
+        const ua = h.get("user-agent") ?? null;
+        const dbUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { role: true } });
+        void logAudit({
+          actorId: session.user.id,
+          actorRole: dbUser?.role ?? (session.user as { role?: string })?.role ?? null,
+          action: "SLOT_BOOK",
+          targetType: "Slot",
+          targetId: validation.data.slotIds.join(","),
+          metadata: { slotIds: validation.data.slotIds, count: bookedSlots.length, notes: validation.data.notes ?? null, slots: bookedSlots.map((s) => ({ id: s.id, type: s.type, date: s.date, startTime: s.startTime })) },
+          ip,
+          userAgent: ua,
+        }).catch(() => {});
+      } catch {}
+    })();
     
     revalidatePath("/booking");
     revalidatePath("/bible");
@@ -65,22 +68,24 @@ export async function cancelSlotAction(data: { slotId: string }) {
   try {
     await cancelSlot(validation.data.slotId, session.user.id);
     
-    try {
-      const h = await headers();
-      const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? null;
-      const ua = h.get("user-agent") ?? null;
-      const dbUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { role: true } });
-      await logAudit({
-        actorId: session.user.id,
-        actorRole: dbUser?.role ?? (session.user as { role?: string })?.role ?? null,
-        action: "SLOT_CANCEL",
-        targetType: "Slot",
-        targetId: validation.data.slotId,
-        metadata: { slotId: validation.data.slotId },
-        ip,
-        userAgent: ua,
-      });
-    } catch {}
+    void (async () => {
+      try {
+        const h = await headers();
+        const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? null;
+        const ua = h.get("user-agent") ?? null;
+        const dbUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { role: true } });
+        void logAudit({
+          actorId: session.user.id,
+          actorRole: dbUser?.role ?? (session.user as { role?: string })?.role ?? null,
+          action: "SLOT_CANCEL",
+          targetType: "Slot",
+          targetId: validation.data.slotId,
+          metadata: { slotId: validation.data.slotId },
+          ip,
+          userAgent: ua,
+        }).catch(() => {});
+      } catch {}
+    })();
     
     revalidatePath("/booking");
     revalidatePath("/bible");

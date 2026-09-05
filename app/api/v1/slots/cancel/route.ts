@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   try {
     await cancelSlot(validation.data.slotId, session.user.id);
     const { ip, userAgent } = extractNextRequestContext(req as unknown as { headers: { get(k: string): string | null } });
-    await logAudit({
+    void logAudit({
       actorId: session.user.id,
       actorRole: (session.user as { role?: string })?.role ?? null,
       action: "SLOT_CANCEL",
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       metadata: { slotId: validation.data.slotId },
       ip,
       userAgent,
-    });
+    }).catch(() => {});
     return NextResponse.json({ success: true, data: { success: true } });
   } catch (error: unknown) {
     return NextResponse.json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 400 });
