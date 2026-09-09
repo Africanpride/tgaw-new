@@ -5,9 +5,9 @@ import {
 	BookOpen,
 	CalendarDays,
 	Clock,
-	ExternalLink,
 	Pencil,
 	Trash2,
+	Video,
 	X,
 } from "lucide-react";
 import * as React from "react";
@@ -111,6 +111,17 @@ function ItemDetail({
 						{item.source === "slot" && (
 							<Badge variant="secondary">Booked</Badge>
 						)}
+						{item.zoomUrl && (
+							<a
+								href={item.zoomUrl}
+								target="_blank"
+								rel="noreferrer"
+								className="cursor-pointer inline-flex items-center rounded-md p-1 text-primary transition-colors hover:bg-primary/10"
+								aria-label={item.zoomLabel ?? "Join meeting"}
+							>
+								<Video className="size-4" aria-hidden="true" />
+							</a>
+						)}
 					</div>
 				</div>
 				<Button
@@ -148,17 +159,6 @@ function ItemDetail({
 				)}
 				{item.notes && (
 					<p className="rounded-md bg-muted p-3 text-sm">{item.notes}</p>
-				)}
-				{item.zoomUrl && (
-					<a
-						href={item.zoomUrl}
-						target="_blank"
-						rel="noreferrer"
-						className="inline-flex items-center gap-1.5 font-medium text-primary underline underline-offset-4"
-					>
-						{item.zoomLabel ?? "Join Zoom/Teams meeting"}
-						<ExternalLink className="size-3.5" aria-hidden="true" />
-					</a>
 				)}
 			</div>
 

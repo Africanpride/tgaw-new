@@ -81,25 +81,41 @@ export default async function CalendarPage(props: {
 		}),
 	]);
 
-	// Fetch meeting links only for the [type, date] combos the user booked.
+	// Fetch meeting links for the [type, date] combos the user booked, plus DEFAULT fallbacks.
 	const slotKeys = [...new Set(slots.map((s) => `${s.type}|${s.date}`))];
+	const uniqueTypes = [...new Set(slots.map((s) => s.type))];
 	const meetingLinks = slotKeys.length
 		? await prisma.meetingLink.findMany({
 				where: {
-					OR: slotKeys.map((key) => {
-						const [type, date] = key.split("|");
-						return { type: type as EventType, date };
-					}),
+					OR: [
+						...slotKeys.map((key) => {
+							const [type, date] = key.split("|");
+							return { type: type as EventType, date };
+						}),
+						...uniqueTypes.map((type) => ({
+							type: type as EventType,
+							date: "DEFAULT",
+						})),
+					],
 				},
 			})
 		: [];
-	const meetingLinkMap = new Map(
-		meetingLinks.map((ml) => [`${ml.type}|${ml.date}`, ml]),
-	);
+	// Exact date matches take priority; DEFAULT is the fallback.
+	const meetingLinkMap = new Map<string, (typeof meetingLinks)[number]>();
+	for (const ml of meetingLinks) {
+		if (ml.date === "DEFAULT") {
+			const key = `${ml.type}|DEFAULT`;
+			if (!meetingLinkMap.has(key)) meetingLinkMap.set(key, ml);
+		} else {
+			meetingLinkMap.set(`${ml.type}|${ml.date}`, ml);
+		}
+	}
 
 	// Transform slots into CalendarItems (times converted to the user's timezone).
 	const slotItems: CalendarItem[] = slots.map((slot) => {
-		const link = meetingLinkMap.get(`${slot.type}|${slot.date}`);
+		const link =
+			meetingLinkMap.get(`${slot.type}|${slot.date}`) ??
+			meetingLinkMap.get(`${slot.type}|DEFAULT`);
 		return {
 			id: `slot-${slot.id}`,
 			source: "slot",
