@@ -1093,10 +1093,10 @@ Uses shadcn's official **Sidebar** component pattern (`SidebarProvider`, `Sideba
 
 > **Authoritative spec**: `@bookings.md` fully specifies the Slot Booking feature (models, business rules, API, UI, RBAC). This section summarises the implemented architecture; always consult `@bookings.md` before modifying booking code.
 
-- **Slot model**: auto-generated 30-min devotional grid — 48 slots × 3 types (`BIBLE` / `PRAYER` / `PRAISE_WORSHIP`) = 144 slots/day, stored in UTC on the `Slot` model (`prisma/schema.prisma`). One user per slot; no cross-type overlap; consecutive multi-slot booking; per-type daily limits from `BookingConfig`.
+- **Slot model**: auto-generated 1-hour devotional grid — 24 slots × 3 types (`BIBLE` / `PRAYER` / `PRAISE_WORSHIP`) = 72 slots/day, stored in UTC on the `Slot` model (`prisma/schema.prisma`). One user per slot; no cross-type overlap; consecutive multi-slot booking; per-type daily limits from `BookingConfig`.
 - **On-demand generation**: `GET /api/v1/slots` (and the server-side devotion pages) call `ensureSlotsForDate()` in `lib/services/slotService.ts` — if no slots exist for a date, the rolling window (current month → end of next month) is generated on the fly. The cron/leader-protected `POST /api/v1/slots/generate` remains for scheduled pre-generation.
 - **Type selection**: `<Tabs/>` for Bible Reading / Prayer / Praise & Worship (`EventType`).
-- **Timeline + multi-select**: `SlotTimeline` renders the 48 slots for the selected type/date; users select one or more consecutive slots and confirm via the `SlotBookingSheet` (server action `bookSlotAction` → `POST /api/v1/slots/book`).
+- **Timeline + multi-select**: `SlotTimeline` renders the 24 slots for the selected type/date; users select one or more consecutive slots and confirm via the `SlotBookingSheet` (server action `bookSlotAction` → `POST /api/v1/slots/book`).
 - **Meeting links**: one shared Zoom/Teams URL per type per date (`MeetingLink` model), managed by leaders via the Admin Portal (`AdminMeetingLinkManager`), surfaced to bookers via `MeetingLinkCard`.
 - **Cancellation**: self-cancel (`cancelSlotAction` → `POST /api/v1/slots/cancel`) frees the slot; admins can assign (`/api/v1/slots/assign`) or force-cancel (`/api/v1/slots/admin-cancel`) any booking.
 - **Visibility modes**: the active `BookingConfig.visibilityMode` (1–4) controls how much booking detail (name/avatar) is exposed; default is Mode 4 (Role-Scoped).

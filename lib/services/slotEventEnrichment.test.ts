@@ -70,7 +70,7 @@ describe("collectDisplacedBookings", () => {
 
 	function enrichedSlot(id: string, previousBookerId: string | null, eventId: string | null) {
 		return enrichSlotsWithEvents(
-			[{ ...slot({ id, eventId, previousBookerId }), type: "PRAYER", date: "2026-08-21", startTime: "09:00", endTime: "09:30" }],
+			[{ ...slot({ id, eventId, previousBookerId }), type: "PRAYER", date: "2026-08-21", startTime: "09:00", endTime: "10:00" }],
 			events,
 		)[0]
 	}
@@ -87,7 +87,7 @@ describe("collectDisplacedBookings", () => {
 		expect(displaced).toHaveLength(1)
 		expect(displaced[0].id).toBe("mine")
 		expect(displaced[0].startTime).toBe("09:00")
-		expect(displaced[0].endTime).toBe("09:30")
+		expect(displaced[0].endTime).toBe("10:00")
 		expect(displaced[0].type).toBe("PRAYER")
 		expect(displaced[0].date).toBe("2026-08-21")
 		expect(displaced[0].event?.title).toBe("Easter Vigil")

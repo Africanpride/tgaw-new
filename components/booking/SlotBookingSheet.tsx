@@ -69,7 +69,7 @@ export function SlotBookingSheet({
   const last = selectedSlots[selectedSlots.length - 1];
   const startLocal = convertUtcTimeToLocal(first.startTime);
   const endLocal = convertUtcTimeToLocal(last.endTime);
-  const durationMins = selectedSlots.length * 30;
+  const durationMins = selectedSlots.length * 60;
 
   const notesLabel =
     type === "BIBLE"

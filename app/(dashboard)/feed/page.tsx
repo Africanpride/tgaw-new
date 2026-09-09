@@ -68,15 +68,28 @@ export default function FeedPage() {
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""])
 
   async function fetchPosts(cursor?: string | null) {
-    const qp = new URLSearchParams({ limit: "10" })
-    if (cursor) qp.set("cursor", cursor)
-    const res = await fetch(`/api/v1/posts?${qp.toString()}`)
-    const data = await res.json()
-    if (data.success) {
+    try {
+      const qp = new URLSearchParams({ limit: "10" })
+      if (cursor) qp.set("cursor", cursor)
+      const res = await fetch(`/api/v1/posts?${qp.toString()}`)
+      const text = await res.text()
+      const data = text ? JSON.parse(text) : null
+      if (!data) {
+        toast.error("Feed unavailable — please refresh")
+        return
+      }
+      if (!res.ok || !data.success) {
+        if (res.status === 401) toast.error("Please sign in to view the feed")
+        else toast.error(data?.error ? String(data.error) : "Failed to load feed")
+        return
+      }
       if (cursor) setPosts((prev) => [...prev, ...data.data])
       else setPosts(data.data)
       setNextCursor(data.nextCursor ?? null)
       setHasMore(!!data.nextCursor)
+    } catch (e) {
+      console.error("[ERROR] fetchPosts", e instanceof Error ? e.message : String(e))
+      toast.error("Feed unavailable — please refresh")
     }
   }
 

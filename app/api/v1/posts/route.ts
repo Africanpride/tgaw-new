@@ -4,35 +4,42 @@ import { prisma } from "@/lib/db/prisma";
 import { createPostSchema } from "@/lib/schemas/postSchema";
 
 export async function GET(req: NextRequest) {
-	const session = await auth.api.getSession({ headers: req.headers });
-	if (!session?.user)
-		return NextResponse.json(
-			{ success: false, error: "Unauthorised" },
-			{ status: 401 },
-		);
+	try {
+		const session = await auth.api.getSession({ headers: req.headers });
+		if (!session?.user)
+			return NextResponse.json(
+				{ success: false, error: "Unauthorised" },
+				{ status: 401 },
+			);
 
-	const { searchParams } = new URL(req.url);
-	const cursor = searchParams.get("cursor");
-	const limit = Number(searchParams.get("limit")) || 20;
+		const { searchParams } = new URL(req.url);
+		const cursor = searchParams.get("cursor");
+		const rawLimit = Number(searchParams.get("limit"));
+		const limit = Number.isFinite(rawLimit) && rawLimit > 0 && rawLimit <= 50 ? rawLimit : 20;
 
-	const posts = await prisma.post.findMany({
-		where: { isHidden: false },
-		orderBy: { createdAt: "desc" },
-		take: limit + 1,
-		...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-		include: {
-			_count: { select: { comments: true, likes: true } },
-		},
-	});
+		const posts = await prisma.post.findMany({
+			where: { isHidden: false },
+			orderBy: { createdAt: "desc" },
+			take: limit + 1,
+			...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+			include: {
+				_count: { select: { comments: true, likes: true } },
+				poll: { include: { options: true } },
+			},
+		});
 
-	const hasMore = posts.length > limit;
-	const data = hasMore ? posts.slice(0, limit) : posts;
+		const hasMore = posts.length > limit;
+		const data = hasMore ? posts.slice(0, limit) : posts;
 
-	return NextResponse.json({
-		success: true,
-		data,
-		nextCursor: hasMore ? data[data.length - 1]?.id : null,
-	});
+		return NextResponse.json({
+			success: true,
+			data,
+			nextCursor: hasMore ? data[data.length - 1]?.id : null,
+		});
+	} catch (error: unknown) {
+		console.error("[ERROR] GET /api/v1/posts", error instanceof Error ? error.message : String(error));
+		return NextResponse.json({ success: false, error: "Failed to fetch posts" }, { status: 500 });
+	}
 }
 
 export async function POST(req: NextRequest) {

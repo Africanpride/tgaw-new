@@ -6,7 +6,7 @@
 
 ## 1. Feature Overview
 
-Build a **Slot Booking System** for The Global Altar Watch (TGAW) that allows authenticated users to book fixed **30-minute devotional time slots** across three activity types:
+Build a **Slot Booking System** for The Global Altar Watch (TGAW) that allows authenticated users to book fixed **60-minute (hourly) devotional time slots** across three activity types:
 
 | Type              | Enum Value       | Sidebar Page | Colour Accent  |
 |-------------------|------------------|--------------|----------------|
@@ -16,7 +16,7 @@ Build a **Slot Booking System** for The Global Altar Watch (TGAW) that allows au
 
 ### Core Concept
 
-Every calendar day is divided into **48 fixed 30-minute slots** covering the full 24 hours (00:00–00:30, 00:30–01:00, …, 23:30–24:00). Slots exist independently for **each of the three activity types**, giving a total of **144 bookable slots per day** (48 × 3). However, a single user **cannot book overlapping times across different types** (e.g., if a user books Bible Reading 08:00–08:30, they cannot also book Prayer 08:00–08:30).
+Every calendar day is divided into **24 fixed 60-minute slots** covering the full 24 hours (00:00–01:00, 01:00–02:00, …, 23:00–24:00). Slots exist independently for **each of the three activity types**, giving a total of **72 bookable slots per day** (24 × 3). However, a single user **cannot book overlapping times across different types** (e.g., if a user books Bible Reading 08:00–09:00, they cannot also book Prayer 08:00–09:00).
 
 ---
 
@@ -28,7 +28,7 @@ Every calendar day is divided into **48 fixed 30-minute slots** covering the ful
 - Auto-generation should run via:
   - A **server action** (`actions/slotActions.ts`) triggered by a **cron-style mechanism** (e.g., a daily API route `/api/v1/slots/generate` protected by a secret key, or a scheduled server action).
   - On first load of the booking page, if slots for the current month don't exist, generate them on-demand.
-- Each slot record represents a single 30-min window for a single type on a single date.
+- Each slot record represents a single 60-min window for a single type on a single date.
 - Leaders/Superadmins can also **manually create custom special events** on top of the auto-generated slots (these use the existing `Event` model).
 
 ### 2.2 Slot Exclusivity
@@ -38,7 +38,7 @@ Every calendar day is divided into **48 fixed 30-minute slots** covering the ful
 
 ### 2.3 Multi-Slot Booking
 
-- Users can **select multiple consecutive 30-min slots in one booking action** (e.g., selecting 08:00–08:30 and 08:30–09:00 books a 1-hour block).
+- Users can **select multiple consecutive 1-hour slots in one booking action** (e.g., selecting 08:00–09:00 and 09:00–10:00 books a 2-hour block).
 - The UI should support click-and-drag or shift-click range selection on the timeline.
 - The API must accept an array of slot IDs and process them atomically (all-or-nothing).
 
@@ -112,7 +112,7 @@ model Slot {
   type      EventType                    // BIBLE | PRAYER | PRAISE_WORSHIP
   date      String                       // YYYY-MM-DD (UTC date)
   startTime String                       // HH:MM (UTC, e.g. "08:00")
-  endTime   String                       // HH:MM (UTC, e.g. "08:30")
+  endTime   String                       // HH:MM (UTC, e.g. "09:00")
   bookedBy  String?                      // user.id of who booked it (null = available)
   notes     String?                      // optional context from user
   assignedBy String?                     // user.id of leader who assigned it (null = self-booked)
@@ -161,7 +161,7 @@ model BookingConfig {
 ### 4.4 Existing Model Updates
 
 - **`EventType` enum** already includes `BIBLE`, `PRAYER`, `PRAISE_WORSHIP` — no change needed.
-- The existing `Event` and `EventBooking` models remain for leader-created special events (one-off meetings, retreats, etc.). The new `Slot` model is specifically for the auto-generated 30-min devotional grid.
+- The existing `Event` and `EventBooking` models remain for leader-created special events (one-off meetings, retreats, etc.). The new `Slot` model is specifically for the auto-generated 1-hour devotional grid.
 
 ---
 
@@ -200,9 +200,9 @@ export const adminCancelSlotSchema = z.object({
 
 // Admin: update booking config
 export const updateBookingConfigSchema = z.object({
-  maxBibleSlotsPerDay: z.number().int().min(0).max(48).optional(),
-  maxPrayerSlotsPerDay: z.number().int().min(0).max(48).optional(),
-  maxWorshipSlotsPerDay: z.number().int().min(0).max(48).optional(),
+  maxBibleSlotsPerDay: z.number().int().min(0).max(24).optional(),
+  maxPrayerSlotsPerDay: z.number().int().min(0).max(24).optional(),
+  maxWorshipSlotsPerDay: z.number().int().min(0).max(24).optional(),
   visibilityMode: z.number().int().min(1).max(4).optional(),
 });
 
@@ -234,7 +234,7 @@ All routes under `app/api/v1/slots/`. Standard TGAW response format: `{ success,
 
 Query params: `date` (YYYY-MM-DD, required), `type` (optional filter).
 
-Returns all 48 slots for the given date (or 144 if no type filter), with booking status respecting the active visibility mode. Include the meeting link for each type on that date.
+Returns all 24 slots for the given date (or 72 if no type filter), with booking status respecting the active visibility mode. Include the meeting link for each type on that date.
 
 Response shape:
 ```json
@@ -332,7 +332,7 @@ Body: `adminCancelSlotSchema`.
 Protected by a `CRON_SECRET` header or Leader/Superadmin session.
 
 - Generate all slots for the current month and next month that don't already exist.
-- 48 slots × 3 types × N days = total slots created.
+- 24 slots × 3 types × N days = total slots created.
 - Idempotent — skip any (type, date, startTime) that already exists.
 
 ### 6.7 Meeting Link Management
@@ -393,9 +393,9 @@ Replace the current "Coming Soon" stub with a full booking interface:
 │  Page Header: "Slot Booking"  +  Date Picker  +  Type Tabs  │
 ├──────────────────────────┬───────────────────────────────────┤
 │                          │                                   │
-│   Monthly Calendar       │   Daily Timeline (48 slots)       │
+│   Monthly Calendar       │   Daily Timeline (24 slots)       │
 │   Mini-calendar showing  │   Vertical scrollable list of     │
-│   days with booking      │   30-min slots for selected day   │
+│   days with booking      │   1-hour slots for selected day   │
 │   density indicators     │   + selected type tab             │
 │                          │   Color-coded: booked / available │
 │                          │   / own-booking / blocked          │
@@ -434,7 +434,7 @@ Replace the current "Coming Soon" stub with a full booking interface:
 
 Each devotion page (`/bible`, `/prayer`, `/worship`) gets a **"Book a Slot" section**:
 
-- Shows today's date with a compact horizontal timeline of 48 slots for that type.
+- Shows today's date with a compact horizontal timeline of 24 slots for that type.
 - Quick-book: tap an available slot, confirm in a sheet.
 - "View Full Calendar →" link navigates to `/booking` with the correct type tab pre-selected.
 - Below the booking strip: "Your Upcoming Slots" — cards for the user's next 3 booked slots of this type.
@@ -461,7 +461,7 @@ Create under `components/booking/`:
 
 | Component | Description |
 |-----------|-------------|
-| `SlotTimeline.tsx` | Vertical scrollable list of 48 slots for a single date + type. Renders `SlotCell` for each. Handles multi-select. |
+| `SlotTimeline.tsx` | Vertical scrollable list of 24 slots for a single date + type. Renders `SlotCell` for each. Handles multi-select. |
 | `SlotCell.tsx` | Individual slot row: time label, status badge (Available/Booked/Mine), user avatar (if visible), click handler. |
 | `SlotBookingSheet.tsx` | Bottom sheet / dialog for confirming a booking: shows time range, notes input, confirm/cancel buttons. |
 | `TypeTabs.tsx` | Horizontal tab group for BIBLE / PRAYER / PRAISE_WORSHIP with icons + accent colours. |
@@ -576,7 +576,7 @@ Adhere to TGAW's premium quality bar as specified in `AGENTS.md`:
 - **Timezone test**: Set browser timezone to UTC+5, verify the timeline shows correctly shifted times and the correct UTC date is sent to the API.
 - **Visibility mode test**: Switch between all 4 modes and verify slot display changes accordingly.
 - **Mobile responsiveness**: Test on 360px, 390px, 768px, 1024px, 1440px viewports.
-- **Accessibility audit**: Keyboard navigation through all 48 slots, screen reader announces slot state.
+- **Accessibility audit**: Keyboard navigation through all 24 slots, screen reader announces slot state.
 - **Notification test**: Book a slot, verify email/push/SMS sent (per user prefs). Cancel a slot, verify leader notification.
 
 ---
@@ -590,7 +590,7 @@ Add to `.env.example`:
 CRON_SECRET=your-cron-secret-here
 
 # Default booking limits (overridable via admin UI)
-DEFAULT_MAX_BIBLE_SLOTS_PER_DAY=2
-DEFAULT_MAX_PRAYER_SLOTS_PER_DAY=2
-DEFAULT_MAX_WORSHIP_SLOTS_PER_DAY=2
+DEFAULT_MAX_BIBLE_SLOTS_PER_DAY=1
+DEFAULT_MAX_PRAYER_SLOTS_PER_DAY=1
+DEFAULT_MAX_WORSHIP_SLOTS_PER_DAY=1
 ```

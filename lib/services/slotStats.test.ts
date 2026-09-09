@@ -38,10 +38,10 @@ describe("computeSlotStats", () => {
 		expect(stats.monthSessions).toBe(3)
 	})
 
-	it("derives monthly time at 30 minutes per session", () => {
+	it("derives monthly time at 60 minutes per session", () => {
 		const stats = computeSlotStats([{ date: day(0) }, { date: day(1) }, { date: day(2) }], TODAY)
 		expect(stats.monthSessions).toBe(3)
-		expect(stats.monthMinutes).toBe(90)
+		expect(stats.monthMinutes).toBe(180)
 	})
 
 	it("returns zeros for an empty booking list", () => {

@@ -60,8 +60,17 @@ const restrictedRole = ac.newRole({
   session: [],
 })
 
-const client = new MongoClient(process.env.DATABASE_URL as string)
+// MongoDB client with connection pooling to prevent memory leaks
+const client = new MongoClient(process.env.DATABASE_URL as string, {
+  maxPoolSize: 50,
+  minPoolSize: 5,
+  maxIdleTimeMS: 60000,
+  waitQueueTimeoutMS: 10000,
+})
 const db = client.db()
+
+// Export for graceful shutdown
+export const mongoClient = client
 
 const options = {
   appName: "TGAW",
@@ -75,28 +84,45 @@ const options = {
       generateId: () => crypto.randomUUID(),
     },
   },
+  rateLimit: {
+    window: 10,
+    max: 100,
+    customRules: {
+      "/sign-in/email": { window: 600, max: 5 },
+      "/sign-up/email": { window: 3600, max: 3 },
+      "/request-password-reset": { window: 3600, max: 3 },
+      "/verify-email": { window: 3600, max: 5 },
+      "/two-factor/verify": { window: 300, max: 5 },
+    },
+    storage: "database",
+  },
   session: {
     freshAge: 0,
+    updateAge: 86400,
+    expiresIn: 604800,
+    cookieCache: { enabled: true, maxAge: 300 },
   },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
+    resetPasswordTokenExpiresIn: 3600,
     sendResetPassword: async ({ user, url }) =>
       sendEmail(
         user.email,
         "Reset your TGAW password",
-        `<p>Hi ${user.name},</p><p>We received a request to reset your password. Click the link below to choose a new one (this link expires shortly):</p><p><a href="${url}">Reset password</a></p><p>If you didn't request this, you can safely ignore this email.</p>`
+        `<p>Hi ${user.name},</p><p>We received a request to reset your password. This link expires in 1 hour — click below to choose a new one:</p><p><a href="${url}">Reset password</a></p><p>If you didn't request this, you can safely ignore this email.</p>`
       ),
   },
   emailVerification: {
     sendOnSignIn: true,
+    expiresIn: 86400,
     sendVerificationEmail: async ({ user, url }) => {
       const verifyUrl = new URL(url);
       verifyUrl.searchParams.set("callbackURL", "/overview");
       await sendEmail(
         user.email,
         "Verify your TGAW email",
-        `<p>Hi ${user.name},</p><p>Welcome to The Global Altar Watch. Click the link below to verify your email address and activate your account:</p><p><a href="${verifyUrl.toString()}">Verify email</a></p><p>If you didn't create an account, you can safely ignore this email.</p>`
+        `<p>Hi ${user.name},</p><p>Welcome to The Global Altar Watch. Click the link below to verify your email address and activate your account (expires in 24 hours):</p><p><a href="${verifyUrl.toString()}">Verify email</a></p><p>If you didn't create an account, you can safely ignore this email.</p>`
       );
     },
     autoSignInAfterVerification: true,
@@ -146,7 +172,10 @@ const options = {
         member: restrictedRole,
       },
     }),
-    twoFactor(),
+    twoFactor({
+      otpOptions: { period: 30 },
+      backupCodeOptions: { amount: 10, length: 10 },
+    }),
     haveIBeenPwned(),
   ],
   databaseHooks: {

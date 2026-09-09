@@ -175,7 +175,7 @@ export default function TermsPage() {
             <h2 className="flex items-center gap-2 text-2xl tracking-tight"><Clock aria-hidden="true" className="size-5 text-muted-foreground" /> 4. Slots, bookings & meetings</h2>
             <Card className="mt-4">
               <CardContent className="space-y-3 pt-6 text-sm leading-relaxed text-muted-foreground">
-                <p>Devotion slots (Bible, Prayer, Worship) are 30-minute commitments. One booking per slot per member; use consecutive slots if you desire a longer watch. Daily limits per type are set by the community (see Booking page).</p>
+                <p>Devotion slots (Bible, Prayer, Worship) are 1-hour commitments. One booking per slot per member; use consecutive slots if you desire a longer watch. Daily limits per type are set by the community (see Booking page).</p>
                 <ul className="list-disc space-y-1 pl-5">
                   <li>Cancel from the slot timeline if you cannot keep a time — it frees the slot for another member.</li>
                   <li>Meeting links (Zoom/Teams) are provided per devotion type per day; treat them as community spaces.</li>

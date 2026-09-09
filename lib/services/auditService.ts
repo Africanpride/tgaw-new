@@ -97,6 +97,11 @@ export interface LogAuditParams {
 
 function buildExpiresAt(action: AuditAction): Date | null {
   if (CRITICAL_ACTIONS.has(action)) return null
+  if (action === "SLOT_BOOK" || action === "SLOT_CANCEL") {
+    const d = new Date()
+    d.setDate(d.getDate() + 7)
+    return d
+  }
   const d = new Date()
   d.setDate(d.getDate() + 90)
   return d

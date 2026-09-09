@@ -12,7 +12,7 @@ import {
 import { dispatchNotification } from "@/lib/notifications/dispatch";
 
 /**
- * Generate 48 slots per day for a given date range.
+ * Generate 24 slots per day for a given date range (1 hour each).
  */
 export async function generateSlotsForDateRange(startDateStr: string, endDateStr: string) {
   const startDate = parse(startDateStr, "yyyy-MM-dd", new Date());
@@ -27,20 +27,15 @@ export async function generateSlotsForDateRange(startDateStr: string, endDateStr
     dates.push(dateStr);
 
     for (const type of [EventType.BIBLE, EventType.PRAYER, EventType.PRAISE_WORSHIP]) {
-      for (let i = 0; i < 48; i++) {
-        const startTotalMinutes = i * 30;
-        const startHours = Math.floor(startTotalMinutes / 60).toString().padStart(2, '0');
-        const startMins = (startTotalMinutes % 60).toString().padStart(2, '0');
-        
-        const endTotalMinutes = (i + 1) * 30;
-        const endHours = Math.floor(endTotalMinutes / 60).toString().padStart(2, '0');
-        const endMins = (endTotalMinutes % 60).toString().padStart(2, '0');
+      for (let hour = 0; hour < 24; hour++) {
+        const startHours = hour.toString().padStart(2, '0');
+        const endHours = (hour + 1).toString().padStart(2, '0');
 
         newSlots.push({
           type,
           date: dateStr,
-          startTime: `${startHours}:${startMins}`,
-          endTime: endHours === "24" ? "24:00" : `${endHours}:${endMins}`,
+          startTime: `${startHours}:00`,
+          endTime: endHours === "24" ? "24:00" : `${endHours}:00`,
         });
       }
     }
