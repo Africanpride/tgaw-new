@@ -29,6 +29,41 @@ const AUTH_PAGES = ["/login", "/signup", "/forgot-password", "/reset-password"];
 const ONBOARDING_PATH = "/onboarding";
 const BANNED_PATH = "/banned";
 
+// Simple in-memory rate limit for auth endpoints (works on single instance / dev; for Vercel scale use Upstash Redis via secondaryStorage in lib/auth.ts)
+const RATE_LIMITS: Record<string, { windowMs: number; max: number }> = {
+  "/api/auth/sign-in": { windowMs: 600_000, max: 5 },
+  "/api/auth/sign-up": { windowMs: 3_600_000, max: 3 },
+  "/api/auth/request-password-reset": { windowMs: 3_600_000, max: 3 },
+  "/api/auth/verify-email": { windowMs: 3_600_000, max: 5 },
+  "/api/auth/two-factor/verify": { windowMs: 300_000, max: 5 },
+}
+const rateLimitStore = new Map<string, { count: number; reset: number }>()
+function isRateLimited(ip: string, path: string): { limited: boolean; retryAfter: number } {
+  const key = Object.keys(RATE_LIMITS).find((k) => path.startsWith(k))
+  if (!key) return { limited: false, retryAfter: 0 }
+  const { windowMs, max } = RATE_LIMITS[key]!
+  const storeKey = `${ip}:${key}`
+  const now = Date.now()
+  const entry = rateLimitStore.get(storeKey)
+  if (!entry || now > entry.reset) {
+    rateLimitStore.set(storeKey, { count: 1, reset: now + windowMs })
+    return { limited: false, retryAfter: 0 }
+  }
+  if (entry.count >= max) {
+    return { limited: true, retryAfter: Math.ceil((entry.reset - now) / 1000) }
+  }
+  entry.count++
+  return { limited: false, retryAfter: 0 }
+}
+function getClientIp(req: NextRequest): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    req.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ??
+    "unknown"
+  )
+}
+
 // Cookie consent — Vary on GPC + geo so CDN caches per region correctly
 function withConsentHeaders(res: NextResponse, req: NextRequest): NextResponse {
 	const gpc = req.headers.get("sec-gpc") === "1" || req.headers.get("Sec-GPC") === "1";
@@ -50,10 +85,37 @@ function withConsentHeaders(res: NextResponse, req: NextRequest): NextResponse {
 
 export async function proxy(req: NextRequest) {
 	const path = req.nextUrl.pathname;
+	const isApi = path.startsWith("/api/")
 	const isProtected = PROTECTED_PATHS.some((p) => path.startsWith(p)) || path.startsWith("/api/v1/slots/");
 	const isAuthPage = AUTH_PAGES.some((p) => path.startsWith(p));
 	const isOnboardingPath = path.startsWith(ONBOARDING_PATH);
 	const isBannedPath = path.startsWith(BANNED_PATH);
+
+	// Rate-limit auth endpoints (Vercel or self-hosted) — 429 with Retry-After
+	if (path.startsWith("/api/auth/")) {
+		const ip = getClientIp(req)
+		const { limited, retryAfter } = isRateLimited(ip, path)
+		if (limited) {
+			// Log suspicious burst fire-and-forget
+			void (async () => {
+				try {
+					const { logAudit } = await import("@/lib/services/auditService")
+					await logAudit({
+						actorId: ip,
+						action: "AUTH_LOGIN_FAILURE",
+						targetType: "Auth",
+						targetId: path,
+						metadata: { reason: "rate_limit", path, ip },
+						ip,
+						userAgent: req.headers.get("user-agent") ?? null,
+					})
+				} catch {}
+			})()
+			const res = NextResponse.json({ success: false, error: "Too many requests" }, { status: 429 })
+			res.headers.set("Retry-After", String(retryAfter))
+			return withConsentHeaders(res, req)
+		}
+	}
 
 	const session = await auth.api.getSession({ headers: req.headers });
 
@@ -85,6 +147,7 @@ export async function proxy(req: NextRequest) {
 	if (!isProtected && !isOnboardingPath) return withConsentHeaders(NextResponse.next(), req);
 
 	if (!session) {
+		if (isApi) return withConsentHeaders(NextResponse.json({ success: false, error: "Unauthorised" }, { status: 401 }), req)
 		return withConsentHeaders(NextResponse.redirect(new URL("/login", req.url)), req);
 	}
 
@@ -111,28 +174,28 @@ export async function proxy(req: NextRequest) {
 	} else if (path.startsWith("/api/v1/slots/assign") || path.startsWith("/api/v1/slots/admin-cancel") || path.startsWith("/api/v1/slots/config") || path.startsWith("/api/v1/slots/meeting-link") || path.startsWith("/api/v1/slots/generate")) {
 		// Only leader and superadmin
 		if (role !== "leader" && role !== "superadmin") {
-			return withConsentHeaders(NextResponse.redirect(new URL("/unauthorized", req.url)), req);
+			return withConsentHeaders(isApi ? NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/unauthorized", req.url)), req);
 		}
 	}
 
 	// User Management / Role Assignment: superadmin only
 	if (SUPERADMIN_ONLY_PATHS.some((p) => path.startsWith(p))) {
-		return withConsentHeaders(NextResponse.redirect(new URL("/unauthorized", req.url)), req);
+		return withConsentHeaders(isApi ? NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/unauthorized", req.url)), req);
 	}
 
 	// Admin Portal (slot admin, reports, external links, etc.): leader + superadmin
 	if (ADMIN_PORTAL_PATHS.some((p) => path.startsWith(p)) && role !== "leader") {
-		return withConsentHeaders(NextResponse.redirect(new URL("/unauthorized", req.url)), req);
+		return withConsentHeaders(isApi ? NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/unauthorized", req.url)), req);
 	}
 
 	// Coordinator Dashboard: coordinator + superadmin
 	if (COORDINATOR_PATHS.some((p) => path.startsWith(p)) && role !== "coordinator") {
-		return withConsentHeaders(NextResponse.redirect(new URL("/unauthorized", req.url)), req);
+		return withConsentHeaders(isApi ? NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/unauthorized", req.url)), req);
 	}
 
 	// Board Dashboard: board + superadmin
 	if (BOARD_PATHS.some((p) => path.startsWith(p)) && role !== "board") {
-		return withConsentHeaders(NextResponse.redirect(new URL("/unauthorized", req.url)), req);
+		return withConsentHeaders(isApi ? NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/unauthorized", req.url)), req);
 	}
 
 	return withConsentHeaders(NextResponse.next(), req);

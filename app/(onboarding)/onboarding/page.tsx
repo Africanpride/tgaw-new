@@ -1,23 +1,20 @@
-"use client"
+import { headers } from "next/headers"
+import { redirect } from "next/navigation"
+import { auth } from "@/lib/auth"
+import { OnboardingFlowClient } from "./OnboardingFlowClient"
 
-import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow"
-import type { OnboardingValues } from "@/lib/schemas/onboardingSchema"
+export default async function OnboardingSetupPage() {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session) redirect("/login")
 
-export default function OnboardingSetupPage() {
-  async function handleComplete(values: OnboardingValues): Promise<boolean> {
-    try {
-      const res = await fetch("/api/v1/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      })
-      if (!res.ok) return false
-      const data = await res.json()
-      return data.success === true
-    } catch {
-      return false
-    }
+  // Check if onboarding is complete by looking for a UserProfile
+  const { prisma } = await import("@/lib/db/prisma")
+  const profile = await prisma.userProfile.findUnique({
+    where: { userId: session.user.id! },
+  })
+  if (profile) {
+    redirect("/overview")
   }
 
-  return <OnboardingFlow onComplete={handleComplete} />
+  return <OnboardingFlowClient userName={session.user.name ?? ""} userId={session.user.id!} />
 }

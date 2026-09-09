@@ -4,24 +4,71 @@ setDefaultAutoSelectFamily(true); // Force IPv4
 
 import { createServer } from "node:http";
 import next from "next";
-import { Server } from "socket.io";
-import { auth } from "@/lib/auth";
+import { Server, type Socket } from "socket.io";
+import { auth, mongoClient } from "@/lib/auth";
+import { prisma } from "@/lib/db/prisma";
+import { dispatchNotification } from "@/lib/notifications/dispatch";
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-app.prepare().then(() => {
-	const httpServer = createServer((req, res) => handle(req, res));
-	const io = new Server(httpServer, { path: "/socket.io" });
+// Track intervals/timeouts for cleanup
+const intervals: NodeJS.Timeout[] = [];
+const timeouts: NodeJS.Timeout[] = [];
 
-	io.use(async (socket, next) => {
+function clearAllTimers() {
+	for (const t of timeouts) clearTimeout(t);
+	for (const i of intervals) clearInterval(i);
+	timeouts.length = 0;
+	intervals.length = 0;
+}
+
+async function shutdown() {
+	console.log("[SHUTDOWN] Graceful shutdown initiated...");
+	clearAllTimers();
+
+	// Close Socket.IO
+	if (io) {
+		io.close();
+		console.log("[SHUTDOWN] Socket.IO closed");
+	}
+
+	// Close HTTP server
+	if (httpServer) {
+		await new Promise<void>((resolve) => {
+			httpServer!.close(() => {
+				console.log("[SHUTDOWN] HTTP server closed");
+				resolve();
+			});
+		});
+	}
+
+	// Disconnect Prisma
+	await prisma.$disconnect();
+	console.log("[SHUTDOWN] Prisma disconnected");
+
+	// Close MongoDB client
+	await mongoClient.close();
+	console.log("[SHUTDOWN] MongoDB client closed");
+
+	process.exit(0);
+}
+
+let httpServer: ReturnType<typeof createServer> | null = null;
+let io: InstanceType<typeof Server> | null = null;
+
+app.prepare().then(() => {
+	httpServer = createServer((req, res) => handle(req, res));
+	io = new Server(httpServer, { path: "/socket.io" });
+
+	io.use(async (socket: Socket, next: (err?: Error) => void) => {
 		try {
 			const session = await auth.api.getSession({
 				headers: socket.handshake.headers as unknown as Headers,
 			});
 			if (!session?.user) return next(new Error("Unauthorized"));
-			socket.data.userId = session.user.id;
+		(socket.data as { userId: string }).userId = session.user.id;
 			next();
 		} catch {
 			next(new Error("Unauthorized"));
@@ -37,8 +84,13 @@ app.prepare().then(() => {
 			socket.leave(conversationId);
 		});
 
-		socket.on("message:send", (payload) => {
-			io.to(payload.conversationId).emit("message:new", payload);
+		socket.on("message:send", (payload: { conversationId: string; [key: string]: unknown }) => {
+			io?.to(payload.conversationId).emit("message:new", payload);
+		});
+
+		// Track connected sockets for potential cleanup
+		socket.on("disconnect", () => {
+			// Socket disconnected, cleanup handled by Socket.IO
 		});
 	});
 
@@ -54,14 +106,13 @@ app.prepare().then(() => {
 	const remindedSlotIds = new Set<string>();
 
 	// Periodic cleanup of dedup set (keep 2h)
-	setInterval(() => {
+	const dedupCleanupInterval = setInterval(() => {
 		remindedSlotIds.clear();
 	}, 60 * 60 * 1000 * 2);
+	intervals.push(dedupCleanupInterval);
 
 	async function runReminderTick() {
 		try {
-			const { prisma } = await import("@/lib/db/prisma");
-			const { dispatchNotification } = await import("@/lib/notifications/dispatch");
 			const now = new Date();
 			const today = now.toISOString().split("T")[0];
 			const nowMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
@@ -159,6 +210,21 @@ app.prepare().then(() => {
 	}
 
 	// Kick off first tick after 15s, then every 2 mins
-	setTimeout(runReminderTick, 15_000);
-	setInterval(runReminderTick, REMINDER_INTERVAL_MS);
+	const initialTimeout = setTimeout(runReminderTick, 15_000);
+	timeouts.push(initialTimeout);
+
+	const reminderInterval = setInterval(runReminderTick, REMINDER_INTERVAL_MS);
+	intervals.push(reminderInterval);
+});
+
+// Graceful shutdown handlers
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
+process.on("uncaughtException", (err) => {
+	console.error("[FATAL] Uncaught exception:", err);
+	shutdown();
+});
+process.on("unhandledRejection", (reason) => {
+	console.error("[FATAL] Unhandled rejection:", reason);
+	shutdown();
 });

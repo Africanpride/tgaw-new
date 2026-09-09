@@ -43,6 +43,14 @@ export default function SignUpPage() {
 			password: data.password,
 		});
 		if (result.error) {
+			const msg = (result.error.message || "").toLowerCase();
+			const code = (result.error as { code?: string }).code?.toLowerCase() ?? "";
+			// Stop enumeration: "already exists" should not reveal — show generic success
+			if (msg.includes("already exists") || msg.includes("already registered") || code.includes("user_already_exists")) {
+				setSuccess(true);
+				return;
+			}
+			// haveIBeenPwned: keep specific pwned message for UX
 			setError(result.error.message || "Sign up failed");
 		} else {
 			setSuccess(true);

@@ -27,7 +27,6 @@ import {
   type OnboardingValues,
 } from "@/lib/schemas/onboardingSchema"
 import { resolveCountryAlpha3, resolveCountryAlpha2 } from "@/lib/countries"
-import { useSession } from "@/lib/auth-client"
 
 const AGE_RANGES = [
   "under-18",
@@ -39,12 +38,16 @@ const AGE_RANGES = [
   "65-plus",
 ] as const
 
+interface OnboardingFlowProps {
+  onComplete: (values: OnboardingValues) => Promise<boolean> | boolean
+  defaultName?: string
+  userId?: string
+}
+
 export function OnboardingFlow({
   onComplete,
-}: {
-  onComplete: (values: OnboardingValues) => Promise<boolean> | boolean
-}) {
-  const { data: session } = useSession()
+  defaultName = "",
+}: OnboardingFlowProps) {
   const [stepIndex, setStepIndex] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -58,10 +61,10 @@ export function OnboardingFlow({
   })
 
   useEffect(() => {
-    if (session?.user?.name) {
-      form.setValue("name", session.user.name, { shouldValidate: true })
+    if (defaultName) {
+      form.setValue("name", defaultName, { shouldValidate: true })
     }
-  }, [session, form])
+  }, [defaultName, form])
 
   async function goNext() {
     setErrorMsg(null)
