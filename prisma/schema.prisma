@@ -342,9 +342,9 @@ model MeetingLink {
 
 model BookingConfig {
   id                    String    @id @default(auto()) @map("_id") @db.ObjectId
-  maxBibleSlotsPerDay   Int       @default(2)
-  maxPrayerSlotsPerDay  Int       @default(2)
-  maxWorshipSlotsPerDay Int       @default(2)
+  maxBibleSlotsPerDay   Int       @default(1)
+  maxPrayerSlotsPerDay  Int       @default(1)
+  maxWorshipSlotsPerDay Int       @default(1)
   visibilityMode        Int       @default(4)  // 1=Full Public, 2=Count Only, 3=Full Transparency, 4=Role-Scoped
   liveGridUpcoming      Int       @default(2)  // upcoming slots per channel in OverviewLiveGrid; total = 1 live + upcoming
   updatedBy             String                 // last admin who changed config

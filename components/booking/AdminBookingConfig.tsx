@@ -32,9 +32,9 @@ export function AdminBookingConfig({
 }) {
   const [config, setConfig] = useState<BookingConfigData>(
     initialConfig || {
-      maxBibleSlotsPerDay: 2,
-      maxPrayerSlotsPerDay: 2,
-      maxWorshipSlotsPerDay: 2,
+      maxBibleSlotsPerDay: 1,
+      maxPrayerSlotsPerDay: 1,
+      maxWorshipSlotsPerDay: 1,
       visibilityMode: 4,
       liveGridUpcoming: 2,
     }
@@ -96,7 +96,7 @@ export function AdminBookingConfig({
               <Input
                 id="maxBible"
                 type="number"
-                value={config.maxBibleSlotsPerDay ?? 2}
+                value={config.maxBibleSlotsPerDay ?? 1}
                 onChange={(e) =>
                   setConfig({
                     ...config,
@@ -104,7 +104,7 @@ export function AdminBookingConfig({
                   })
                 }
                 min={0}
-                max={48}
+                max={24}
               />
             </div>
             <div className="space-y-2">
@@ -112,7 +112,7 @@ export function AdminBookingConfig({
               <Input
                 id="maxPrayer"
                 type="number"
-                value={config.maxPrayerSlotsPerDay ?? 2}
+                value={config.maxPrayerSlotsPerDay ?? 1}
                 onChange={(e) =>
                   setConfig({
                     ...config,
@@ -120,7 +120,7 @@ export function AdminBookingConfig({
                   })
                 }
                 min={0}
-                max={48}
+                max={24}
               />
             </div>
             <div className="space-y-2">
@@ -128,7 +128,7 @@ export function AdminBookingConfig({
               <Input
                 id="maxWorship"
                 type="number"
-                value={config.maxWorshipSlotsPerDay ?? 2}
+                value={config.maxWorshipSlotsPerDay ?? 1}
                 onChange={(e) =>
                   setConfig({
                     ...config,
@@ -136,7 +136,7 @@ export function AdminBookingConfig({
                   })
                 }
                 min={0}
-                max={48}
+                max={24}
               />
             </div>
           </div>

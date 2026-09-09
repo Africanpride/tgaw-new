@@ -14,7 +14,7 @@ export interface SlotStats {
   monthByType: Record<string, number>;
 }
 
-const SLOT_MINUTES = 30;
+const SLOT_MINUTES = 60;
 
 /** Human duration for slot-derived minutes: 90 → "1h 30m". */
 export function formatMinutes(totalMinutes: number): string {
@@ -28,7 +28,7 @@ export function formatMinutes(totalMinutes: number): string {
 /**
  * Honest usage stats derived from booked slots only:
  * calendar week (Monday-start) sessions, calendar-month sessions,
- * derived monthly time at 30 minutes per session, and per-type counts.
+ * derived monthly time at 60 minutes per session, and per-type counts.
  */
 export function computeSlotStats(slots: StatSlot[], today: Date): SlotStats {
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });

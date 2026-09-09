@@ -62,10 +62,10 @@ const restrictedRole = ac.newRole({
 
 // MongoDB client with connection pooling to prevent memory leaks
 const client = new MongoClient(process.env.DATABASE_URL as string, {
-  maxPoolSize: 10,
-  minPoolSize: 2,
-  maxIdleTimeMS: 30000,
-  waitQueueTimeoutMS: 5000,
+  maxPoolSize: 50,
+  minPoolSize: 5,
+  maxIdleTimeMS: 60000,
+  waitQueueTimeoutMS: 10000,
 })
 const db = client.db()
 

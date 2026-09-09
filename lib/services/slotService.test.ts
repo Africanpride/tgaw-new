@@ -7,7 +7,7 @@ import {
 describe("getActiveHostsForTime", () => {
   it("returns null hosts when no slot is active", () => {
     const slots: ActiveSlotLike[] = [
-      { type: "BIBLE", startTime: "08:00", endTime: "08:30", bookedBy: "u1" },
+      { type: "BIBLE", startTime: "08:00", endTime: "09:00", bookedBy: "u1" },
     ]
     expect(getActiveHostsForTime(slots, "10:00")).toEqual({
       BIBLE: null,
@@ -18,12 +18,12 @@ describe("getActiveHostsForTime", () => {
 
   it("returns the booked user for the active slot of each type", () => {
     const slots: ActiveSlotLike[] = [
-      { type: "BIBLE", startTime: "08:00", endTime: "08:30", bookedBy: "u1" },
-      { type: "PRAYER", startTime: "08:30", endTime: "09:00", bookedBy: "u2" },
+      { type: "BIBLE", startTime: "07:00", endTime: "08:00", bookedBy: "u1" },
+      { type: "PRAYER", startTime: "08:00", endTime: "09:00", bookedBy: "u2" },
       {
         type: "PRAISE_WORSHIP",
         startTime: "09:00",
-        endTime: "09:30",
+        endTime: "10:00",
         bookedBy: "u3",
       },
     ]
@@ -36,15 +36,15 @@ describe("getActiveHostsForTime", () => {
 
   it("is inclusive of start time and exclusive of end time", () => {
     const slots: ActiveSlotLike[] = [
-      { type: "BIBLE", startTime: "08:00", endTime: "08:30", bookedBy: "u1" },
+      { type: "BIBLE", startTime: "08:00", endTime: "09:00", bookedBy: "u1" },
     ]
     expect(getActiveHostsForTime(slots, "08:00").BIBLE).toBe("u1")
-    expect(getActiveHostsForTime(slots, "08:30").BIBLE).toBeNull()
+    expect(getActiveHostsForTime(slots, "09:00").BIBLE).toBeNull()
   })
 
   it("ignores unbooked slots", () => {
     const slots: ActiveSlotLike[] = [
-      { type: "BIBLE", startTime: "08:00", endTime: "08:30", bookedBy: null },
+      { type: "BIBLE", startTime: "08:00", endTime: "09:00", bookedBy: null },
     ]
     expect(getActiveHostsForTime(slots, "08:15")).toEqual({
       BIBLE: null,
@@ -55,10 +55,10 @@ describe("getActiveHostsForTime", () => {
 
   it("picks a single active host per type when multiple consecutive slots are booked", () => {
     const slots: ActiveSlotLike[] = [
-      { type: "BIBLE", startTime: "08:00", endTime: "08:30", bookedBy: "u1" },
-      { type: "BIBLE", startTime: "08:30", endTime: "09:00", bookedBy: "u2" },
+      { type: "BIBLE", startTime: "08:00", endTime: "09:00", bookedBy: "u1" },
+      { type: "BIBLE", startTime: "09:00", endTime: "10:00", bookedBy: "u2" },
     ]
-    // At 08:45 only the second slot is active
-    expect(getActiveHostsForTime(slots, "08:45").BIBLE).toBe("u2")
+    // At 09:15 only the second slot is active
+    expect(getActiveHostsForTime(slots, "09:15").BIBLE).toBe("u2")
   })
 })
