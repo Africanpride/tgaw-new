@@ -515,7 +515,7 @@ function PushSubscriptionManager() {
       <div className="flex gap-2">
         {isSubscribed ? (
           <>
-            <Button variant="outline" size="sm" className="cursor-pointer" disabled={isBusy} onClick={handleTest}>Test</Button>
+            {/* <Button variant="outline" size="sm" className="cursor-pointer" disabled={isBusy} onClick={handleTest}>Test</Button> */}
             <Button variant="outline" size="sm" className="cursor-pointer" disabled={isBusy} onClick={handleDisable}>{isBusy ? "..." : "Disable"}</Button>
           </>
         ) : (
