@@ -449,7 +449,14 @@ function PushSubscriptionManager() {
       setIsSubscribed(true);
       toast.success("Push notifications enabled");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : String(e));
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.toLowerCase().includes("push service")) {
+        toast.error(
+          "Your browser's push service is unavailable (common on Chromium/Brave builds without Google integration, or networks blocking fcm.googleapis.com). Try Firefox or Google Chrome.",
+        );
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setIsBusy(false);
     }
@@ -477,8 +484,13 @@ function PushSubscriptionManager() {
   const handleTest = async () => {
     try {
       const res = await fetch("/api/v1/push/test", { method: "POST" });
-      if (res.ok) toast.success("Test notification sent");
-      else toast.error("Test failed");
+      const j = await res.json().catch(() => null);
+      if (res.ok) {
+        const d = j?.data as { sent?: number; failed?: number } | null;
+        toast.success(d?.sent && d.sent > 1 ? `Test sent to ${d.sent} devices` : "Test notification sent");
+      } else {
+        toast.error(j?.error ?? "Test failed");
+      }
     } catch {
       toast.error("Test failed");
     }

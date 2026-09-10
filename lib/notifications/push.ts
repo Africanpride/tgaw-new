@@ -3,12 +3,16 @@ import webpush from "web-push";
 function ensureVapid() {
 	const pub = process.env.VAPID_PUBLIC_KEY;
 	const priv = process.env.VAPID_PRIVATE_KEY;
-	const contact = process.env.VAPID_CONTACT_EMAIL ?? "mailto:admin@tgaw.app";
+	const contact = process.env.VAPID_CONTACT_EMAIL ?? "admin@tgaw.app";
 	if (pub && priv) {
+		const subject = contact.startsWith("mailto:") ? contact : `mailto:${contact}`;
 		try {
-			webpush.setVapidDetails(contact, pub, priv);
-		} catch {
-			// already set or invalid — swallow
+			webpush.setVapidDetails(subject, pub, priv);
+		} catch (e) {
+			console.error(
+				"[ERROR] Invalid VAPID config:",
+				e instanceof Error ? e.message : String(e),
+			);
 		}
 	}
 }
