@@ -227,6 +227,7 @@ export default async function OverviewPage() {
         endTime: block.endTime,
         hasLink: !!link,
         locationText: link ? `Zoom · ${link.label ?? "Meeting"}` : null,
+        locationUrl: link?.url ?? null,
         leaderInitials: leader
           ? (leader.initials ?? deriveInitials(leader.name ?? undefined))
           : null,

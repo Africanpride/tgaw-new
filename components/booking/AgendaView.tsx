@@ -15,6 +15,7 @@ export interface AgendaEvent {
   endTime: string
   hasLink: boolean
   locationText?: string | null
+  locationUrl?: string | null
   leaderInitials?: string | null
   leaderName?: string | null
 }
@@ -169,8 +170,22 @@ export function AgendaView({ days, summary }: AgendaViewProps) {
                     <div className="text-sm">{evt.title}</div>
                     {evt.hasLink && evt.locationText && (
                       <div className="mt-0.5 flex items-center gap-2 font-mono text-[10px] text-muted-foreground">
-                        <Video className="size-3" aria-hidden="true" />
-                        <span>{evt.locationText}</span>
+                        {evt.locationUrl ? (
+                          <a
+                            href={evt.locationUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex cursor-pointer items-center gap-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+                          >
+                            <Video className="size-3" aria-hidden="true" />
+                            <span>{evt.locationText}</span>
+                          </a>
+                        ) : (
+                          <>
+                            <Video className="size-3" aria-hidden="true" />
+                            <span>{evt.locationText}</span>
+                          </>
+                        )}
                       </div>
                     )}
                     {evt.note && (
