@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { IconTile } from "@/components/IconTile"
 import { convertUtcTimeToLocal, isCurrentSlot } from "./slotTime"
 import { slotAccent } from "./slotAccent"
 
@@ -216,19 +217,15 @@ function ChannelSection({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <span
-          className={`flex size-8 items-center justify-center rounded-lg border text-sm ${meta.accent.iconTile}`}
-        >
-          <Icon className="size-4" aria-hidden="true" />
-        </span>
-        <h3 className="text-sm font-semibold tracking-tight">{meta.label}</h3>
-        <Badge variant="outline" className="ml-1 text-xs font-normal">
+      <div className="flex items-center gap-1.5">
+        <IconTile icon={Icon} size="xs" tone={meta.accent.iconTile} className="border" />
+        <h3 className="text-xs font-semibold tracking-tight">{meta.label}</h3>
+        <Badge variant="outline" className="ml-1 text-[10px] font-normal">
           {dateBadge}
         </Badge>
         <Link
           href={meta.href}
-          className="ml-auto cursor-pointer text-xs text-muted-foreground underline-offset-4 hover:underline"
+          className="ml-auto cursor-pointer text-[10px] text-muted-foreground underline-offset-4 hover:underline"
         >
           View all →
         </Link>

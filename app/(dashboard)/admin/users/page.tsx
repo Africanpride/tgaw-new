@@ -984,7 +984,7 @@ export default function UserManagementPage() {
                     onChange={(e) => setTzFilter(e.target.value)}
                     className="h-8"
                   />
-                  <div className="max-h-40 overflow-auto rounded-md border">
+                  <div className="max-h-40 overflow-auto rounded-xl border">
                     {(allTimezones.filter((tz) => tz.toLowerCase().includes(tzFilter.toLowerCase())).slice(0, 80)).map((tz) => {
                       const active = coordinatorTimezones.includes(tz)
                       return (

@@ -2,10 +2,11 @@
 
 import { SlotData } from "./SlotCell";
 import { convertUtcTimeToLocal, isPastSlot } from "./slotTime";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EventType } from "@prisma/client";
 import { CalendarCheck2, Clock } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { slotAccent } from "./slotAccent";
 
@@ -20,17 +21,11 @@ export function MyBookingsCards({ bookings, onCancel, type }: MyBookingsCardsPro
 
   if (bookings.length === 0) {
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center gap-2 p-6 text-center">
-          <div className={cn("flex size-10 items-center justify-center rounded-full", accent.iconTile)}>
-            <CalendarCheck2 className="size-5" aria-hidden="true" />
-          </div>
-          <p className="text-sm font-medium">No bookings for this day</p>
-          <p className="text-sm text-muted-foreground">
-            Claim a slot and keep your devotional watch alive.
-          </p>
-        </CardContent>
-      </Card>
+      <EmptyState
+        icon={CalendarCheck2}
+        title="No bookings for this day"
+        description="Claim a slot and keep your devotional watch alive."
+      />
     );
   }
 

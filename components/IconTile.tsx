@@ -1,15 +1,17 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type IconTileSize = "sm" | "md" | "lg";
+type IconTileSize = "xs" | "sm" | "md" | "lg";
 
 const TILE_SIZES: Record<IconTileSize, string> = {
+  xs: "size-6 rounded-md",
   sm: "size-7 rounded-md",
   md: "size-10 rounded-xl",
   lg: "size-14 rounded-xl",
 };
 
 const ICON_SIZES: Record<IconTileSize, string> = {
+  xs: "size-3.5",
   sm: "size-4",
   md: "size-5",
   lg: "size-7",
@@ -26,7 +28,8 @@ interface IconTileProps {
 
 /**
  * Shared squircle icon tile. One tile language everywhere:
- * sm for compact headers, md for section/card headers, lg for empty states.
+ * xs for dense headers, sm for compact headers, md for section/card
+ * headers, lg for empty states.
  */
 export function IconTile({
   icon: Icon,

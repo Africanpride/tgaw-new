@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Copy, ExternalLink, Sparkles, Video } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { IconTile } from "@/components/IconTile"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -209,9 +210,7 @@ export function MeetingBanner({
       >
         <CardContent className="p-0">
           <div className="flex items-start gap-2">
-            <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-violet-500/15 text-violet-600 dark:text-violet-400">
-              <Sparkles className="size-4" aria-hidden="true" />
-            </div>
+              <IconTile icon={Sparkles} size="sm" tone="bg-violet-500/15 text-violet-600 dark:text-violet-400" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <h4 className="truncate text-xs font-semibold text-foreground">
@@ -337,9 +336,7 @@ export function MeetingBanner({
           >
             <CardContent className="p-0">
               <div className="flex items-start gap-2">
-                <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                  <Video className="size-4" aria-hidden="true" />
-                </div>
+                <IconTile icon={Video} size="sm" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <h4 className="truncate text-xs font-semibold text-foreground">

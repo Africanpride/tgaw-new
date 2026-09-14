@@ -5,6 +5,8 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { IconTile } from "@/components/IconTile";
+import { EmptyState } from "@/components/EmptyState";
 import { FadeIn } from "@/components/dashboard/FadeIn";
 import { DateNav } from "@/components/date-nav";
 import { SlotBookingStrip } from "@/components/booking/SlotBookingStrip";
@@ -78,11 +80,7 @@ export async function DevotionPage({
 		<div className="flex flex-col gap-6">
 			<FadeIn>
 				<div className="flex items-start gap-4">
-					<span
-						className={`flex size-12 shrink-0 items-center justify-center rounded-2xl border ${accent.iconTile}`}
-					>
-						<Icon className="size-6" aria-hidden="true" />
-					</span>
+					<IconTile icon={Icon} size="lg" tone={accent.iconTile} className="border" />
 					<div className="space-y-1">
 						<h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
 						<p className="text-sm text-muted-foreground">{description}</p>
@@ -159,15 +157,11 @@ export async function DevotionPage({
 									hostName={liveHostName}
 								/>
 							) : (
-								<div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-8 text-center">
-									<span className="flex size-10 items-center justify-center rounded-full bg-muted">
-										<VideoOff className="size-5 text-muted-foreground" aria-hidden="true" />
-									</span>
-									<p className="text-sm font-medium">No meeting link yet</p>
-									<p className="max-w-[30ch] text-sm text-muted-foreground">
-										A Zoom/Teams link for {format(parse(dateStr, "yyyy-MM-dd", new Date()), "MMMM d")} will appear here once posted.
-									</p>
-								</div>
+								<EmptyState
+									icon={VideoOff}
+									title="No meeting link yet"
+									description={`A Zoom/Teams link for ${format(parse(dateStr, "yyyy-MM-dd", new Date()), "MMMM d")} will appear here once posted.`}
+								/>
 							)}
 						</CardContent>
 					</Card>

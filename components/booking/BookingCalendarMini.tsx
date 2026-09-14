@@ -34,7 +34,7 @@ export function BookingCalendarMini({
           mode="single"
           selected={date}
           onSelect={onDateChange}
-          className="w-full rounded-md"
+          className="w-full rounded-lg"
           classNames={{
             root: "w-full rdp-root",
           }}

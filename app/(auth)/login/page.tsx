@@ -114,12 +114,12 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
         {error && (
-          <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
             {error}
           </div>
         )}
         {needsVerification && (
-          <div className="rounded-md border border-primary/30 bg-primary/5 p-4 text-sm">
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
             <p className="font-medium text-foreground">
               Please verify your email
             </p>

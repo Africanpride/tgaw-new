@@ -271,7 +271,7 @@ function parseUA(uaString?: string) {
 function ThemePreview({ variant }: { variant: "light" | "dark" | "system" }) {
   if (variant === "system") {
     return (
-      <div className="mb-2.5 w-full overflow-hidden rounded-md border">
+        <div className="mb-2.5 w-full overflow-hidden rounded-xl border">
         <div className="flex items-center gap-1 border-b px-2 py-1">
           <div className="h-1 w-1 rounded-full bg-red-400" />
           <div className="h-1 w-1 rounded-full bg-amber-400" />
@@ -296,7 +296,7 @@ function ThemePreview({ variant }: { variant: "light" | "dark" | "system" }) {
   const light = variant === "light"
   return (
     <div
-      className={`mb-2.5 w-full overflow-hidden rounded-md border ${
+      className={`mb-2.5 w-full overflow-hidden rounded-xl border ${
         light ? "border-gray-200 bg-white" : "border-gray-700 bg-gray-900"
       }`}
     >

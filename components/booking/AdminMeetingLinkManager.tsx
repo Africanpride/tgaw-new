@@ -7,6 +7,7 @@ import type { BookableType } from "@/lib/services/slotService"
 import { toast } from "sonner"
 import { BookOpen, Check, Copy, Flame, Link2, Loader2, Music, Save, Trash2, Video } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { IconTile } from "@/components/IconTile"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -691,10 +692,8 @@ export function AdminMeetingLinkManager() {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
         <AlertDialogContent className="sm:max-w-[26rem]">
-          <div className="flex items-start gap-4">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-destructive/10">
-              <Trash2 className="size-5 text-destructive" aria-hidden="true" />
-            </div>
+            <div className="flex items-start gap-4">
+              <IconTile icon={Trash2} size="md" tone="bg-destructive/10 text-destructive" />
             <AlertDialogHeader className="gap-1.5">
               <AlertDialogTitle className="text-base sm:text-lg">
                 Delete meeting link?

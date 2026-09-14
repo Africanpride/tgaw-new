@@ -135,7 +135,7 @@ export default function GroupDetailPage() {
             </div>
             <div className="space-y-2">
               {members.map((m) => (
-                <div key={m.id} className="flex items-center gap-2 rounded-md border px-2 py-1.5 text-sm">
+                <div key={m.id} className="flex items-center gap-2 rounded-lg border px-2 py-1.5 text-sm">
                   <Avatar className="size-6"><AvatarFallback className="text-[10px]">{m.userId.slice(0,2).toUpperCase()}</AvatarFallback></Avatar>
                   <span className="truncate flex-1 text-xs">{m.userId.slice(0,8)}…</span>
                   <Badge variant="outline" className="text-[10px] capitalize gap-1">{m.role === "owner" ? <Crown className="size-3" /> : m.role === "moderator" ? <Shield className="size-3" /> : null}{m.role}</Badge>
@@ -149,7 +149,7 @@ export default function GroupDetailPage() {
         <Card className="lg:col-span-2 flex flex-col">
           <CardHeader><CardTitle className="text-sm">Group Chat {connected ? <span className="ml-2 text-xs font-normal text-emerald-600">● live</span> : <span className="ml-2 text-xs font-normal text-muted-foreground">offline</span>}</CardTitle></CardHeader>
           <CardContent className="flex flex-1 flex-col gap-3">
-            <div className="flex-1 space-y-2 overflow-auto rounded-md border bg-muted/20 p-3 max-h-[360px] min-h-[240px]">
+            <div className="flex-1 space-y-2 overflow-auto rounded-xl border bg-muted/20 p-3 max-h-[360px] min-h-[240px]">
               {chat.length === 0 ? <p className="py-10 text-center text-sm text-muted-foreground">No messages yet — say hello.</p> : chat.map((m) => (
                 <div key={m.id} className="rounded-lg bg-card border px-3 py-2 text-sm">
                   <p className="text-xs text-muted-foreground">{new Date(m.createdAt).toLocaleTimeString()} · {m.senderId.slice(0,6)}</p>

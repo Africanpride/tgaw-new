@@ -80,7 +80,7 @@ export function CommunityActivity() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={cn("rounded-full px-2.5 py-1 text-xs font-medium capitalize transition-colors", filter === f ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80")}
+              className={cn("rounded-lg px-2.5 py-1 text-xs font-medium capitalize transition-colors", filter === f ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80")}
             >
               {f}
             </button>

@@ -211,7 +211,7 @@ export function AvatarUploadDialog({
 				}
 			}}
 		>
-			<DialogContent className="gap-0 overflow-hidden rounded-3xl p-0 sm:max-w-md">
+			<DialogContent className="gap-0 overflow-hidden rounded-xl p-0 sm:max-w-md">
 				<DialogHeader className="border-b px-6 py-4">
 					<DialogTitle className="text-lg font-semibold text-foreground">
 						Update Profile Photo
@@ -227,7 +227,7 @@ export function AvatarUploadDialog({
 						onDragOver={handleDragOver}
 						onDragLeave={handleDragLeave}
 						onDrop={handleDrop}
-						className={`relative flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 transition-colors ${
+						className={`relative flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition-colors ${
 							isDragging
 								? "border-primary bg-primary/5"
 								: "border-muted-foreground/25 bg-muted/20 hover:bg-muted/40"

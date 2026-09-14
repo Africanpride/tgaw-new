@@ -148,7 +148,7 @@ export default function GroupsPage() {
                   {uploading && <Loader2 aria-hidden="true" className="size-4 animate-spin" />}
                 </div>
                 {form.watch("coverImageUrl") && (
-                  <div className="relative h-32 w-full overflow-hidden rounded-md border">
+                  <div className="relative h-32 w-full overflow-hidden rounded-xl border">
                     <Image src={form.watch("coverImageUrl")!} alt="Cover preview" fill className="object-cover" unoptimized />
                   </div>
                 )}

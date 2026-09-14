@@ -386,7 +386,7 @@ export function EventFormDialog({
                   return (
                     <label
                       key={opt.id}
-                      className="flex cursor-pointer items-center gap-2 rounded-md border-[0.5px] border-border/60 bg-muted/40 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
+                      className="flex cursor-pointer items-center gap-2 rounded-lg border-[0.5px] border-border/60 bg-muted/40 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
                     >
                       <Checkbox
                         checked={checked}
@@ -541,7 +541,7 @@ export function EventFormDialog({
           </div>
 
           {previewWarning && (
-            <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+            <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
               <TriangleAlert className="size-4 shrink-0" aria-hidden="true" />
               <span>
                 This event will override{" "}
