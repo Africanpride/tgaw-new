@@ -52,3 +52,6 @@ next-env.d.ts
 
 # AI session logs / scratch artifacts
 session-ses_*.md
+
+# scratchpads
+.memory/
