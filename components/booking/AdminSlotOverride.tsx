@@ -15,6 +15,7 @@ import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { sectionLabelClass } from "@/components/eyebrow";
 import {
   Card,
   CardContent,
@@ -712,8 +713,10 @@ export function AdminSlotOverride() {
                     {/* Booked slots first */}
                     {bookedSlots.length > 0 && (
                       <div>
-                        <p className="sticky top-0 z-10 mb-1 bg-card px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                          Booked ({bookedSlots.length})
+                        <p className="sticky top-0 z-10 mb-1 bg-card px-3 py-1">
+                          <span className={sectionLabelClass}>
+                            Booked ({bookedSlots.length})
+                          </span>
                         </p>
                         <AnimatePresence>
                           {bookedSlots.map((s) => (
@@ -730,8 +733,10 @@ export function AdminSlotOverride() {
                     {/* Available slots */}
                     {availableSlots.length > 0 && (
                       <div className="mt-3">
-                        <p className="sticky top-0 z-10 mb-1 bg-card px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                          Available ({availableSlots.length})
+                        <p className="sticky top-0 z-10 mb-1 bg-card px-3 py-1">
+                          <span className={sectionLabelClass}>
+                            Available ({availableSlots.length})
+                          </span>
                         </p>
                         <AnimatePresence>
                           {availableSlots.map((s) => (

@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import FooterSectionTwo from "@/components/blocks/footer/footer-section-two";
 import { CountUp } from "@/components/landing/count-up";
+import { IconTile } from "@/components/IconTile";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -396,9 +397,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
               <motion.div key={feature.title} variants={staggerItem} className="h-full">
                 <Card className="h-full transition-colors hover:border-primary/40 hover:shadow-sm">
                   <CardHeader>
-                    <span className="mb-2 inline-flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <feature.icon className="size-5" aria-hidden="true" />
-                    </span>
+                    <IconTile icon={feature.icon} size="md" className="mb-2 inline-flex" />
                     <CardTitle>{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent>

@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { listRowClass } from "@/components/list-row";
 import { EventType } from "@prisma/client";
 import { PastBookingsStack } from "./PastBookingsStack";
 
@@ -126,7 +127,8 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
                     <div
                       key={booking.id}
                       className={cn(
-                        "flex gap-3 rounded-md border px-3 py-2.5 transition-colors hover:bg-muted/30"
+                        listRowClass,
+                        "flex gap-3 px-3 py-2.5 hover:bg-muted/30"
                       )}
                     >
                       <div className="flex w-20 shrink-0 flex-col items-end pt-0.5">

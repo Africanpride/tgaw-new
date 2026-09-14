@@ -311,28 +311,24 @@ export default async function OverviewPage() {
             sessionCount > 0 ? "On today's watch" : "Nothing booked yet"
           }
           icon={CalendarDays}
-          className="border-l-4 border-l-blue-500"
         />
         <StatCard
           title="Sessions This Week"
           value={stats?.weekSessions ?? 0}
           description="Keep the rhythm going!"
           icon={Flame}
-          className="border-l-4 border-l-orange-500"
         />
         <StatCard
           title="Prayer Sessions"
           value={stats?.monthByType["PRAYER"] ?? 0}
           description="This month"
           icon={Heart}
-          className="border-l-4 border-l-red-500"
         />
         <StatCard
           title="Total Time"
           value={formatMinutes(stats?.monthMinutes ?? 0)}
           description="Devotion this month"
           icon={Clock}
-          className="border-l-4 border-l-purple-500"
         />
       </div>
 

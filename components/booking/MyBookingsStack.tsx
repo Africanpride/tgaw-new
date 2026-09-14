@@ -4,12 +4,14 @@ import { useState } from "react";
 import { AnimatePresence, motion, Variants } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, CheckCircle2, Clock, CalendarCheck2 } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { IconTile } from "@/components/IconTile";
 import { SlotData } from "./SlotCell";
 import { convertUtcTimeToLocal, isPastSlot } from "./slotTime";
 import { slotAccent } from "./slotAccent";
 import { cn } from "@/lib/utils";
 import { EventType } from "@prisma/client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 const SPRING_TRANSITION = {
   type: "spring" as const,
@@ -64,17 +66,11 @@ export function MyBookingsStack({ bookings, onCancel, dateLabel }: MyBookingsSta
 
   if (bookings.length === 0) {
     return (
-      <Card className="w-full h-72">
-        <CardContent className="flex flex-col items-center gap-2 p-6 text-center h-full">
-          <div className="flex size-10 items-center justify-center rounded-full bg-muted">
-            <CalendarCheck2 className="size-5 text-muted-foreground" aria-hidden="true" />
-          </div>
-          <p className="text-sm font-medium text-muted-foreground">No bookings for {dateLabel}</p>
-          <p className="text-sm text-muted-foreground">
-            Claim a slot and keep your devotional watch alive.
-          </p>
-        </CardContent>
-      </Card>
+      <EmptyState
+        icon={CalendarCheck2}
+        title={`No bookings for ${dateLabel}`}
+        description="Claim a slot and keep your devotional watch alive."
+      />
     );
   }
 
@@ -143,9 +139,7 @@ export function MyBookingsStack({ bookings, onCancel, dateLabel }: MyBookingsSta
                   )}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className={cn("flex h-10 w-10 items-center justify-center rounded-lg", "bg-muted")}>
-                      <Clock className="size-5 text-muted-foreground" aria-hidden="true" />
-                    </span>
+                    <IconTile icon={Clock} size="md" tone="bg-muted text-muted-foreground" />
                     <div className="flex flex-col justify-center gap-0.5 min-w-0">
                       <p className="text-sm font-semibold truncate text-muted-foreground">{typeLabel}</p>
                       <p className="text-muted-foreground text-xs truncate">

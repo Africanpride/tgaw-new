@@ -13,6 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { listRowClass } from "@/components/list-row"
+import { cn } from "@/lib/utils"
 import { convertUtcTimeToLocal, isCurrentSlot } from "./slotTime"
 import { slotAccent } from "./slotAccent"
 
@@ -98,12 +100,13 @@ function SlotCard({ slot, isLive }: { slot: Slot; isLive: boolean }) {
   let line2: string
   let avatarName: string | null = null
   let avatarUrl: string | null = null
-  let isBlocked = !!slot.eventId
+  const isBlocked = !!slot.eventId
 
   if (isBlocked) {
     line2 = slot.event
       ? `Blocked — ${slot.event.title}`
       : "Blocked — Special Event"
+    avatarName = line2
   } else if (slot.isBooked) {
     line2 = slot.bookedByName ?? "Member"
     avatarName = slot.bookedByName ?? "M"
@@ -114,77 +117,62 @@ function SlotCard({ slot, isLive }: { slot: Slot; isLive: boolean }) {
 
   const anchorHref = `${meta.href}?date=${slot.date}`
 
-  const pingColors: Record<BookableType, { ping: string; dot: string }> = {
-    BIBLE: { ping: "bg-purple-400", dot: "bg-purple-500" },
-    PRAYER: { ping: "bg-red-400", dot: "bg-red-500" },
-    PRAISE_WORSHIP: { ping: "bg-amber-400", dot: "bg-amber-500" },
-  }
-  const ping = isBlocked ? { ping: "bg-violet-400", dot: "bg-violet-500" } : pingColors[slot.type]
-
   return (
-    <Card className="relative @container border-[0.5px] border-border/60 py-0 shadow-2xs transition-[border-color,box-shadow] duration-100 ease-out focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:border-muted-foreground hover:shadow-sm">
-      <CardContent className="flex items-center space-x-4 p-4">
-        <span className="relative inline-flex shrink-0">
-          <Avatar
-            className={`h-10 w-10 shrink-0 ${!slot.isBooked && !isBlocked ? `border ${meta.accent.iconTile.replace("bg-", "bg-")}` : ""} ${isLive ? "ring-2 ring-emerald-500 ring-offset-2" : ""}`}
-          >
-            {avatarUrl ? (
-              <AvatarImage
-                alt={avatarName ?? line2}
-                src={avatarUrl}
-                referrerPolicy="no-referrer"
-              />
-            ) : slot.isBooked || isBlocked ? (
-              <AvatarFallback>
-                {(avatarName ?? line2).charAt(0).toUpperCase()}
-              </AvatarFallback>
-            ) : (
-              <AvatarFallback className={meta.accent.iconTile}>
-                <Icon className="size-4" aria-hidden="true" />
-              </AvatarFallback>
-            )}
-          </Avatar>
+    <Link
+      href={anchorHref}
+      className={cn(listRowClass, "flex w-full cursor-pointer items-center gap-3 bg-background p-3 hover:bg-muted/50")}
+    >
+      <Avatar className="size-9 shrink-0">
+        {avatarUrl ? (
+          <AvatarImage
+            alt={avatarName ?? line2}
+            src={avatarUrl}
+            referrerPolicy="no-referrer"
+          />
+        ) : slot.isBooked || isBlocked ? (
+          <AvatarFallback className={cn("text-xs font-semibold", meta.accent.iconTile)}>
+            {(avatarName ?? line2).charAt(0).toUpperCase()}
+          </AvatarFallback>
+        ) : (
+          <AvatarFallback className={meta.accent.iconTile}>
+            <Icon className="size-4" aria-hidden="true" />
+          </AvatarFallback>
+        )}
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="flex items-center gap-1.5 truncate text-sm font-semibold">
+          <span className="truncate">{timeLocal}</span>
           {isLive && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3" aria-hidden="true">
-              <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${ping.ping}`} />
-              <span className={`relative inline-flex h-3 w-3 rounded-full ${ping.dot}`} />
-            </span>
+            <Badge
+              variant="default"
+              className="shrink-0 bg-emerald-600 text-[10px] leading-none text-white dark:bg-emerald-500"
+            >
+              LIVE
+            </Badge>
           )}
-        </span>
-        <div className="min-w-0 flex-1">
-          <Link href={anchorHref} className="focus:outline-none">
-            <span aria-hidden="true" className="absolute inset-0" />
-            <p className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground">
-              <span className="truncate text-[clamp(12px,3.5cqi,0.875rem)]">{timeLocal}</span>
-              {isLive && (
-                <Badge
-                  variant="default"
-                  className="h-[clamp(16px,4cqi,20px)] shrink-0 px-1.5 text-[clamp(9px,2.2cqi,10px)] leading-none text-white bg-emerald-600 dark:bg-emerald-500"
-                >
-                  LIVE
-                </Badge>
-              )}
-              {slot.isOwnBooking && (
-                <Badge variant="outline" className="h-[clamp(16px,4cqi,20px)] shrink-0 text-[clamp(9px,2.2cqi,10px)]">
-                  You
-                </Badge>
-              )}
-              {isBlocked && (
-                <Badge
-                  variant="secondary"
-                  className="h-[clamp(16px,4cqi,20px)] shrink-0 bg-violet-500/15 text-[clamp(9px,2.2cqi,10px)] text-violet-700 dark:text-violet-300"
-                >
-                  Blocked
-                </Badge>
-              )}
-            </p>
-            <p className="text-pretty text-muted-foreground text-[clamp(11px,3.2cqi,0.875rem)] leading-tight [text-wrap:balance] line-clamp-2 min-w-0">
-              {line2}
-            </p>
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
+          {slot.isOwnBooking && (
+            <Badge variant="outline" className="shrink-0 text-[10px]">
+              You
+            </Badge>
+          )}
+          {isBlocked && (
+            <Badge
+              variant="secondary"
+              className="shrink-0 bg-violet-500/15 text-[10px] text-violet-700 dark:text-violet-300"
+            >
+              Blocked
+            </Badge>
+          )}
+        </p>
+        <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+          <Clock className="size-3 shrink-0" aria-hidden="true" />
+          {line2}
+        </p>
+      </div>
+      <Badge variant="outline" className="hidden shrink-0 text-[10px] sm:inline-flex">
+        {meta.label}
+      </Badge>
+    </Link>
   )
 }
 

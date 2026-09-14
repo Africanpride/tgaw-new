@@ -84,6 +84,8 @@ import {
   updateProfile,
 } from "@/lib/actions/settingsActions"
 import { AvatarUploadDialog } from "@/components/settings/AvatarUploadDialog"
+import { IconTile } from "@/components/IconTile"
+import { sectionLabelClass } from "@/components/eyebrow"
 import { getAllTimezones } from "@/lib/timezones"
 
 const profileSchema = z.object({
@@ -193,9 +195,7 @@ function ToggleRow({
   return (
     <div className="flex items-center justify-between gap-5">
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
-          <Icon className="size-4" aria-hidden="true" />
-        </span>
+        <IconTile icon={Icon} size="md" tone="border bg-muted/50" iconClassName="size-4" className="mt-0.5" />
         <div className="space-y-0.5">
           <h6 className="text-sm font-medium">{title}</h6>
           <p className="text-xs text-muted-foreground">{description}</p>
@@ -501,9 +501,7 @@ function PushSubscriptionManager() {
   return (
     <div className="flex items-center justify-between gap-4 rounded-xl border p-4">
       <div className="flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
-          <Smartphone className="size-4" aria-hidden="true" />
-        </span>
+        <IconTile icon={Smartphone} size="md" tone="border bg-muted/50" iconClassName="size-4" />
         <div className="space-y-0.5">
           <h6 className="text-sm font-medium">Browser push notifications</h6>
           <p className="text-xs text-muted-foreground">
@@ -1301,7 +1299,7 @@ export default function SettingsPage() {
                         <Separator />
                         <div className="flex flex-col gap-5">
                           <div>
-                            <h6 className="mb-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                            <h6 className={cn("mb-3", sectionLabelClass)}>
                               Email
                             </h6>
                             <div className="flex flex-col gap-5">
@@ -1349,7 +1347,7 @@ export default function SettingsPage() {
                           <PushSubscriptionManager />
                           <Separator />
                           <div>
-                            <h6 className="mb-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                            <h6 className={cn("mb-3", sectionLabelClass)}>
                               Browser push
                             </h6>
                             <div className="flex flex-col gap-5">

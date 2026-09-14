@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Copy, Video } from "lucide-react"
 import { toast } from "sonner"
+import { IconTile } from "@/components/IconTile"
 
 interface MeetingLinkCardProps {
   url: string
@@ -33,9 +34,7 @@ export function MeetingLinkCard({
     <Card className="border-primary/20 bg-primary/5">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
-          <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
-            <Video className="size-4" aria-hidden="true" />
-          </span>
+          <IconTile icon={Video} size="sm" />
           <span className="flex-1 truncate">{label || "Meeting Link"}</span>
           {isLive && (
             <Badge variant="default" className="shrink-0 gap-1">

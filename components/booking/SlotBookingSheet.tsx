@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { IconTile } from "@/components/IconTile";
 import {
   BookOpen,
   Check,
@@ -128,14 +129,7 @@ export function SlotBookingSheet({
       <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
         <DialogHeader className={cn("border-b p-6 pb-5", accent.tintStrong)}>
           <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                "flex size-10 shrink-0 items-center justify-center rounded-lg",
-                accent.iconTile,
-              )}
-            >
-              <TypeIcon className="size-5" aria-hidden="true" />
-            </div>
+            <IconTile icon={TypeIcon} size="md" tone={accent.iconTile} />
             <div>
               <DialogTitle className="text-lg leading-tight">
                 Confirm your {TYPE_LABEL[type].toLowerCase()} slot

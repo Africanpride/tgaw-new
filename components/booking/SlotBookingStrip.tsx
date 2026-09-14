@@ -73,7 +73,7 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
       </div>
       
       {slots.length === 0 ? (
-        <div className="text-muted-foreground text-sm rounded-md border p-4">
+        <div className="text-muted-foreground text-sm rounded-lg border p-4">
           No slots available.
         </div>
       ) : (

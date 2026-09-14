@@ -1,5 +1,7 @@
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { IconTile } from "@/components/IconTile";
 import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
@@ -9,6 +11,8 @@ interface EmptyStateProps {
   actionLabel?: string;
   onAction?: () => void;
   actionHref?: string;
+  secondaryActionLabel?: string;
+  secondaryOnAction?: () => void;
   className?: string;
 }
 
@@ -23,18 +27,18 @@ export function EmptyState({
   actionLabel,
   onAction,
   actionHref,
+  secondaryActionLabel,
+  secondaryOnAction,
   className,
 }: EmptyStateProps) {
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-md border border-dashed bg-muted/30 px-6 py-14 text-center",
+        "flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-muted/30 px-6 py-14 text-center",
         className,
       )}
     >
-      <div className="flex size-14 items-center justify-center rounded-2xl bg-background shadow-sm">
-        <Icon className="size-7 text-muted-foreground" aria-hidden="true" />
-      </div>
+      <IconTile icon={Icon} size="lg" tone="bg-background text-muted-foreground shadow-sm" />
       <div className="space-y-1">
         <p className="font-medium text-foreground">{title}</p>
         {description && (
@@ -43,22 +47,36 @@ export function EmptyState({
           </p>
         )}
       </div>
-      {actionLabel && (onAction || actionHref) && (
-        <Button
-          size="sm"
-          className="mt-1"
-          onClick={onAction}
-          {...(actionHref ? { asChild: true } : {})}
-        >
-          {actionHref ? (
-            <a href={actionHref} className="cursor-pointer">
-              {actionLabel}
-            </a>
-          ) : (
-            actionLabel
+      {(actionLabel && (onAction || actionHref)) ||
+      (secondaryActionLabel && secondaryOnAction) ? (
+        <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+          {actionLabel && (onAction || actionHref) && (
+            <Button
+              size="sm"
+              onClick={onAction}
+              {...(actionHref ? { asChild: true } : {})}
+            >
+              {actionHref ? (
+                <Link href={actionHref} className="cursor-pointer">
+                  {actionLabel}
+                </Link>
+              ) : (
+                actionLabel
+              )}
+            </Button>
           )}
-        </Button>
-      )}
+          {secondaryActionLabel && secondaryOnAction && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={secondaryOnAction}
+              className="cursor-pointer"
+            >
+              {secondaryActionLabel}
+            </Button>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

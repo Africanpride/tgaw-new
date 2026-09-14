@@ -16,6 +16,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Check, Settings } from "lucide-react"
+import { IconTile } from "@/components/IconTile"
 
 export interface BookingConfigData {
   maxBibleSlotsPerDay?: number
@@ -78,9 +79,7 @@ export function AdminBookingConfig({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-            <Settings className="size-4 text-primary" aria-hidden="true" />
-          </div>
+          <IconTile icon={Settings} size="md" iconClassName="size-4" />
           Booking Configuration
         </CardTitle>
         <CardDescription>

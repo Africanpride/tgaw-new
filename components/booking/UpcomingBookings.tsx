@@ -7,6 +7,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/EmptyState";
 import { convertUtcTimeToLocal } from "./slotTime";
+import { slotAccent } from "./slotAccent";
+import { listRowClass } from "@/components/list-row";
 import { cn } from "@/lib/utils";
 
 interface UpcomingBookingEvent {
@@ -25,13 +27,6 @@ interface UpcomingBooking {
 interface UpcomingBookingsProps {
   bookings: UpcomingBooking[];
 }
-
-const typeColors: Record<string, string> = {
-  BIBLE: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
-  PRAYER: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
-  PRAISE_WORSHIP:
-    "bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300",
-};
 
 function toDateKey(d: Date) {
   const year = d.getFullYear();
@@ -70,7 +65,7 @@ export function UpcomingBookings({ bookings }: UpcomingBookingsProps) {
     : "Select a day";
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-md border bg-background sm:flex-row sm:divide-x">
+    <div className="flex flex-col overflow-hidden rounded-xl border bg-background sm:flex-row sm:divide-x">
       <div className="sm:shrink-0">
         <Calendar
           mode="single"
@@ -104,7 +99,7 @@ export function UpcomingBookings({ bookings }: UpcomingBookingsProps) {
               dayBookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="flex items-center justify-between gap-2 rounded-md border p-2.5"
+                  className={cn(listRowClass, "flex items-center justify-between gap-2 p-2.5")}
                 >
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <span className="flex items-center gap-1.5 text-sm font-medium tabular-nums">
@@ -123,7 +118,7 @@ export function UpcomingBookings({ bookings }: UpcomingBookingsProps) {
                   </div>
                   <Badge
                     variant="secondary"
-                    className={cn("shrink-0 text-xs", typeColors[booking.event.type] ?? "")}
+                    className={cn("shrink-0 text-xs", slotAccent[booking.event.type]?.iconTile ?? "")}
                   >
                     {booking.event.type.replace("_", " ")}
                   </Badge>

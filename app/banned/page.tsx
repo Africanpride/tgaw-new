@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { email as supportEmail } from "@/config/site"
+import { sectionLabelClass } from "@/components/eyebrow"
 import { auth } from "@/lib/auth"
 
 export default async function BannedPage({
@@ -69,7 +70,7 @@ export default async function BannedPage({
                 className="size-4 shrink-0 text-destructive"
                 aria-hidden="true"
               />
-              <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              <span className={sectionLabelClass}>
                 Reason
               </span>
             </div>

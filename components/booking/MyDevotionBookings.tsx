@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { CalendarCheck2, ExternalLink, X } from "lucide-react";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/EmptyState";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	AlertDialog,
@@ -21,6 +21,7 @@ import { slotAccent } from "./slotAccent";
 import type { BookableType } from "@/lib/services/slotService";
 import { cancelSlotAction } from "@/actions/slotActions";
 import { cn } from "@/lib/utils";
+import { listRowClass } from "@/components/list-row";
 
 interface MyDevotionBookingsProps {
 	bookings: SlotData[];
@@ -50,18 +51,14 @@ export function MyDevotionBookings({ bookings, type, meetingUrl, slotNoun }: MyD
 
 	if (bookings.length === 0) {
 		return (
-			<div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-8 text-center">
-				<div className={cn("flex size-10 items-center justify-center rounded-full", accent.iconTile)}>
-					<CalendarCheck2 className="size-5" aria-hidden="true" />
-				</div>
-				<p className="text-sm font-medium">Nothing booked yet</p>
-				<p className="max-w-[26ch] text-sm text-muted-foreground">
-					Claim a quiet window and keep the watch going.
-				</p>
-				<Button variant="outline" size="sm" asChild className="mt-1 cursor-pointer">
-					<Link href={`/booking?type=${type}`}>Book a slot</Link>
-				</Button>
-			</div>
+			<EmptyState
+				icon={CalendarCheck2}
+				title="Nothing booked yet"
+				description="Claim a quiet window and keep the watch going."
+				actionLabel="Book a slot"
+				actionHref={`/booking?type=${type}`}
+				className="py-8"
+			/>
 		);
 	}
 
@@ -76,7 +73,8 @@ export function MyDevotionBookings({ bookings, type, meetingUrl, slotNoun }: MyD
 						<div
 							key={booking.id}
 							className={cn(
-								"flex items-center justify-between gap-3 rounded-lg border border-l-4 p-4 shadow-2xs transition-all",
+								listRowClass,
+								"flex items-center justify-between gap-3 border-l-4 p-4 shadow-2xs transition-all",
 								accent.rail,
 								live ? cn(accent.mine, "ring-1 ring-inset") : accent.mine,
 								done && "opacity-60",

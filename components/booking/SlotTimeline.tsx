@@ -5,10 +5,9 @@ import { CalendarX2, ChevronDown } from "lucide-react";
 import { SlotCell, SlotData } from "./SlotCell";
 import { isPastSlot, isCurrentSlot } from "./slotTime";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/EmptyState";
 import { slotAccent } from "./slotAccent";
 import { EventType } from "@prisma/client";
-import { cn } from "@/lib/utils";
 
 const INITIAL_VISIBLE = 8;
 
@@ -84,25 +83,18 @@ export function SlotTimeline({
 
   if (visibleSlots.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-md border py-14 text-center">
-        <div className={cn("flex size-12 items-center justify-center rounded-full", accent.iconTile)}>
-          <CalendarX2 className="size-6" aria-hidden="true" />
-        </div>
-        <p className="font-medium">No slots for this day</p>
-        <p className="max-w-xs text-sm text-muted-foreground">
-          This day is quiet. Pick another day on the calendar to keep your devotional watch.
-        </p>
-        {onEmptyAction && (
-          <Button variant="outline" size="sm" onClick={onEmptyAction} className="mt-1">
-            Pick another day
-          </Button>
-        )}
-      </div>
+      <EmptyState
+        icon={CalendarX2}
+        title="No slots for this day"
+        description="This day is quiet. Pick another day on the calendar to keep your devotional watch."
+        actionLabel={onEmptyAction ? "Pick another day" : undefined}
+        onAction={onEmptyAction}
+      />
     );
   }
 
   return (
-    <ScrollArea className="h-[560px] w-full max-w-full overflow-hidden rounded-md border">
+    <ScrollArea className="h-[560px] w-full max-w-full overflow-hidden rounded-xl border">
       <div ref={scrollRef} className="flex flex-col">
         {shownSlots.map((slot) => (
           <SlotCell

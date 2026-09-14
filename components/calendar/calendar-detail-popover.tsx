@@ -158,7 +158,7 @@ function ItemDetail({
 					</div>
 				)}
 				{item.notes && (
-					<p className="rounded-md bg-muted p-3 text-sm">{item.notes}</p>
+					<p className="rounded-lg bg-muted p-3 text-sm">{item.notes}</p>
 				)}
 			</div>
 

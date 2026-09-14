@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { EmptyState } from "@/components/EmptyState"
+import { listRowClass } from "@/components/list-row"
 import { cn } from "@/lib/utils"
 
 type ActivityItem = {
@@ -90,7 +91,7 @@ export function CommunityActivity() {
         {items === null ? (
           <div className="flex flex-col gap-2 p-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-2xl border bg-background p-3">
+              <div key={i} className="flex items-center gap-3 rounded-lg border bg-background p-3">
                 <Skeleton className="size-9 rounded-full" />
                 <div className="flex-1 space-y-1.5">
                   <Skeleton className="h-3 w-3/4" />
@@ -106,7 +107,7 @@ export function CommunityActivity() {
                 <Link
                   href={item.href}
                   key={item.id}
-                  className="flex w-full items-center gap-3 rounded-2xl border bg-background p-3 transition-colors hover:bg-muted/50"
+                  className={cn(listRowClass, "flex w-full items-center gap-3 bg-background p-3 hover:bg-muted/50")}
                 >
                   <Avatar className="size-9 shrink-0">
                     {item.image ? <AvatarImage src={item.image} alt={item.name} referrerPolicy="no-referrer" /> : null}

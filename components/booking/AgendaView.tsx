@@ -2,8 +2,10 @@ import type { BookableType } from "@/lib/services/slotService"
 import { CalendarCheck2, Video } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { EmptyState } from "@/components/EmptyState"
 import { cn } from "@/lib/utils"
+import { listRowClass } from "@/components/list-row"
+import { eyebrowClass } from "@/components/eyebrow"
 import { convertUtcTimeToLocal } from "./slotTime"
 
 export interface AgendaEvent {
@@ -89,33 +91,22 @@ export function AgendaView({ days, summary }: AgendaViewProps) {
 
   if (!hasEvents) {
     return (
-      <Card className="h-auto">
-        <CardContent className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-          <div className="flex size-12 items-center justify-center rounded-full bg-muted">
-            <CalendarCheck2
-              className="size-6 text-muted-foreground"
-              aria-hidden="true"
-            />
-          </div>
-          <p className="text-sm font-medium">No sessions booked yet</p>
-          <p className="max-w-xs text-sm text-muted-foreground">
-            Claim a devotional slot and keep your watch alive.
-          </p>
-          <Button asChild size="sm" className="mt-1">
-            <Link href="/booking" className="cursor-pointer">
-              Book a Slot
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <EmptyState
+        icon={CalendarCheck2}
+        title="No sessions booked yet"
+        description="Claim a devotional slot and keep your watch alive."
+        actionLabel="Book a Slot"
+        actionHref="/booking"
+        className="h-full"
+      />
     )
   }
 
   return (
-    <div className="h-full rounded-xl border-[0.5px] border-border/60 bg-background/40 p-2 sm:p-4">
+    <div className="h-full rounded-xl border border-border/60 bg-background/40 p-2 sm:p-4">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
+          <div className={eyebrowClass}>
             {eyebrowDate} &middot; My Agenda
           </div>
           <h1 className="font-heading mt-1 text-3xl tracking-tight">
@@ -137,10 +128,10 @@ export function AgendaView({ days, summary }: AgendaViewProps) {
       {days.map((day) => (
         <section key={day.key} className="mt-8">
           <div className="mb-2 flex items-end justify-between">
-            <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground uppercase">
+            <span className={eyebrowClass}>
               {day.label}
             </span>
-            <span className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground uppercase">
+            <span className={eyebrowClass}>
               {day.dateLabel}
             </span>
           </div>
@@ -148,7 +139,10 @@ export function AgendaView({ days, summary }: AgendaViewProps) {
             {day.events.map((evt) => (
               <li
                 key={evt.id}
-                className="grid grid-cols-[80px_1fr] gap-2 rounded-xl border-[0.5px] border-border/60 bg-background/40 px-3 py-3 transition-colors hover:bg-background/60"
+                className={cn(
+                  listRowClass,
+                  "grid grid-cols-[80px_1fr] gap-2 border-border/60 bg-background/40 px-3 py-3 hover:bg-background/60"
+                )}
               >
                 <div className="font-mono text-[11px]">
                   <div className="text-foreground">

@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { sectionLabelClass } from "@/components/eyebrow"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -303,7 +304,7 @@ export function EventFormDialog({
         >
           {/* 3-Way Card Type Selector */}
           <div className="space-y-1.5">
-            <Label className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+            <Label className={sectionLabelClass}>
               Event Category
             </Label>
             <div className="grid grid-cols-4 gap-2">
@@ -372,7 +373,7 @@ export function EventFormDialog({
 
           {isSpecial && (
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <Label className={sectionLabelClass}>
                 Block these slot types
               </Label>
               <div className="grid grid-cols-3 gap-2">

@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { IconTile } from "@/components/IconTile";
 import { cn } from "@/lib/utils";
 
 interface StatCardProps {
@@ -23,7 +24,7 @@ export function StatCard({
 				<CardTitle className="text-sm font-medium text-muted-foreground">
 					{title}
 				</CardTitle>
-				{Icon && <Icon className="size-4 text-muted-foreground" aria-hidden="true" />}
+				{Icon && <IconTile icon={Icon} size="sm" />}
 			</CardHeader>
 			<CardContent>
 				<div className="text-2xl font-bold">{value}</div>

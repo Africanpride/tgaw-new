@@ -1,12 +1,14 @@
 "use client"
 
 import { Heart, MessageCircle, PenSquare, Share2, Flag, EyeOff, Loader2, Image as ImageIcon, Vote, Quote as QuoteIcon, BookOpen, FileText, Mic } from "lucide-react"
+import Image from "next/image"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { EmptyState } from "@/components/EmptyState"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -241,7 +243,13 @@ export default function FeedPage() {
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>
       ) : posts.length === 0 ? (
-        <Card><CardContent className="flex flex-col items-center gap-4 py-12"><PenSquare className="size-10 text-muted-foreground" /><p className="text-muted-foreground">No posts yet.</p></CardContent></Card>
+        <EmptyState
+          icon={PenSquare}
+          title="No posts yet"
+          description="Be the first to share a testimony, verse, or prayer request with the community."
+          actionLabel="Create a post"
+          onAction={() => setOpen(true)}
+        />
       ) : (
         <>
           <div className="flex flex-col gap-4">
@@ -263,17 +271,17 @@ export default function FeedPage() {
                   {post.linkUrl && <a href={post.linkUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">{post.linkUrl}</a>}
                   {post.mediaUrls && post.mediaUrls.length > 0 && (
                     <div className="grid gap-2 sm:grid-cols-2">
-                      {post.mediaUrls.map((url) => url.match(/\.(mp4|webm)$/i) ? <video key={url} src={url} controls className="w-full rounded-md border" /> : <img key={url} src={url} alt="media" className="w-full rounded-md border object-cover" />)}
+                      {post.mediaUrls.map((url) => url.match(/\.(mp4|webm)$/i) ? <video key={url} src={url} controls className="w-full rounded-lg border" /> : <Image key={url} src={url} alt="Post media" width={1200} height={900} sizes="(max-width: 640px) 100vw, 50vw" unoptimized={!url.includes("res.cloudinary.com")} className="h-auto w-full rounded-lg border object-cover" />)}
                     </div>
                   )}
                   {post.poll && (
-                    <div className="rounded-md border p-3 space-y-2">
+                    <div className="rounded-lg border p-3 space-y-2">
                       <p className="text-sm font-medium">{post.poll.question}</p>
                       {post.poll.options.map((o) => {
                         const total = post.poll!.options.reduce((a, b) => a + b.voterIds.length, 0)
                         const pct = total ? Math.round((o.voterIds.length / total) * 100) : 0
                         return (
-                          <button key={o.id} className="flex w-full cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm hover:bg-muted" onClick={async () => {
+                          <button key={o.id} className="flex w-full cursor-pointer items-center gap-2 rounded-lg border px-2 py-1.5 text-sm hover:bg-muted" onClick={async () => {
                             await fetch(`/api/v1/posts/${post.id}/poll/vote`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ optionId: o.id }) })
                             fetchPosts(null)
                           }}>
