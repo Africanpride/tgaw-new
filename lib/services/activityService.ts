@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db/prisma"
 
-export type ActivityType = "post" | "member" | "prayer_answered" | "booking"
+export type ActivityType = "post" | "member" | "prayer_answered" | "booking" | "event" | "comment"
 
 export interface ActivityItem {
   id: string
@@ -27,6 +27,42 @@ function tintFor(category: ActivityItem["category"]): string {
   }
 }
 
+function isPraiseType(t: string) {
+  return t === "PRAISE_REPORT" || t === "TESTIMONIAL"
+}
+
+function isPrayerType(t: string) {
+  return t === "PRAYER_REQUEST" || t === "PRAYER_ANSWER"
+}
+
+function categoryForPostType(t: string): ActivityItem["category"] {
+  if (t === "PRAYER_ANSWER") return "prayer"
+  if (isPraiseType(t)) return "praise"
+  if (isPrayerType(t)) return "prayer"
+  return "all"
+}
+
+function parentNounFor(t: string): string {
+  if (t === "PRAISE_REPORT") return "a praise report"
+  if (t === "TESTIMONIAL") return "a testimony"
+  if (t === "PRAYER_REQUEST") return "a prayer request"
+  if (t === "PRAYER_ANSWER") return "a prayer update"
+  if (t === "BIBLE_VERSE") return "a verse"
+  return "a post"
+}
+
+const SLOT_LABEL: Record<string, string> = {
+  BIBLE: "Bible reading",
+  PRAYER: "prayer",
+  PRAISE_WORSHIP: "praise & worship",
+}
+
+function categoryForSlotType(t: string): ActivityItem["category"] {
+  if (t === "PRAYER") return "prayer"
+  if (t === "PRAISE_WORSHIP") return "praise"
+  return "all"
+}
+
 function timeAgo(date: Date): string {
   const diff = Date.now() - date.getTime()
   const s = Math.floor(diff / 1000)
@@ -40,30 +76,65 @@ function timeAgo(date: Date): string {
 }
 
 export async function getCommunityActivity(limit = 8): Promise<ActivityItem[]> {
-  const [posts, members] = await Promise.all([
+  const today = new Date().toISOString().split("T")[0]
+  const [posts, members, slots, events, comments] = await Promise.all([
     prisma.post.findMany({
       where: { isHidden: false },
       orderBy: { createdAt: "desc" },
-      take: 6,
+      take: 5,
       select: { id: true, type: true, body: true, authorId: true, createdAt: true },
     }),
     prisma.user.findMany({
       orderBy: { createdAt: "desc" },
-      take: 3,
+      take: 2,
       select: { id: true, name: true, image: true, createdAt: true },
+    }),
+    prisma.slot.findMany({
+      // NOTE: slots are pre-generated weeks ahead, so createdAt is the grid
+      // date — not the booking date. updatedAt is touched on every booking
+      // write, so it (and not createdAt) is the booking-action timestamp.
+      where: { bookedBy: { not: null }, date: { gte: today } },
+      orderBy: { updatedAt: "desc" },
+      take: 6,
+      select: { id: true, type: true, date: true, bookedBy: true, updatedAt: true },
+    }),
+    prisma.event.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 2,
+      select: { id: true, type: true, title: true, createdAt: true },
+    }),
+    prisma.comment.findMany({
+      where: { isHidden: false },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      select: { id: true, postId: true, authorId: true, body: true, createdAt: true },
     }),
   ])
 
-  const authorIds = [...new Set(posts.map((p) => p.authorId))]
+  // Parent post types for comment categorisation
+  const commentPostIds = [...new Set(comments.map((c) => c.postId))]
+  const commentParents = commentPostIds.length
+    ? await prisma.post.findMany({
+        where: { id: { in: commentPostIds } },
+        select: { id: true, type: true },
+      })
+    : []
+  const parentTypeMap = new Map(commentParents.map((p) => [p.id, p.type]))
+
+  const authorIds = [
+    ...new Set([
+      ...posts.map((p) => p.authorId),
+      ...comments.map((c) => c.authorId),
+      ...slots.map((s) => s.bookedBy).filter((id): id is string => !!id),
+    ]),
+  ]
   const authors = authorIds.length ? await prisma.user.findMany({ where: { id: { in: authorIds } }, select: { id: true, name: true, image: true } }) : []
   const authorMap = new Map(authors.map((u) => [u.id, u]))
 
   const postActivities: ActivityItem[] = posts.map((p) => {
     const author = authorMap.get(p.authorId)
     const name = author?.name ?? "Member"
-    const isPraise = p.type === "PRAISE_REPORT" || p.type === "TESTIMONIAL"
-    const isPrayer = p.type === "PRAYER_REQUEST" || p.type === "PRAYER_ANSWER"
-    const category: ActivityItem["category"] = p.type === "PRAYER_ANSWER" ? "prayer" : isPraise ? "praise" : isPrayer ? "prayer" : "all"
+    const category = categoryForPostType(p.type)
     const type: ActivityType = p.type === "PRAYER_ANSWER" ? "prayer_answered" : "post"
     let title = ""
     if (p.type === "PRAISE_REPORT") title = `${name} posted a praise report`
@@ -104,7 +175,69 @@ export async function getCommunityActivity(limit = 8): Promise<ActivityItem[]> {
     createdAt: u.createdAt.toISOString(),
   }))
 
-  const all = [...postActivities, ...memberActivities]
+  const bookingActivities: ActivityItem[] = slots
+    .filter((s) => s.bookedBy)
+    .map((s) => {
+      const booker = authorMap.get(s.bookedBy!)
+      const name = booker?.name ?? "A member"
+      const label = SLOT_LABEL[s.type] ?? "devotion"
+      return {
+        id: `booking-${s.id}`,
+        type: "booking" as const,
+        category: categoryForSlotType(s.type),
+        title: `${name} booked a ${label} slot`,
+        subtitle: timeAgo(s.updatedAt),
+        href: `/booking`,
+        initials: initialsFor(name),
+        name,
+        image: booker?.image ?? null,
+        createdAt: s.updatedAt.toISOString(),
+      }
+    })
+
+  const eventActivities: ActivityItem[] = events.map((e) => ({
+    id: `event-${e.id}`,
+    type: "event" as const,
+    category: "all" as const,
+    title: `New event — ${e.title}`,
+    subtitle: timeAgo(e.createdAt),
+    href: `/calendar`,
+    initials: "✦",
+    name: "TGAW",
+    image: null,
+    createdAt: e.createdAt.toISOString(),
+  }))
+
+  const commentActivities: ActivityItem[] = comments.map((c) => {
+    const author = authorMap.get(c.authorId)
+    const name = author?.name ?? "Member"
+    const parentType = parentTypeMap.get(c.postId) ?? "TEXT"
+    let title = `${name} commented on ${parentNounFor(parentType)}`
+    if (c.body) {
+      const snippet = c.body.slice(0, 48)
+      title = `${title} — ${snippet}${c.body.length > 48 ? "…" : ""}`
+    }
+    return {
+      id: `comment-${c.id}`,
+      type: "comment" as const,
+      category: categoryForPostType(parentType),
+      title,
+      subtitle: timeAgo(c.createdAt),
+      href: `/feed#${c.postId}`,
+      initials: initialsFor(name),
+      name,
+      image: author?.image ?? null,
+      createdAt: c.createdAt.toISOString(),
+    }
+  })
+
+  const all = [
+    ...postActivities,
+    ...memberActivities,
+    ...bookingActivities,
+    ...eventActivities,
+    ...commentActivities,
+  ]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, limit)
     .map((a) => ({ ...a, subtitle: a.subtitle }))

@@ -27,6 +27,8 @@ import {
   Users,
 } from "lucide-react"
 import { useEffect, useState } from "react"
+import Link from "next/link"
+import { formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -41,6 +43,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { EmptyState } from "@/components/EmptyState"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -86,6 +96,7 @@ interface User {
   image?: string | null
   emailVerified: boolean
   createdAt: string | null
+  lastLogin: string | null
 }
 
 const EMPTY_USERS: User[] = []
@@ -120,6 +131,13 @@ function formatJoinedDate(value: string | null) {
     month: "short",
     year: "numeric",
   })
+}
+
+function formatLastLogin(value: string | null) {
+  if (!value) return "Never"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+  return formatDistanceToNow(date, { addSuffix: true })
 }
 
 const ROLE_DESCRIPTIONS: Record<string, string> = {
@@ -309,6 +327,23 @@ export default function UserManagementPage() {
         </span>
       ),
     }),
+    helper.accessor("lastLogin", {
+      header: "Last login",
+      cell: ({ row }) => {
+        const value = row.getValue("lastLogin") as string | null
+        if (!value) {
+          return <span className="text-muted-foreground">Never</span>
+        }
+        return (
+          <span
+            className="whitespace-nowrap"
+            title={new Date(value).toLocaleString()}
+          >
+            {formatLastLogin(value)}
+          </span>
+        )
+      },
+    }),
     helper.accessor("emailVerified", {
       header: "Verification",
       cell: ({ row }) => {
@@ -361,7 +396,7 @@ export default function UserManagementPage() {
             <Button
               variant="outline"
               size="sm"
-              className="h-8 cursor-pointer"
+              className="h-9 cursor-pointer"
               disabled={isSelf}
               onClick={() => {
                 setTargetUser(user)
@@ -376,7 +411,7 @@ export default function UserManagementPage() {
               <Button
                 variant="outline"
                 size="icon-sm"
-                className="h-8 w-8 cursor-pointer"
+                className="h-9 w-9 cursor-pointer"
                 aria-label="Unban user"
                 title="Unban user"
                 onClick={() => {
@@ -390,7 +425,7 @@ export default function UserManagementPage() {
               <Button
                 variant="outline"
                 size="icon-sm"
-                className="h-8 w-8 cursor-pointer text-destructive hover:text-destructive"
+                className="h-9 w-9 cursor-pointer text-destructive hover:text-destructive"
                 aria-label="Ban user"
                 title="Ban user"
                 disabled={isSelf}
@@ -405,7 +440,7 @@ export default function UserManagementPage() {
             <Button
               variant="outline"
               size="icon-sm"
-              className="h-8 w-8 cursor-pointer text-destructive hover:text-destructive"
+              className="h-9 w-9 cursor-pointer text-destructive hover:text-destructive"
               aria-label="Delete user"
               title="Delete user"
               disabled={isSelf}
@@ -625,10 +660,23 @@ export default function UserManagementPage() {
   const totalFiltered = table.getFilteredRowModel().rows.length
 
   return (
-    <div className="flex flex-col gap-6 py-8">
-      <div className="flex items-center gap-2">
-        <Users className="size-6" />
-        <h2 className="text-2xl">User Management</h2>
+    <div className="flex flex-col gap-4 py-4 sm:gap-6 sm:py-8">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <Users className="size-5 sm:size-6" aria-hidden="true" />
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold sm:text-2xl">User Management</h2>
+          <p className="text-xs text-muted-foreground sm:text-sm">
+            Roles, bans and access — superadmin only.
+          </p>
+        </div>
+        <div className="ml-auto max-sm:w-full max-sm:pt-1">
+          <Link
+            href="/admin"
+            className="inline-flex h-10 cursor-pointer items-center justify-center rounded-md border px-3 text-xs hover:bg-muted max-sm:w-full sm:h-8"
+          >
+            Back to Admin
+          </Link>
+        </div>
       </div>
 
       <Card>
@@ -659,14 +707,14 @@ export default function UserManagementPage() {
               <span className="text-sm text-muted-foreground">entries</span>
             </div>
             <Input
-              className="h-8 w-full sm:w-64"
+              className="h-10 w-full sm:h-8 sm:w-64"
               onChange={(e) => setGlobalFilter(e.target.value)}
               placeholder="Search members..."
               value={globalFilter}
             />
           </div>
 
-          <div className="rounded-lg border">
+          <div className="hidden rounded-lg border md:block">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -720,6 +768,222 @@ export default function UserManagementPage() {
             </Table>
           </div>
 
+          {/* Mobile: accordion per member (same page slice as the table) */}
+          <div className="md:hidden">
+            {loading ? (
+              <div className="space-y-2" aria-label="Loading members">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 rounded-lg border bg-card p-3"
+                  >
+                    <Skeleton className="size-9 shrink-0 rounded-full" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-3.5 w-2/3" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : table.getRowModel().rows.length ? (
+              <Accordion type="single" collapsible className="space-y-2">
+                {table.getRowModel().rows.map((row) => {
+                  const user = row.original
+                  const isSelf = user.id === currentUserId
+                  return (
+                    <AccordionItem
+                      key={user.id}
+                      value={user.id}
+                      className="rounded-lg border bg-card px-3"
+                    >
+                      <AccordionTrigger className="gap-2 py-3 hover:no-underline">
+                        <span className="flex min-w-0 flex-1 items-center gap-2.5">
+                          <Avatar className="size-9 shrink-0">
+                            <AvatarImage
+                              src={user.image ?? undefined}
+                            />
+                            <AvatarFallback className="text-xs">
+                              {user.name
+                                .split(" ")
+                                .map((w) => w[0])
+                                .join("")
+                                .toUpperCase()
+                                .slice(0, 2)}
+                            </AvatarFallback>
+                            {user.banned ? (
+                              <AvatarBadge
+                                className="bg-red-600 dark:bg-red-800"
+                                aria-label="Banned"
+                                title="Banned"
+                              />
+                            ) : (
+                              onlineIds.has(user.id) && (
+                                <AvatarBadge
+                                  className="bg-green-600 dark:bg-green-800"
+                                  aria-label="Online now"
+                                  title="Online now"
+                                />
+                              )
+                            )}
+                          </Avatar>
+                          <span className="min-w-0 flex-1 text-left">
+                            <span className="block truncate text-sm font-medium">
+                              {user.name}
+                            </span>
+                            <span className="block truncate text-xs text-muted-foreground">
+                              {user.email}
+                            </span>
+                          </span>
+                          <RoleBadge role={user.role} />
+                        </span>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-3 pb-3">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="rounded-lg bg-muted/40 p-2.5">
+                            <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                              Status
+                            </p>
+                            <div className="mt-1">
+                              {user.banned ? (
+                                <Badge variant="destructive">Banned</Badge>
+                              ) : (
+                                <Badge variant="default">Active</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="rounded-lg bg-muted/40 p-2.5">
+                            <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                              Joined
+                            </p>
+                            <p className="mt-1 text-sm">
+                              {formatJoinedDate(user.createdAt)}
+                            </p>
+                          </div>
+                          <div className="rounded-lg bg-muted/40 p-2.5">
+                            <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                              Last login
+                            </p>
+                            <p
+                              className="mt-1 text-sm"
+                              title={
+                                user.lastLogin
+                                  ? new Date(user.lastLogin).toLocaleString()
+                                  : undefined
+                              }
+                            >
+                              {formatLastLogin(user.lastLogin)}
+                            </p>
+                          </div>
+                          <div className="rounded-lg bg-muted/40 p-2.5">
+                            <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                              Verification
+                            </p>
+                            <div className="mt-1.5 space-y-1.5">
+                              {user.emailVerified ? (
+                                <Badge variant="secondary">Verified</Badge>
+                              ) : (
+                                <Badge
+                                  variant="outline"
+                                  className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                                >
+                                  Unverified
+                                </Badge>
+                              )}
+                              {!user.emailVerified && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 w-full cursor-pointer text-xs"
+                                  disabled={resendingId === user.id}
+                                  onClick={() => resendVerification(user)}
+                                >
+                                  {resendingId === user.id
+                                    ? "Sending..."
+                                    : "Resend email"}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Button
+                            variant="outline"
+                            className="w-full cursor-pointer"
+                            disabled={isSelf}
+                            onClick={() => {
+                              setTargetUser(user)
+                              setActionTarget("role")
+                              setRoleStep(1)
+                              setSelectedRole(user.role)
+                            }}
+                          >
+                            Change role
+                          </Button>
+                          <div className="flex gap-2">
+                            {user.banned ? (
+                              <Button
+                                variant="outline"
+                                className="flex-1 cursor-pointer"
+                                onClick={() => {
+                                  setTargetUser(user)
+                                  setActionTarget("unban")
+                                }}
+                              >
+                                <Unlock
+                                  className="size-4"
+                                  aria-hidden="true"
+                                />
+                                Unban
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                className="flex-1 cursor-pointer text-destructive hover:text-destructive"
+                                disabled={isSelf}
+                                onClick={() => {
+                                  setTargetUser(user)
+                                  setActionTarget("ban")
+                                }}
+                              >
+                                <Ban
+                                  className="size-4"
+                                  aria-hidden="true"
+                                />
+                                Ban
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              className="flex-1 cursor-pointer text-destructive hover:text-destructive"
+                              disabled={isSelf}
+                              onClick={() => {
+                                setDeleteConfirm("")
+                                setTargetUser(user)
+                                setActionTarget("delete")
+                              }}
+                            >
+                              <Trash2
+                                className="size-4"
+                                aria-hidden="true"
+                              />
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  )
+                })}
+              </Accordion>
+            ) : (
+              <EmptyState
+                icon={Users}
+                title="No members found."
+                description="Try a different search."
+              />
+            )}
+          </div>
+
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               Showing {pagination.pageIndex * pagination.pageSize + 1} to{" "}
@@ -729,10 +993,10 @@ export default function UserManagementPage() {
               )}{" "}
               of {totalFiltered} members
             </p>
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1">
               <Button
                 aria-label="Previous page"
-                className="h-8 w-8"
+                className="h-9 w-9"
                 disabled={!table.getCanPreviousPage()}
                 onClick={() => table.previousPage()}
                 size="icon"
@@ -744,7 +1008,7 @@ export default function UserManagementPage() {
               {Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => (
                 <Button
                   aria-label={`Go to page ${page}`}
-                  className="h-8 w-8"
+                  className="h-9 w-9"
                   key={page}
                   onClick={() => table.setPageIndex(page - 1)}
                   size="icon"
@@ -757,7 +1021,7 @@ export default function UserManagementPage() {
               ))}
               <Button
                 aria-label="Next page"
-                className="h-8 w-8"
+                className="h-9 w-9"
                 disabled={!table.getCanNextPage()}
                 onClick={() => table.nextPage()}
                 size="icon"

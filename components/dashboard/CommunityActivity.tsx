@@ -103,7 +103,9 @@ export function CommunityActivity() {
         ) : filtered && filtered.length > 0 ? (
           <div className="relative h-96 w-full flex-col overflow-hidden p-3">
             <AnimatedList delay={900}>
-              {filtered.map((item) => (
+              {/* AnimatedList reveals progressively then reverses — feed it
+                  oldest-first so the final order is newest on top. */}
+              {[...filtered].reverse().map((item) => (
                 <Link
                   href={item.href}
                   key={item.id}

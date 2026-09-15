@@ -66,6 +66,19 @@ export async function GET(req: Request) {
 			prisma.user.count({ where: whereClause }),
 		])
 
+		// Last login = most recent session per user (sessions ordered newest first)
+		const sessions = await prisma.session.findMany({
+			where: { userId: { in: usersList.map((u) => u.id) } },
+			select: { userId: true, createdAt: true },
+			orderBy: { createdAt: "desc" },
+		})
+		const lastLoginByUser = new Map<string, string>()
+		for (const s of sessions) {
+			if (!lastLoginByUser.has(s.userId)) {
+				lastLoginByUser.set(s.userId, s.createdAt.toISOString())
+			}
+		}
+
 		const users = usersList.map((u) => ({
 			id: u.id,
 			name: u.name,
@@ -76,6 +89,7 @@ export async function GET(req: Request) {
 			image: u.image ?? null,
 			emailVerified: u.emailVerified ?? false,
 			createdAt: u.createdAt ?? null,
+			lastLogin: lastLoginByUser.get(u.id) ?? null,
 		}))
 
 		return NextResponse.json({

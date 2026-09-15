@@ -228,21 +228,21 @@ export default function ActivityLogsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-4 sm:gap-6">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
           <CalendarCheck className="size-5 text-primary" aria-hidden="true" />
         </div>
-        <div>
-          <h2 className="text-2xl font-semibold">Activity Logs</h2>
-          <p className="text-sm text-muted-foreground">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold sm:text-2xl">Activity Logs</h2>
+          <p className="text-xs text-muted-foreground sm:text-sm">
             Audit trail for RBAC, bookings, moderation and auth — latest 30.
           </p>
         </div>
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex gap-2 max-sm:w-full max-sm:pt-1">
           <Link
             href="/admin"
-            className="inline-flex h-8 items-center rounded-md border px-3 text-xs hover:bg-muted"
+            className="inline-flex h-10 cursor-pointer items-center justify-center rounded-md border px-3 text-xs hover:bg-muted max-sm:w-full sm:h-8"
           >
             Back to Admin
           </Link>
