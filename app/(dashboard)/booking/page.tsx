@@ -19,6 +19,7 @@ import { SlotData } from "@/components/booking/SlotCell"
 import { convertUtcTimeToLocal, isPastSlot } from "@/components/booking/slotTime"
 import { slotAccent } from "@/components/booking/slotAccent"
 import type { BookableType } from "@/lib/services/slotService"
+import { floatingBarClass, selectedSlotsBarClass } from "@/lib/mobileDock"
 import { bookSlotAction, cancelSlotAction } from "@/actions/slotActions"
 import { toast } from "sonner"
 import { useSearchParams, useRouter } from "next/navigation"
@@ -35,7 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { CalendarX2, Clock, Trash2 } from "lucide-react"
+import { CalendarX2, Clock, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function BookingPage() {
@@ -320,17 +321,26 @@ export default function BookingPage() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={reduceMotion ? undefined : { y: 24, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    className="fixed right-0 bottom-4 left-0 z-10 flex justify-center px-4 md:px-0"
+                    className={floatingBarClass()}
                   >
-                    <div className="flex w-full items-center gap-4 rounded-full border bg-popover px-4 py-2 shadow-lg md:w-auto">
-                      <span className="text-sm font-medium tabular-nums">
+                    <div className={selectedSlotsBarClass()}>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setSelectedIds([])}
+                        aria-label="Clear selected slots"
+                        className="cursor-pointer rounded-xs"
+                      >
+                        <X className="size-4" aria-hidden="true" />
+                      </Button>
+                      <span className="flex-1 text-sm font-medium tabular-nums">
                         {selectedIds.length} slot
                         {selectedIds.length === 1 ? "" : "s"} selected
                       </span>
                       <Button
                         size="sm"
                         onClick={() => setSheetOpen(true)}
-                        className="rounded-full"
+                        className="cursor-pointer rounded-xs"
                       >
                         Book Selected
                       </Button>

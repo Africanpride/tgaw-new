@@ -5,6 +5,7 @@ import { Topbar } from "@/components/dashboard/Topbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { SlotSyncListener } from "@/components/booking/SlotSyncListener";
 import { PageTransition } from "@/components/dashboard/PageTransition";
+import { MobileDock } from "@/components/dashboard/MobileDock";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { PresenceProvider } from "@/components/presence/PresenceProvider";
 import { auth } from "@/lib/auth";
@@ -30,10 +31,11 @@ export default async function DashboardLayout({
 				<AppSidebar role={role} />
 				<div className="flex min-w-0 flex-1 flex-col">
 					<Topbar />
-					<main id="main-content" className="flex-1 p-4 lg:p-6">
+					<main id="main-content" className="flex-1 p-4 pb-20 md:pb-4 lg:p-6 lg:pb-6">
 						<PageTransition>{children}</PageTransition>
 					</main>
 				</div>
+				<MobileDock />
 			</PresenceProvider>
 		</SidebarProvider>
 	);

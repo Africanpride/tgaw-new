@@ -827,12 +827,12 @@ export default function UserManagementPage() {
                             )}
                           </Avatar>
                           <span className="min-w-0 flex-1 text-left">
-                            <span className="block truncate text-sm font-medium">
+                            <span className="block truncate text-sm font-medium font-mono">
                               {user.name}
                             </span>
-                            <span className="block truncate text-xs text-muted-foreground">
+                            <p className="block truncate text-[10px] text-muted-foreground font-sans ">
                               {user.email}
-                            </span>
+                            </p>
                           </span>
                           <RoleBadge role={user.role} />
                         </span>
