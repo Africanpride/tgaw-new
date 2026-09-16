@@ -65,6 +65,32 @@ describe("mobile dock helpers", () => {
     expect(messageCalls).toBe(2)
   })
 
+  it("counts only upcoming bookings, excluding past slots", async () => {
+    let slotWhere: Record<string, unknown> | null = null
+    const db = {
+      slot: {
+        count: async (args: { where: Record<string, unknown> }) => {
+          slotWhere = args.where
+          return 2
+        },
+      },
+      message: { count: async () => 0 },
+    }
+
+    await getMobileDockCounts("user-1", db as never)
+    expect(slotWhere).not.toBeNull()
+    const where = slotWhere as unknown as Record<string, unknown>
+    expect(where.bookedBy).toBe("user-1")
+    expect(where.date).toBeUndefined()
+    const or = where.OR as Array<Record<string, unknown>>
+    expect(or).toHaveLength(2)
+    expect(or[0]).toEqual({ date: { gt: expect.any(String) } })
+    expect(or[1]).toEqual({
+      date: expect.any(String),
+      endTime: { gt: expect.any(String) },
+    })
+  })
+
   it("keeps floating action bars clear of the mobile dock", () => {
     const classes = floatingBarClass()
     expect(classes).toContain("bottom-[calc(env(safe-area-inset-bottom)+4.75rem)]")

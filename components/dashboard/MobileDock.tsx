@@ -50,7 +50,7 @@ function DockBadge({
   return (
     <>
       <span
-        className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground"
+        className="absolute -right-2 -top-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white ring-2 ring-card"
         aria-hidden="true"
       >
         {value}
@@ -142,10 +142,10 @@ export function MobileDock() {
                     strokeWidth={isActive ? 2 : 1.5}
                   />
                 )}
-                {item.href === "/overview" && (
+                {item.href === "/booking" && (
                   <DockBadge
                     count={counts?.todayBookings ?? null}
-                    label={`${counts?.todayBookings ?? 0} booked slots today`}
+                    label={`${counts?.todayBookings ?? 0} active bookings`}
                   />
                 )}
                 {item.href === "/messages" && (

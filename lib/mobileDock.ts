@@ -51,10 +51,15 @@ export async function getMobileDockCounts(
   userId: string,
   db: MobileDockDatabase = prisma as unknown as MobileDockDatabase,
 ) {
-  const today = new Date().toISOString().split("T")[0]
+  const now = new Date()
+  const today = now.toISOString().split("T")[0]
+  const nowTime = `${String(now.getUTCHours()).padStart(2, "0")}:${String(now.getUTCMinutes()).padStart(2, "0")}`
   const [todayBookings, unreadCandidates, readMessages] = await Promise.all([
     db.slot.count({
-      where: { bookedBy: userId, date: { gte: today } },
+      where: {
+        bookedBy: userId,
+        OR: [{ date: { gt: today } }, { date: today, endTime: { gt: nowTime } }],
+      },
     }),
     db.message.count({
       where: {

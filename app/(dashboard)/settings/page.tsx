@@ -950,13 +950,12 @@ export default function SettingsPage() {
       <Tabs
         value={activeTab}
         onValueChange={(v) => handleTabChange(v as TabId)}
-        orientation="vertical"
         className="w-full"
       >
         <div className="flex w-full flex-col gap-6 lg:flex-row">
-          <aside className="w-full shrink-0 lg:w-64">
-            <nav aria-label="Settings sections">
-              <TabsList className="flex w-full flex-col items-stretch gap-1.5 rounded-none border-none bg-transparent p-0">
+          <aside className="w-full min-w-0 shrink-0 lg:w-64">
+            <nav aria-label="Settings sections" className="w-full">
+              <TabsList className="!h-auto group-data-[orientation=horizontal]/tabs:!h-auto group-data-[orientation=vertical]/tabs:!h-auto flex w-full !flex-row flex-wrap items-center gap-2 rounded-none border-none bg-transparent p-0 pb-1 lg:!flex-col lg:items-stretch lg:gap-1.5 lg:pb-0">
                 {tabs.map((tab) => {
                   const Icon = tab.icon
                   const isActive = activeTab === tab.id
@@ -965,7 +964,8 @@ export default function SettingsPage() {
                       key={tab.id}
                       value={tab.id}
                       className={cn(
-                        "relative flex cursor-pointer items-center justify-start gap-3.5 rounded-xl px-4 py-3.5 text-left text-sm font-medium transition-all duration-200 outline-none",
+                        "relative flex !h-auto shrink-0 cursor-pointer items-center justify-start gap-2 rounded-xl px-3.5 py-2 text-left text-xs sm:text-sm font-medium transition-all duration-200 outline-none",
+                        "lg:w-full lg:gap-3.5 lg:px-4 lg:py-3.5",
                         "hover:bg-muted/60 hover:text-foreground",
                         "data-[state=active]:bg-transparent data-[state=active]:text-foreground",
                         "shadow-none ring-0 after:hidden data-[state=active]:shadow-none data-[state=active]:ring-0",
@@ -981,7 +981,7 @@ export default function SettingsPage() {
                         )}
                         aria-hidden="true"
                       />
-                      <span className="z-10">{tab.label}</span>
+                      <span className="z-10 whitespace-nowrap">{tab.label}</span>
                       {isActive && (
                         <motion.span
                           layoutId="settings-active-indicator"

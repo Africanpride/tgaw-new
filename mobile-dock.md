@@ -78,7 +78,7 @@ Badges appear as small dots/counts overlaid on the icon:
 
 | Tab | Badge source | Format |
 |---|---|---|
-| **Home** | Pending sessions today (from overview stats) | Numeric count (e.g. `3`) — capped at `9+` |
+| **Booking** | Active bookings (upcoming slots booked by the user) | Numeric count (e.g. `3`) — capped at `9+` |
 | **Messages** | Unread message count | Numeric count — capped at `9+` |
 
 - **Badge style**: `absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1`
