@@ -142,36 +142,42 @@ type TabId = "profile" | "notifications" | "appearance" | "security" | "account"
 const tabs: {
   id: TabId
   label: string
+  shortLabel: string
   icon: typeof UserRound
   description: string
 }[] = [
   {
     id: "profile",
     label: "Profile",
+    shortLabel: "Profile",
     icon: UserRound,
     description: "Your name, email, and public details",
   },
   {
     id: "notifications",
     label: "Notifications",
+    shortLabel: "Alerts",
     icon: Bell,
     description: "Choose when and how we reach you",
   },
   {
     id: "appearance",
     label: "Appearance",
+    shortLabel: "Theme",
     icon: Palette,
     description: "Theme and display preferences",
   },
   {
     id: "security",
     label: "Security",
+    shortLabel: "Security",
     icon: ShieldCheck,
     description: "Password, two-factor, and sessions",
   },
   {
     id: "account",
     label: "Account",
+    shortLabel: "Account",
     icon: CircleUserRound,
     description: "Linked data, preferences, and danger zone",
   },
@@ -198,7 +204,7 @@ function ToggleRow({
         <IconTile icon={Icon} size="md" tone="border bg-muted/50" iconClassName="size-4" className="mt-0.5" />
         <div className="space-y-0.5">
           <h6 className="text-sm font-medium">{title}</h6>
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
       <Switch
@@ -227,7 +233,7 @@ function SectionHeader({
       </span>
       <div className="space-y-0.5">
         <h3 className="text-base font-semibold">{title}</h3>
-        <p className="text-sm font-medium text-muted-foreground/80">
+        <p className="max-w-5xl text-xs sm:text-sm font-medium text-muted-foreground/80">
           {description}
         </p>
       </div>
@@ -504,10 +510,10 @@ function PushSubscriptionManager() {
         <IconTile icon={Smartphone} size="md" tone="border bg-muted/50" iconClassName="size-4" />
         <div className="space-y-0.5">
           <h6 className="text-sm font-medium">Browser push notifications</h6>
-          <p className="text-xs text-muted-foreground">
+          <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
             {permission === "unsupported" ? "Not supported in this browser" : permission === "denied" ? "Blocked — enable in browser site settings" : isSubscribed ? "Enabled on this device" : "Allow notifications to get instant alerts"}
           </p>
-          {permission === "default" && !vapidKey && <p className="text-xs text-amber-600">VAPID key not configured</p>}
+          {permission === "default" && !vapidKey && <p className="max-w-5xl text-xs sm:text-sm text-amber-600">VAPID key not configured</p>}
         </div>
       </div>
       <div className="flex gap-2">
@@ -939,7 +945,7 @@ export default function SettingsPage() {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-light tracking-tight">Settings</h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="max-w-5xl text-xs sm:text-sm leading-relaxed text-muted-foreground">
           Update your display name and photo, choose how you receive
           notifications, switch between light and dark theme, change your
           password, enable two-factor authentication, manage active sessions,
@@ -955,7 +961,7 @@ export default function SettingsPage() {
         <div className="flex w-full flex-col gap-6 lg:flex-row">
           <aside className="w-full min-w-0 shrink-0 lg:w-64">
             <nav aria-label="Settings sections" className="w-full">
-              <TabsList className="!h-auto group-data-[orientation=horizontal]/tabs:!h-auto group-data-[orientation=vertical]/tabs:!h-auto flex w-full !flex-row flex-wrap items-center gap-2 rounded-none border-none bg-transparent p-0 pb-1 lg:!flex-col lg:items-stretch lg:gap-1.5 lg:pb-0">
+              <TabsList className="!h-auto group-data-[orientation=horizontal]/tabs:!h-auto group-data-[orientation=vertical]/tabs:!h-auto flex w-full !flex-row flex-nowrap items-stretch gap-1 rounded-none border-none bg-transparent p-0 pb-1 lg:!flex-col lg:items-stretch lg:gap-1.5 lg:pb-0">
                 {tabs.map((tab) => {
                   const Icon = tab.icon
                   const isActive = activeTab === tab.id
@@ -964,7 +970,8 @@ export default function SettingsPage() {
                       key={tab.id}
                       value={tab.id}
                       className={cn(
-                        "relative flex !h-auto shrink-0 cursor-pointer items-center justify-start gap-2 rounded-xl px-3.5 py-2 text-left text-xs sm:text-sm font-medium transition-all duration-200 outline-none",
+                        "relative flex !h-auto min-w-0 shrink-0 cursor-pointer items-center justify-start gap-2 rounded-xl px-3.5 py-2 text-left text-xs sm:text-sm font-medium transition-all duration-200 outline-none",
+                        "max-lg:min-w-0 max-lg:flex-1 max-lg:flex-col max-lg:justify-center max-lg:gap-1 max-lg:px-1 max-lg:py-2 max-lg:text-center max-lg:text-[10px] max-lg:leading-tight",
                         "lg:w-full lg:gap-3.5 lg:px-4 lg:py-3.5",
                         "hover:bg-muted/60 hover:text-foreground",
                         "data-[state=active]:bg-transparent data-[state=active]:text-foreground",
@@ -981,7 +988,8 @@ export default function SettingsPage() {
                         )}
                         aria-hidden="true"
                       />
-                      <span className="z-10 whitespace-nowrap">{tab.label}</span>
+                      <span className="z-10 whitespace-nowrap lg:hidden">{tab.shortLabel}</span>
+                      <span className="z-10 hidden whitespace-nowrap lg:inline">{tab.label}</span>
                       {isActive && (
                         <motion.span
                           layoutId="settings-active-indicator"
@@ -1049,7 +1057,7 @@ export default function SettingsPage() {
                                   {role}
                                 </Badge>
                               </h6>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                 {email}
                               </p>
                             </div>
@@ -1080,7 +1088,7 @@ export default function SettingsPage() {
                                 {...register("name")}
                               />
                               {errors.name && (
-                                <p className="text-xs text-destructive">
+                                <p className="max-w-5xl text-xs sm:text-sm text-destructive">
                                   {errors.name.message}
                                 </p>
                               )}
@@ -1101,7 +1109,7 @@ export default function SettingsPage() {
                                 readOnly
                                 className="h-12 cursor-not-allowed bg-muted/20 opacity-60"
                               />
-                              <p className="text-xs text-muted-foreground">
+                              <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                 To change your email, please contact support.
                               </p>
                             </div>
@@ -1138,7 +1146,7 @@ export default function SettingsPage() {
                                 aria-invalid={!!errors.phone}
                               />
                               {errors.phone && (
-                                <p className="text-xs text-destructive">
+                                <p className="max-w-5xl text-xs sm:text-sm text-destructive">
                                   {errors.phone.message}
                                 </p>
                               )}
@@ -1163,7 +1171,7 @@ export default function SettingsPage() {
                                 placeholder="Select your country"
                               />
                               {errors.country && (
-                                <p className="text-xs text-destructive">
+                                <p className="max-w-5xl text-xs sm:text-sm text-destructive">
                                   {errors.country.message}
                                 </p>
                               )}
@@ -1195,7 +1203,7 @@ export default function SettingsPage() {
                                 </SelectContent>
                               </Select>
                               {errors.sex && (
-                                <p className="text-xs text-destructive">
+                                <p className="max-w-5xl text-xs sm:text-sm text-destructive">
                                   {errors.sex.message}
                                 </p>
                               )}
@@ -1229,7 +1237,7 @@ export default function SettingsPage() {
                                 </SelectContent>
                               </Select>
                               {errors.ageRange && (
-                                <p className="text-xs text-destructive">
+                                <p className="max-w-5xl text-xs sm:text-sm text-destructive">
                                   {errors.ageRange.message}
                                 </p>
                               )}
@@ -1265,11 +1273,11 @@ export default function SettingsPage() {
                                   ))}
                                 </SelectContent>
                               </Select>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                 Used for slot reminders and the calendar.
                               </p>
                               {errors.timezone && (
-                                <p className="text-xs text-destructive">
+                                <p className="max-w-5xl text-xs sm:text-sm text-destructive">
                                   {errors.timezone.message}
                                 </p>
                               )}
@@ -1474,7 +1482,7 @@ export default function SettingsPage() {
                               <h6 className="text-sm font-medium">
                                 Two-factor authentication
                               </h6>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                 Add an extra layer of security with an
                                 authenticator app.
                               </p>
@@ -1548,7 +1556,7 @@ export default function SettingsPage() {
                                 {...registerPw("currentPassword")}
                               />
                               {pwErrors.currentPassword && (
-                                <p className="text-xs text-destructive">
+                                <p className="max-w-5xl text-xs sm:text-sm text-destructive">
                                   {pwErrors.currentPassword.message}
                                 </p>
                               )}
@@ -1570,7 +1578,7 @@ export default function SettingsPage() {
                                   {...registerPw("newPassword")}
                                 />
                                 {pwErrors.newPassword && (
-                                  <p className="text-xs text-destructive">
+                                  <p className="max-w-5xl text-xs sm:text-sm text-destructive">
                                     {pwErrors.newPassword.message}
                                   </p>
                                 )}
@@ -1591,7 +1599,7 @@ export default function SettingsPage() {
                                   {...registerPw("confirmPassword")}
                                 />
                                 {pwErrors.confirmPassword && (
-                                  <p className="text-xs text-destructive">
+                                  <p className="max-w-5xl text-xs sm:text-sm text-destructive">
                                     {pwErrors.confirmPassword.message}
                                   </p>
                                 )}
@@ -1613,7 +1621,7 @@ export default function SettingsPage() {
                         ) : (
                           <div className="flex flex-col gap-5">
                             <div className="rounded-xl border border-dashed border-muted-foreground/25 bg-muted/30 p-4">
-                              <p className="text-sm text-muted-foreground">
+                              <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                 You signed in with an OAuth provider and
                                 don&apos;t have a password yet. Set one so you
                                 can also log in with email and password.
@@ -1677,10 +1685,10 @@ export default function SettingsPage() {
 
                         {/* Sessions list */}
                         <div className="space-y-4">
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div className="space-y-0.5">
                               <h4 className="text-sm">Active Sessions</h4>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                 Devices currently logged into TGAW.
                               </p>
                             </div>
@@ -1690,7 +1698,7 @@ export default function SettingsPage() {
                                   <Button
                                     variant="destructive"
                                     size="sm"
-                                    className="text-xs"
+                                    className="w-full text-xs sm:w-auto"
                                   >
                                     Log out other devices
                                   </Button>
@@ -1742,7 +1750,7 @@ export default function SettingsPage() {
                                 <div className="h-10 w-full animate-pulse rounded-lg bg-muted/60" />
                               </div>
                             ) : userSessions.length === 0 ? (
-                              <p className="py-4 text-xs text-muted-foreground">
+                              <p className="max-w-5xl py-4 text-xs sm:text-sm text-muted-foreground">
                                 No active sessions found.
                               </p>
                             ) : (
@@ -1755,13 +1763,13 @@ export default function SettingsPage() {
                                 return (
                                   <div
                                     key={sessionItem.id}
-                                    className="flex items-center justify-between rounded-2xl border bg-muted/10 p-4 text-xs"
+                                    className="flex items-center justify-between gap-3 rounded-2xl border bg-muted/10 p-4 text-xs"
                                   >
-                                    <div className="flex items-start gap-3">
-                                      <span className="mt-0.5 flex size-9 items-center justify-center rounded-xl border bg-muted/40">
+                                    <div className="flex min-w-0 flex-1 items-start gap-3">
+                                      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl border bg-muted/40">
                                         <Laptop className="size-4 text-muted-foreground" />
                                       </span>
-                                      <div className="space-y-0.5">
+                                      <div className="min-w-0 space-y-0.5">
                                         <div className="flex items-center gap-1.5 font-medium text-foreground">
                                           <span>
                                             {device} • {browser}
@@ -1772,7 +1780,7 @@ export default function SettingsPage() {
                                             </Badge>
                                           )}
                                         </div>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="max-w-5xl text-xs sm:text-sm break-all text-muted-foreground">
                                           IP:{" "}
                                           {sessionItem.ipAddress ||
                                             "Unknown IP"}{" "}
@@ -1789,7 +1797,7 @@ export default function SettingsPage() {
                                           <Button
                                             variant="destructive"
                                             size="sm"
-                                            className="h-7 text-xs"
+                                            className="h-7 shrink-0 text-xs"
                                           >
                                             Revoke
                                           </Button>
@@ -1853,7 +1861,7 @@ export default function SettingsPage() {
                         <Separator />
                         <div className="flex flex-col gap-5">
                           {/* iCal card */}
-                          <div className="flex items-center justify-between gap-4 rounded-xl border p-5 shadow-xs">
+                          <div className="flex flex-col gap-4 rounded-xl border p-5 shadow-xs sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-start gap-3">
                               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
                                 <KeyRound
@@ -1865,7 +1873,7 @@ export default function SettingsPage() {
                                 <h6 className="text-sm font-medium">
                                   iCal calendar feed
                                 </h6>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                   Regenerate your private feed token to log out
                                   all calendar apps.
                                 </p>
@@ -1874,7 +1882,7 @@ export default function SettingsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="cursor-pointer"
+                              className="w-full cursor-pointer sm:w-auto"
                               onClick={() =>
                                 toast.success("Calendar token regenerated")
                               }
@@ -1884,7 +1892,7 @@ export default function SettingsPage() {
                           </div>
 
                           {/* GDPR Data Export card */}
-                          <div className="flex items-center justify-between gap-4 rounded-xl border p-5 shadow-xs">
+                          <div className="flex flex-col gap-4 rounded-xl border p-5 shadow-xs sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-start gap-3">
                               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
                                 <Download
@@ -1896,17 +1904,17 @@ export default function SettingsPage() {
                                 <h6 className="text-sm font-medium">
                                   Download your data
                                 </h6>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                   Get a full copy of your posts, messages,
                                   bookmarks, and calendar bookings.
                                 </p>
                               </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex flex-col gap-2 sm:flex-row">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="cursor-pointer"
+                                className="w-full cursor-pointer sm:w-auto"
                                 onClick={handleRequestEmailExport}
                                 disabled={isExporting}
                               >
@@ -1916,7 +1924,7 @@ export default function SettingsPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="cursor-pointer"
+                                className="w-full cursor-pointer sm:w-auto"
                                 asChild
                               >
                                 <a href="/api/v1/account/export" download>
@@ -1940,7 +1948,7 @@ export default function SettingsPage() {
                                 <h6 className="text-sm font-medium">
                                   Sign out
                                 </h6>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                   Sign out of TGAW on this browser session.
                                 </p>
                               </div>
@@ -1968,7 +1976,7 @@ export default function SettingsPage() {
                                 <h6 className="text-sm font-medium text-destructive">
                                   Delete account
                                 </h6>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                   Permanently remove your account and all
                                   associated data from TGAW.
                                 </p>
@@ -2019,7 +2027,7 @@ export default function SettingsPage() {
                                     </div>
                                   )}
                                   {!hasPassword && (
-                                    <p className="text-muted-foreground">
+                                    <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                       You signed in with OAuth, so no password
                                       is required for deletion.
                                     </p>
@@ -2098,7 +2106,7 @@ export default function SettingsPage() {
 
           {twoFactorStep === "auth" && (
             <div className="space-y-4 py-2">
-              <p className="text-xs text-muted-foreground">
+              <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                 Please enter your current account password to begin two-factor
                 setup.
               </p>
@@ -2147,10 +2155,10 @@ export default function SettingsPage() {
                   </div>
                 )}
                 <div className="space-y-2 text-xs text-muted-foreground">
-                  <p className="text-sm font-semibold text-foreground">
+                  <p className="max-w-5xl text-xs sm:text-sm font-semibold text-foreground">
                     Scan this QR Code
                   </p>
-                  <p>
+                  <p className="max-w-5xl text-xs sm:text-sm">
                     Open your authenticator app (Google Authenticator, Microsoft
                     Authenticator, 1Password, etc.) and scan this code.
                   </p>
@@ -2211,11 +2219,11 @@ export default function SettingsPage() {
             <div className="space-y-4 py-2">
               <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-500">
                 <Check className="size-5 shrink-0" />
-                <p className="text-sm font-semibold">
+                <p className="max-w-5xl text-xs sm:text-sm font-semibold">
                   Two-Factor Authentication Enabled!
                 </p>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                 Save these recovery backup codes in a safe place. You can use
                 them to log in if you lose access to your authenticator app.
                 They will not be displayed again.
@@ -2353,11 +2361,11 @@ export default function SettingsPage() {
             <div className="space-y-4 py-2">
               <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-500">
                 <Check className="size-5 shrink-0" />
-                <p className="text-sm font-semibold">
+                <p className="max-w-5xl text-xs sm:text-sm font-semibold">
                   Backup codes regenerated!
                 </p>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                 Save these recovery backup codes in a safe place. They will not
                 be displayed again.
               </p>

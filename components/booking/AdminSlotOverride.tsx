@@ -90,6 +90,11 @@ function getAccent(type: string): SlotAccent {
   return slotAccent[type as keyof typeof slotAccent] ?? slotAccent.BIBLE;
 }
 
+function firstNameOf(name: string | null): string {
+  if (!name) return "Member";
+  return name.split(/\s+/).filter(Boolean)[0] ?? "Member";
+}
+
 function formatSelectedDate(d: Date): string {
   return d.toLocaleDateString("en-US", {
     weekday: "long",
@@ -324,7 +329,7 @@ function OverrideDialogContent({
 
         <div className="space-y-4 py-2">
           {/* Slot info */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge
               variant="outline"
               className={cn("border font-medium", accent.text)}
@@ -332,15 +337,15 @@ function OverrideDialogContent({
               {typeLabel}
             </Badge>
             {slot.isBooked && slot.bookedByName && (
-              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <span className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
                 Currently:
                 <UserAvatar
                   name={slot.bookedByName}
                   image={slot.bookedByImage}
-                  className="size-5"
+                  className="size-5 shrink-0"
                 />
-                <span className="font-medium text-foreground">
-                  {slot.bookedByName}
+                <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+                  {firstNameOf(slot.bookedByName)}
                 </span>
               </span>
             )}
@@ -451,7 +456,7 @@ function AdminSlotRow({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       className={cn(
-        "flex items-center gap-3 border-b border-l-4 px-3 py-2.5 transition-colors last:border-b-0",
+        "flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-l-4 px-3 py-2.5 transition-colors last:border-b-0",
         accent.rail,
         slot.isBooked ? "bg-muted/30" : "bg-background",
       )}
@@ -471,8 +476,8 @@ function AdminSlotRow({
         {typeLabel}
       </Badge>
 
-      {/* Booker info */}
-      <div className="flex min-w-0 flex-1 items-center gap-2">
+      {/* Booker info — drops to its own line on narrow screens */}
+      <div className="order-4 flex w-full min-w-0 flex-1 items-center gap-2 sm:order-none sm:w-auto">
         {slot.isBooked ? (
           <>
             <UserAvatar
@@ -481,7 +486,7 @@ function AdminSlotRow({
               className="size-6 shrink-0"
             />
             <span className="truncate text-sm font-medium">
-              {slot.bookedByName || "Member"}
+              {firstNameOf(slot.bookedByName)}
             </span>
           </>
         ) : (
@@ -494,7 +499,7 @@ function AdminSlotRow({
         variant="outline"
         size="sm"
         onClick={() => onAction(slot)}
-        className="h-7 shrink-0 gap-1 px-2.5 text-xs"
+        className="order-3 ml-auto h-7 shrink-0 gap-1 px-2.5 text-xs sm:order-none sm:ml-0"
       >
         {slot.isBooked ? (
           <>

@@ -96,7 +96,7 @@ export async function getCommunityActivity(limit = 8): Promise<ActivityItem[]> {
       where: { bookedBy: { not: null }, date: { gte: today } },
       orderBy: { updatedAt: "desc" },
       take: 6,
-      select: { id: true, type: true, date: true, bookedBy: true, updatedAt: true },
+      select: { id: true, type: true, date: true, bookedBy: true, assignedBy: true, updatedAt: true },
     }),
     prisma.event.findMany({
       orderBy: { createdAt: "desc" },
@@ -126,6 +126,7 @@ export async function getCommunityActivity(limit = 8): Promise<ActivityItem[]> {
       ...posts.map((p) => p.authorId),
       ...comments.map((c) => c.authorId),
       ...slots.map((s) => s.bookedBy).filter((id): id is string => !!id),
+      ...slots.map((s) => s.assignedBy).filter((id): id is string => !!id),
     ]),
   ]
   const authors = authorIds.length ? await prisma.user.findMany({ where: { id: { in: authorIds } }, select: { id: true, name: true, image: true } }) : []
@@ -181,11 +182,21 @@ export async function getCommunityActivity(limit = 8): Promise<ActivityItem[]> {
       const booker = authorMap.get(s.bookedBy!)
       const name = booker?.name ?? "A member"
       const label = SLOT_LABEL[s.type] ?? "devotion"
+      const assigner = s.assignedBy ? authorMap.get(s.assignedBy) : undefined
+      const assignerName =
+        s.assignedBy && s.assignedBy !== s.bookedBy
+          ? (assigner?.name ?? "an admin")
+          : null
+      const title = assignerName
+        ? `${name} was assigned a ${label} slot by ${assignerName}`
+        : s.assignedBy
+          ? `${name} was assigned a ${label} slot`
+          : `${name} booked a ${label} slot`
       return {
         id: `booking-${s.id}`,
         type: "booking" as const,
         category: categoryForSlotType(s.type),
-        title: `${name} booked a ${label} slot`,
+        title,
         subtitle: timeAgo(s.updatedAt),
         href: `/booking`,
         initials: initialsFor(name),
