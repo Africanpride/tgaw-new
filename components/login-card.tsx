@@ -50,7 +50,7 @@ export function LoginCard() {
       />
 
       {/* Card wrapper: full-width + padded on mobile, left-anchored on desktop */}
-      <div className="relative z-10 flex min-h-screen w-full items-center justify-center p-4 lg:justify-start lg:p-0 lg:pl-20">
+      <div className="relative z-10 flex min-h-screen w-full items-center justify-center p-2 sm:p-4 lg:justify-start lg:p-0 lg:pl-20">
         <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0b0f17]/95 p-6 shadow-2xl backdrop-blur-sm sm:p-6">
           {/* Logo */}
           <div className="mb-8 flex items-center gap-2">

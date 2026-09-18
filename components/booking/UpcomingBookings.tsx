@@ -79,7 +79,7 @@ export function UpcomingBookings({ bookings }: UpcomingBookingsProps) {
         />
       </div>
       <div className="flex min-w-0 flex-1 flex-col sm:w-72">
-        <div className="flex items-center gap-2 border-b px-4 py-3">
+        <div className="flex items-center gap-2 border-b px-2 sm:px-4 py-3">
           <CalendarClock className="size-4 text-muted-foreground" aria-hidden="true" />
           <div className="flex flex-col">
             <span className="text-sm font-medium">Upcoming Bookings</span>
@@ -87,13 +87,13 @@ export function UpcomingBookings({ bookings }: UpcomingBookingsProps) {
           </div>
         </div>
         <ScrollArea className="h-64 max-h-64 sm:flex-1 sm:h-auto">
-          <div className="flex flex-col gap-2 p-4">
+          <div className="flex flex-col gap-2 p-2 sm:p-4">
             {dayBookings.length === 0 ? (
               <EmptyState
                 icon={CalendarClock}
                 title="No bookings on this day"
                 description="Pick a day with a slot or book a devotional slot to keep your watch alive."
-                className="border-0 bg-transparent py-8"
+                className="border-0 bg-transparent py-2 sm:py-8"
               />
             ) : (
               dayBookings.map((booking) => (

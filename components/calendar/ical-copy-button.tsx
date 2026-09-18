@@ -21,7 +21,7 @@ export function IcalCopyButton({ token, baseUrl }: { token: string; baseUrl?: st
 	};
 
 	return (
-		<div className="flex items-center gap-2 rounded-lg border bg-card p-3">
+		<div className="flex items-center gap-2 rounded-lg border bg-card p-2 sm:p-3">
 			<Calendar className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
 			<input
 				readOnly

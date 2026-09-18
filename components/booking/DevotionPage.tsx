@@ -116,7 +116,7 @@ export async function DevotionPage({
 					<CardContent className="flex items-center justify-between p-6 pb-0 max-sm:flex-col max-sm:gap-3 sm:p-6 sm:pb-0">
 						<DateNav dateStr={dateStr} basePath={basePath} />
 					</CardContent>
-					<CardContent className="pt-4">
+					<CardContent className="pt-2 sm:pt-4">
 						<SlotBookingStrip slots={slots} type={type} initialSlotId={initialSlotId} />
 					</CardContent>
 				</Card>

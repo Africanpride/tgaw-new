@@ -30,14 +30,14 @@ const people = [
 
 export default function GridList02() {
   return (
-    <div className="flex items-center justify-center p-8">
+    <div className="flex items-center justify-center p-2 sm:p-8">
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {people.map((person) => (
           <Card
             className="relative border py-0 shadow-2xs transition-[border-color,box-shadow] duration-100 ease-out focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:border-muted-foreground hover:shadow-sm"
             key={person.email}
           >
-            <CardContent className="flex items-center space-x-4 p-4">
+            <CardContent className="flex items-center space-x-4 p-2 sm:p-4">
               <Avatar className="h-10 w-10">
                 <AvatarImage alt={person.name} src={person.imageUrl} />
                 <AvatarFallback>{person.name.charAt(0)}</AvatarFallback>

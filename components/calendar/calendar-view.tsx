@@ -377,7 +377,7 @@ export function CalendarView({
 				{/* Sidebar */}
 				<div className="hidden xl:block w-80 flex-shrink-0 border-r">
 					<div className="flex h-full flex-col rounded-lg bg-background">
-						<div className="p-6 border-b">
+						<div className="p-2 sm:p-6 border-b">
 {canCreate && (
 							<Button
 								className="w-full"
@@ -405,7 +405,7 @@ export function CalendarView({
 							/>
 						</div>
 						<Separator />
-						<div className="flex-1 p-4">
+						<div className="flex-1 p-2 sm:p-4">
 							<div className="space-y-4">
 								<Collapsible defaultOpen className="group/collapsible">
 									<CollapsibleTrigger className="flex w-full cursor-pointer items-center justify-between rounded-md p-2 hover:bg-accent hover:text-accent-foreground">
@@ -479,7 +479,7 @@ export function CalendarView({
 
 				{/* Main Content */}
 				<div className="min-w-0 flex-1">
-					<div className="flex flex-col gap-4 border-b p-6 md:flex-row md:items-center md:justify-between">
+					<div className="flex flex-col gap-4 border-b p-2 sm:p-6 md:flex-row md:items-center md:justify-between">
 						<div className="flex flex-wrap items-center gap-4">
 							<Button
 								variant="outline"
@@ -546,7 +546,7 @@ export function CalendarView({
 										<div
 											key={day}
 											className={cn(
-												"border-r p-4 text-center text-sm font-medium text-muted-foreground last:border-r-0",
+												"border-r p-2 sm:p-4 text-center text-sm font-medium text-muted-foreground last:border-r-0",
 												i === 0 && "hidden lg:block",
 											)}
 										>

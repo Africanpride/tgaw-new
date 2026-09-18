@@ -150,7 +150,7 @@ export default function GroupDetailPage() {
           <CardHeader><CardTitle className="text-sm">Group Chat {connected ? <span className="ml-2 text-xs font-normal text-emerald-600">● live</span> : <span className="ml-2 text-xs font-normal text-muted-foreground">offline</span>}</CardTitle></CardHeader>
           <CardContent className="flex flex-1 flex-col gap-3">
             <div className="flex-1 space-y-2 overflow-auto rounded-xl border bg-muted/20 p-2 sm:p-3 max-h-[360px] min-h-[240px]">
-              {chat.length === 0 ? <p className="py-10 text-center text-sm text-muted-foreground">No messages yet — say hello.</p> : chat.map((m) => (
+              {chat.length === 0 ? <p className="py-2 text-center text-sm text-muted-foreground sm:py-10">No messages yet — say hello.</p> : chat.map((m) => (
                 <div key={m.id} className="rounded-lg bg-card border px-2 sm:px-3 py-2 text-sm">
                   <p className="text-xs text-muted-foreground">{new Date(m.createdAt).toLocaleTimeString()} · {m.senderId.slice(0,6)}</p>
                   <p className="mt-1">{m.body}</p>

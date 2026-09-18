@@ -158,12 +158,12 @@ function ItemDetail({
 					</div>
 				)}
 				{item.notes && (
-					<p className="rounded-lg bg-muted p-3 text-sm">{item.notes}</p>
+					<p className="rounded-lg bg-muted p-2 sm:p-3 text-sm">{item.notes}</p>
 				)}
 			</div>
 
 			{isEvent && canManage && (
-				<div className="flex items-center justify-end gap-2 border-t pt-3">
+				<div className="flex items-center justify-end gap-2 border-t pt-2 sm:pt-3">
 					<Button
 						type="button"
 						variant="outline"
@@ -250,7 +250,7 @@ export function CalendarDetailPopover({
 		return (
 			<Sheet open={open} onOpenChange={setOpen}>
 				<SheetTrigger asChild>{children}</SheetTrigger>
-				<SheetContent side="bottom" className="px-6 pb-8">
+				<SheetContent side="bottom" className="px-2 sm:px-6 pb-8">
 					<SheetHeader>
 						<SheetTitle className="sr-only">{item.title}</SheetTitle>
 					</SheetHeader>
@@ -263,7 +263,7 @@ export function CalendarDetailPopover({
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>{children}</PopoverTrigger>
-			<PopoverContent className="w-80 p-4" align="start" sideOffset={4}>
+			<PopoverContent className="w-80 p-2 sm:p-4" align="start" sideOffset={4}>
 				{content}
 			</PopoverContent>
 		</Popover>

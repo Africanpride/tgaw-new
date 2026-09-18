@@ -328,11 +328,11 @@ export default function ActivityLogsPage() {
           </form>
           <div>
             {filtered === null ? (
-              <div className="p-8 text-center text-sm text-muted-foreground">
+              <div className="p-2 text-center text-sm text-muted-foreground sm:p-8">
                 Loading logs…
               </div>
             ) : filtered.length === 0 ? (
-              <div className="p-8 text-center text-sm text-muted-foreground">
+              <div className="p-2 text-center text-sm text-muted-foreground sm:p-8">
                 No logs match.
               </div>
             ) : (

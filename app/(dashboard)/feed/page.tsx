@@ -241,7 +241,7 @@ export default function FeedPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>
+        <div className="flex justify-center py-2 sm:py-12"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>
       ) : posts.length === 0 ? (
         <EmptyState
           icon={PenSquare}

@@ -24,7 +24,7 @@ export function EventBlockPopover({ event, children, contentClassName }: EventBl
   return (
     <Popover>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent className={cn("w-64 p-4", contentClassName)} role="dialog" aria-label={`Special event: ${event.title}`}>
+      <PopoverContent className={cn("w-64 p-2 sm:p-4", contentClassName)} role="dialog" aria-label={`Special event: ${event.title}`}>
         <div className="space-y-3">
           <div className="flex items-center gap-1.5 text-xs font-medium text-violet-700 dark:text-violet-300 ">
             <CalendarClock className="size-3.5" aria-hidden="true" /> 

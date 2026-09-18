@@ -215,7 +215,7 @@ export function AdminBookingConfig({
                   key={mode.value}
                   htmlFor={`mode${mode.value}`}
                   className={cn(
-                    "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors",
+                    "flex cursor-pointer items-start gap-3 rounded-lg border p-2 sm:p-3 transition-colors",
                     selected
                       ? "border-primary bg-primary/5 ring-1 ring-primary/20"
                       : "border-border hover:bg-muted/50"

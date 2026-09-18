@@ -67,7 +67,7 @@ function AuthShell({
           )}
         >
           {children}
-          <div className="mt-6 flex items-center justify-center gap-3 border-t pt-4 text-xs text-muted-foreground">
+          <div className="mt-6 flex items-center justify-center gap-3 border-t pt-2 text-xs text-muted-foreground sm:pt-4">
             <Link href="/privacy" className="cursor-pointer transition-colors hover:text-foreground">
               Privacy Policy
             </Link>

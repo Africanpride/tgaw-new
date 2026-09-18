@@ -212,7 +212,7 @@ export function AvatarUploadDialog({
 			}}
 		>
 			<DialogContent className="gap-0 overflow-hidden rounded-xl p-0 sm:max-w-md">
-				<DialogHeader className="border-b px-6 py-4">
+				<DialogHeader className="border-b px-2 py-2 sm:px-6 sm:py-4">
 					<DialogTitle className="text-lg font-semibold text-foreground">
 						Update Profile Photo
 					</DialogTitle>
@@ -221,13 +221,13 @@ export function AvatarUploadDialog({
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="flex flex-col items-center gap-6 px-6 py-6">
+				<div className="flex flex-col items-center gap-6 px-2 py-2 sm:px-6 sm:py-6">
 					{/* Avatar display & Dropzone */}
 					<div
 						onDragOver={handleDragOver}
 						onDragLeave={handleDragLeave}
 						onDrop={handleDrop}
-						className={`relative flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition-colors ${
+						className={`relative flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed p-2 transition-colors sm:p-6 ${
 							isDragging
 								? "border-primary bg-primary/5"
 								: "border-muted-foreground/25 bg-muted/20 hover:bg-muted/40"
@@ -291,7 +291,7 @@ export function AvatarUploadDialog({
 					</div>
 				</div>
 
-				<DialogFooter className="!mx-0 !mb-0 flex flex-col-reverse gap-3 rounded-b-3xl border-t bg-muted/10 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+				<DialogFooter className="!mx-0 !mb-0 flex flex-col-reverse gap-3 rounded-b-3xl border-t bg-muted/10 px-2 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-6">
 					<div>
 						{currentImage && !previewUrl && (
 							<Button

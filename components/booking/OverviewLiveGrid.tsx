@@ -124,7 +124,7 @@ function SlotCard({ slot, isLive }: { slot: Slot; isLive: boolean }) {
 
   return (
     <Card className="relative @container border py-0 shadow-none transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:bg-muted/50">
-      <CardContent className="flex items-center space-x-4 p-4">
+      <CardContent className="flex items-center space-x-4 p-2 sm:p-4">
         <span className="relative inline-flex shrink-0">
           <Avatar
             className={`h-10 w-10 shrink-0 ${!slot.isBooked && !isBlocked ? `border ${meta.accent.iconTile.replace("bg-", "bg-")}` : ""}`}
@@ -335,7 +335,7 @@ export function OverviewLiveGrid({ upcoming = 2 }: { upcoming?: number }) {
             Live Now & Up Next
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col items-center gap-2 py-8 text-center">
+        <CardContent className="flex flex-col items-center gap-2 py-2 text-center sm:py-8">
           <VideoOffIcon
             className="size-8 text-muted-foreground"
             aria-hidden="true"

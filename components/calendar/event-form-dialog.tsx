@@ -269,7 +269,7 @@ export function EventFormDialog({
         {/* Category-Accented Header */}
         <DialogHeader
           className={cn(
-            "shrink-0 border-b border-border/40 px-5 py-3.5 transition-colors",
+            "shrink-0 border-b border-border/40 px-2 sm:px-5 py-3.5 transition-colors",
             currentTypeConfig.bg
           )}
         >
@@ -300,7 +300,7 @@ export function EventFormDialog({
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="max-h-[calc(88vh-70px)] space-y-3 overflow-y-auto p-5"
+          className="max-h-[calc(88vh-70px)] space-y-3 overflow-y-auto p-2 sm:p-5"
         >
           {/* 3-Way Card Type Selector */}
           <div className="space-y-1.5">
@@ -541,7 +541,7 @@ export function EventFormDialog({
           </div>
 
           {previewWarning && (
-            <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+            <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-2 sm:px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
               <TriangleAlert className="size-4 shrink-0" aria-hidden="true" />
               <span>
                 This event will override{" "}
@@ -577,7 +577,7 @@ export function EventFormDialog({
               size="sm"
               disabled={isSubmitting}
               className={cn(
-                "h-9 gap-1.5 px-4 text-xs font-medium shadow-2xs transition-all",
+                "h-9 gap-1.5 px-2 sm:px-4 text-xs font-medium shadow-2xs transition-all",
                 currentTypeConfig.btnBg
               )}
             >

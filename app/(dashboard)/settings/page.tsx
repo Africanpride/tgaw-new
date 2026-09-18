@@ -2231,7 +2231,7 @@ export default function SettingsPage() {
                 They will not be displayed again.
               </p>
 
-              <div className="grid grid-cols-2 gap-2 rounded-xl border bg-muted/40 p-3.5 font-mono text-xs">
+              <div className="grid grid-cols-2 gap-2 rounded-xl border bg-muted/40 p-2 font-mono text-xs sm:p-3.5">
                 {backupCodes.map((code, idx) => (
                   <div
                     key={code}
@@ -2371,7 +2371,7 @@ export default function SettingsPage() {
                 Save these recovery backup codes in a safe place. They will not
                 be displayed again.
               </p>
-              <div className="grid grid-cols-2 gap-2 rounded-xl border bg-muted/40 p-3.5 font-mono text-xs">
+              <div className="grid grid-cols-2 gap-2 rounded-xl border bg-muted/40 p-2 font-mono text-xs sm:p-3.5">
                 {backupCodes.map((code, idx) => (
                   <div
                     key={code}

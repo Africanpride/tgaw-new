@@ -181,7 +181,7 @@ function SlotGridCell({
       }}
       data-slot-id={slot.id}
       className={cn(
-        "flex min-h-[64px] flex-col gap-1.5 rounded-lg border p-3 text-left transition-colors outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        "flex min-h-[64px] flex-col gap-1.5 rounded-lg border p-2 sm:p-3 text-left transition-colors outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50",
         past ? "cursor-default opacity-40" : "cursor-pointer",
         isBlocked &&
           !past &&

@@ -796,7 +796,7 @@ export default function UserManagementPage() {
                       value={user.id}
                       className="rounded-lg border bg-card px-2 sm:px-3"
                     >
-                      <AccordionTrigger className="gap-2 py-3 hover:no-underline">
+                      <AccordionTrigger className="gap-2 py-2 hover:no-underline sm:py-3">
                         <span className="flex min-w-0 flex-1 items-center gap-2.5">
                           <Avatar className="size-9 shrink-0">
                             <AvatarImage
@@ -837,9 +837,9 @@ export default function UserManagementPage() {
                           <RoleBadge role={user.role} />
                         </span>
                       </AccordionTrigger>
-                      <AccordionContent className="space-y-3 pb-3">
+                      <AccordionContent className="space-y-3 pb-2 sm:pb-3">
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="rounded-lg bg-muted/40 p-2.5">
+                          <div className="rounded-lg bg-muted/40 p-2 sm:p-2.5">
                             <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                               Status
                             </p>
@@ -851,7 +851,7 @@ export default function UserManagementPage() {
                               )}
                             </div>
                           </div>
-                          <div className="rounded-lg bg-muted/40 p-2.5">
+                          <div className="rounded-lg bg-muted/40 p-2 sm:p-2.5">
                             <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                               Joined
                             </p>
@@ -859,7 +859,7 @@ export default function UserManagementPage() {
                               {formatJoinedDate(user.createdAt)}
                             </p>
                           </div>
-                          <div className="rounded-lg bg-muted/40 p-2.5">
+                          <div className="rounded-lg bg-muted/40 p-2 sm:p-2.5">
                             <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                               Last login
                             </p>
@@ -874,7 +874,7 @@ export default function UserManagementPage() {
                               {formatLastLogin(user.lastLogin)}
                             </p>
                           </div>
-                          <div className="rounded-lg bg-muted/40 p-2.5">
+                          <div className="rounded-lg bg-muted/40 p-2 sm:p-2.5">
                             <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                               Verification
                             </p>
@@ -1209,7 +1209,7 @@ export default function UserManagementPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="border-b pb-3">
+          <div className="border-b pb-2 sm:pb-3">
             <RoleStepIndicator step={roleStep} />
           </div>
 

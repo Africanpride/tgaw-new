@@ -95,7 +95,7 @@ export function SlotBookingSheet({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
-          <div className="flex flex-col items-center gap-4 px-6 py-14 text-center">
+          <div className="flex flex-col items-center gap-4 px-2 sm:px-6 py-14 text-center">
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -127,7 +127,7 @@ export function SlotBookingSheet({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
-        <DialogHeader className={cn("border-b p-6 pb-5", accent.tintStrong)}>
+        <DialogHeader className={cn("border-b p-2 sm:p-6 pb-2 sm:pb-5", accent.tintStrong)}>
           <div className="flex items-center gap-3">
             <IconTile icon={TypeIcon} size="md" tone={accent.iconTile} />
             <div>
@@ -150,8 +150,8 @@ export function SlotBookingSheet({
           </div>
         </DialogHeader>
 
-        <div className="p-6">
-          <div className="rounded-lg border bg-muted/40 p-4">
+        <div className="p-2 sm:p-6">
+          <div className="rounded-lg border bg-muted/40 p-2 sm:p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className={cn("text-xl font-semibold tabular-nums", accent.text)}>
@@ -181,7 +181,7 @@ export function SlotBookingSheet({
           </div>
         </div>
 
-        <DialogFooter className="border-t bg-muted/30 px-6 py-6 sm:justify-end">
+        <DialogFooter className="border-t bg-muted/30 px-2 sm:px-6 py-2 sm:py-6 sm:justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>

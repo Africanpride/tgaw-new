@@ -185,7 +185,7 @@ function UserSearchCombobox({
           />
           <CommandList>
             {loading && (
-              <div className="flex items-center justify-center py-4">
+              <div className="flex items-center justify-center py-2 sm:py-4">
                 <Loader2 className="size-4 animate-spin text-muted-foreground" />
               </div>
             )}
@@ -456,7 +456,7 @@ function AdminSlotRow({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       className={cn(
-        "flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-l-4 px-3 py-2.5 transition-colors last:border-b-0",
+        "flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-l-4 px-2 sm:px-3 py-2.5 transition-colors last:border-b-0",
         accent.rail,
         slot.isBooked ? "bg-muted/30" : "bg-background",
       )}
@@ -601,7 +601,7 @@ export function AdminSlotOverride() {
   return (
     <>
       <Card className="h-full">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2 sm:pb-3">
           <CardTitle className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
               <SlidersHorizontal
@@ -615,7 +615,7 @@ export function AdminSlotOverride() {
             Pick a date to view and override bookings.
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-4 pb-4">
+        <CardContent className="px-2 sm:px-4 pb-2 sm:pb-4">
           <AnimatePresence mode="wait" initial={false}>
             {view === "calendar" ? (
               <motion.div
@@ -695,7 +695,7 @@ export function AdminSlotOverride() {
                 {loading ? (
                   <div className="space-y-2 py-2">
                     {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="flex items-center gap-3 px-3 py-2">
+                      <div key={i} className="flex items-center gap-3 px-2 sm:px-3 py-2">
                         <Skeleton className="h-4 w-20" />
                         <Skeleton className="h-5 w-14 rounded-full" />
                         <Skeleton className="h-4 flex-1" />
@@ -704,7 +704,7 @@ export function AdminSlotOverride() {
                     ))}
                   </div>
                 ) : slots.length === 0 ? (
-                  <div className="flex flex-col items-center gap-2 py-8 text-center">
+                  <div className="flex flex-col items-center gap-2 py-2 text-center sm:py-8">
                     <CalendarCheck className="size-8 text-muted-foreground/40" />
                     <p className="text-sm font-medium text-muted-foreground">
                       No slots on this date
@@ -718,7 +718,7 @@ export function AdminSlotOverride() {
                     {/* Booked slots first */}
                     {bookedSlots.length > 0 && (
                       <div>
-                        <p className="sticky top-0 z-10 mb-1 bg-card px-3 py-1">
+                        <p className="sticky top-0 z-10 mb-1 bg-card px-2 sm:px-3 py-1">
                           <span className={sectionLabelClass}>
                             Booked ({bookedSlots.length})
                           </span>
@@ -738,7 +738,7 @@ export function AdminSlotOverride() {
                     {/* Available slots */}
                     {availableSlots.length > 0 && (
                       <div className="mt-3">
-                        <p className="sticky top-0 z-10 mb-1 bg-card px-3 py-1">
+                        <p className="sticky top-0 z-10 mb-1 bg-card px-2 sm:px-3 py-1">
                           <span className={sectionLabelClass}>
                             Available ({availableSlots.length})
                           </span>

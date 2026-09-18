@@ -89,9 +89,9 @@ export function CommunityActivity() {
       </CardHeader>
       <CardContent className="p-0">
         {items === null ? (
-          <div className="flex flex-col gap-2 p-3">
+          <div className="flex flex-col gap-2 p-2 sm:p-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-lg border bg-background p-3">
+              <div key={i} className="flex items-center gap-3 rounded-lg border bg-background p-2 sm:p-3">
                 <Skeleton className="size-9 rounded-full" />
                 <div className="flex-1 space-y-1.5">
                   <Skeleton className="h-3 w-3/4" />
@@ -101,7 +101,7 @@ export function CommunityActivity() {
             ))}
           </div>
         ) : filtered && filtered.length > 0 ? (
-          <div className="relative h-96 w-full flex-col overflow-hidden p-3">
+          <div className="relative h-96 w-full flex-col overflow-hidden p-2 sm:p-3">
             <AnimatedList delay={900}>
               {/* AnimatedList reveals progressively then reverses — feed it
                   oldest-first so the final order is newest on top. */}
@@ -109,7 +109,7 @@ export function CommunityActivity() {
                 <Link
                   href={item.href}
                   key={item.id}
-                  className={cn(listRowClass, "flex w-full items-center gap-3 bg-background p-3 hover:bg-muted/50")}
+                  className={cn(listRowClass, "flex w-full items-center gap-3 bg-background p-2 hover:bg-muted/50 sm:p-3")}
                 >
                   <Avatar className="size-9 shrink-0">
                     {item.image ? <AvatarImage src={item.image} alt={item.name} referrerPolicy="no-referrer" /> : null}
@@ -133,12 +133,12 @@ export function CommunityActivity() {
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-linear-to-t from-background" />
           </div>
         ) : (
-          <div className="p-3">
+          <div className="p-2 sm:p-3">
             <EmptyState
               icon={Activity}
               title="Quiet watch"
               description={filter === "all" ? "No recent activity — be first to share a testimony or prayer." : `No ${filter} activity recently.`}
-              className="py-10"
+              className="py-2 sm:py-10"
             />
           </div>
         )}

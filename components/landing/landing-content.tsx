@@ -268,7 +268,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
 
       {/* ── Hero ── */}
       <main className="flex-1">
-        <section className="relative overflow-hidden px-6 pb-20 pt-32 text-center sm:pb-28 sm:pt-40">
+        <section className="relative overflow-hidden px-2 pb-20 pt-32 text-center sm:px-6 sm:pb-28 sm:pt-40">
           {/* ambient glow */}
           <div
             aria-hidden="true"
@@ -339,7 +339,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
         </section>
 
         {/* ── Stats ── */}
-        <section className="border-y bg-muted/50 px-6 py-16">
+        <section className="border-y bg-muted/50 px-2 py-16 sm:px-6">
           <motion.div
             variants={reduceMotion ? undefined : staggerContainer}
             initial={reduceMotion ? false : "hidden"}
@@ -350,7 +350,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
             {STATS.map((stat) => (
               <motion.div key={stat.label} variants={staggerItem}>
                 <Card className="h-full">
-                  <CardContent className="flex flex-col items-center gap-2 pt-6 text-center">
+                  <CardContent className="flex flex-col items-center gap-2 pt-2 text-center sm:pt-6">
                     <stat.icon
                       className="size-8 text-muted-foreground"
                       aria-hidden="true"
@@ -370,7 +370,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
         </section>
 
         {/* ── Features ── */}
-        <section id="features" className="scroll-mt-24 px-6 py-20 sm:py-24">
+        <section id="features" className="scroll-mt-24 px-2 py-20 sm:px-6 sm:py-24">
           <motion.div
             variants={reduceMotion ? undefined : fadeInUp}
             initial={reduceMotion ? false : "hidden"}
@@ -413,7 +413,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
 
         {/* ── Verse of the Day ── */}
         {verseSlot ? (
-          <section className="px-6 py-16">
+          <section className="px-2 py-16 sm:px-6">
             <div className="mx-auto max-w-4xl">{verseSlot}</div>
           </section>
         ) : null}
@@ -421,7 +421,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
         {/* ── Community teaser ── */}
         <section
           id="community"
-          className="scroll-mt-24 border-t bg-muted/50 px-6 py-16"
+          className="scroll-mt-24 border-t bg-muted/50 px-2 py-16 sm:px-6"
         >
           <motion.div
             variants={reduceMotion ? undefined : fadeInUp}
@@ -448,7 +448,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
         {/* ── Testimonials ── */}
         <section
           id="testimonials"
-          className="scroll-mt-24 px-6 py-20 sm:py-24"
+          className="scroll-mt-24 px-2 py-20 sm:px-6 sm:py-24"
         >
           <motion.div
             variants={reduceMotion ? undefined : fadeInUp}
@@ -471,7 +471,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
             {TESTIMONIALS.map((t) => (
               <motion.div key={t.name} variants={staggerItem} className="h-full">
                 <Card className="h-full">
-                  <CardContent className="flex h-full flex-col gap-4 p-6">
+                  <CardContent className="flex h-full flex-col gap-4 p-2 sm:p-6">
                     <p className="text-3xl leading-none text-primary">“</p>
                     <p className="flex-1 leading-relaxed text-foreground/90">
                       {t.text}

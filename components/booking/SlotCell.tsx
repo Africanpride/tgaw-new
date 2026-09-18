@@ -75,7 +75,7 @@ export function SlotCell({
       }}
       data-slot-id={slot.id}
       className={cn(
-        "flex items-center border-b border-l-4 border-transparent px-3 transition-colors outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        "flex items-center border-b border-l-4 border-transparent px-2 sm:px-3 transition-colors outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50",
         past
           ? "min-h-[32px] cursor-default opacity-40"
           : "min-h-[44px] cursor-pointer py-2",

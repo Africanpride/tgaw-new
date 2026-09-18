@@ -118,7 +118,7 @@ export function OnboardingFlow({
         {/* Form panel */}
         <div className="flex flex-col md:col-span-3">
           {/* Mobile brand bar */}
-          <div className="flex items-center gap-2 border-b px-6 py-4 md:hidden">
+          <div className="flex items-center gap-2 border-b px-2 py-2 sm:px-6 sm:py-4 md:hidden">
             <div className="flex size-7 items-center justify-center rounded-md bg-primary/10">
               <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
             </div>
@@ -140,13 +140,13 @@ export function OnboardingFlow({
               </div>
 
               {errorMsg && (
-                <div className="mt-4 rounded-md bg-destructive/10 p-3 text-xs font-medium text-destructive">
+                <div className="mt-4 rounded-md bg-destructive/10 p-2 text-xs font-medium text-destructive sm:p-3">
                   {errorMsg}
                 </div>
               )}
 
               {!isCompleteStep && (
-                <div className="mx-auto mt-8 flex items-center justify-between border-t border-border/50 pt-6 md:px-12">
+                <div className="mx-auto mt-8 flex items-center justify-between border-t border-border/50 pt-2 sm:pt-6 md:px-12">
                   {stepIndex > 0 ? (
                     <Button
                       type="button"
@@ -166,7 +166,7 @@ export function OnboardingFlow({
                       type="button"
                       onClick={goNext}
                       disabled={isSubmitting}
-                      className="gap-1.5 px-6"
+                      className="gap-1.5 px-2 sm:px-6"
                     >
                       {isSubmitting
                         ? "Saving..."
@@ -387,7 +387,7 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
               type="button"
               onClick={() => setValue("sex", "male", { shouldValidate: true })}
               className={cn(
-                "flex cursor-pointer items-start gap-4 rounded-xl border p-5 text-left transition-all",
+                "flex cursor-pointer items-start gap-4 rounded-xl border p-2 text-left transition-all sm:p-5",
                 sex === "male"
                   ? "border-primary bg-primary/5 ring-2 ring-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/50"
@@ -433,7 +433,7 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
                 setValue("sex", "female", { shouldValidate: true })
               }
               className={cn(
-                "flex cursor-pointer items-start gap-4 rounded-xl border p-5 text-left transition-all",
+                "flex cursor-pointer items-start gap-4 rounded-xl border p-2 text-left transition-all sm:p-5",
                 sex === "female"
                   ? "border-primary bg-primary/5 ring-2 ring-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/50"

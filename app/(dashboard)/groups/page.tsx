@@ -174,7 +174,7 @@ export default function GroupsPage() {
 
       {groups.length === 0 ? (
         <Card>
-          <CardContent className="py-10">
+          <CardContent className="py-2 sm:py-10">
             <EmptyState
               icon={Users}
               title="No groups yet"

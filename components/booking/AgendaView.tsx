@@ -141,7 +141,7 @@ export function AgendaView({ days, summary }: AgendaViewProps) {
                 key={evt.id}
                 className={cn(
                   listRowClass,
-                  "grid grid-cols-[80px_1fr] gap-2 border-border/60 bg-background/40 px-3 py-3 hover:bg-background/60"
+                  "grid grid-cols-[80px_1fr] gap-2 border-border/60 bg-background/40 px-2 sm:px-3 py-3 hover:bg-background/60"
                 )}
               >
                 <div className="font-mono text-[11px]">

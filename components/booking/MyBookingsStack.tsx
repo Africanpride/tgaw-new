@@ -86,7 +86,7 @@ export function MyBookingsStack({ bookings, onCancel, dateLabel }: MyBookingsSta
 
             return (
               <Card key={booking.id} className={cn("overflow-hidden border-l-2", accent.rail)}>
-                <div className="flex items-center justify-between gap-2 p-4">
+                <div className="flex items-center justify-between gap-2 p-2 sm:p-4">
                   <div className="min-w-0">
                     <p className={cn("flex items-center gap-1.5 font-semibold tabular-nums", accent.text)}>
                       <CheckCircle2 className="size-3.5 shrink-0" aria-hidden="true" />
@@ -117,7 +117,7 @@ export function MyBookingsStack({ bookings, onCancel, dateLabel }: MyBookingsSta
 
       {/* Past bookings stack */}
       {pastBookings.length > 0 && (
-        <div className="relative w-full h-72 overflow-hidden rounded-xl px-3.5 py-2.5">
+        <div className="relative w-full h-72 overflow-hidden rounded-xl px-2 py-2 sm:px-3.5 sm:py-2.5">
           <div className="relative h-full w-full">
             {pastBookings.slice(0, 3).map((booking, idx) => {
               const config = CARD_CONFIGS[idx] || CARD_CONFIGS[CARD_CONFIGS.length - 1];

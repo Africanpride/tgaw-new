@@ -16,7 +16,7 @@ export function DisplacedBookingNotice({ bookings, slotNoun }: DisplacedBookingN
   if (bookings.length === 0) return null;
 
   return (
-    <div className="rounded-lg border border-violet-500/40 bg-violet-500/10 p-4 dark:bg-violet-500/20">
+    <div className="rounded-lg border border-violet-500/40 bg-violet-500/10 p-2 sm:p-4 dark:bg-violet-500/20">
       <p className="flex items-center gap-1.5 text-sm font-medium text-violet-700 dark:text-violet-300">
         <CalendarClock className="size-4 shrink-0" aria-hidden="true" />
         Superseded by a Special Event

@@ -13,13 +13,13 @@ export function CalendarSkeleton() {
 					{/* Sidebar skeleton */}
 					<div className="hidden xl:block w-80 flex-shrink-0 border-r">
 						<div className="flex h-full flex-col">
-							<div className="p-6 border-b">
+							<div className="p-2 sm:p-6 border-b">
 								<Skeleton className="h-10 w-full" />
 							</div>
-							<div className="p-4">
+							<div className="p-2 sm:p-4">
 								<Skeleton className="h-64 w-full" />
 							</div>
-							<div className="border-t p-4">
+							<div className="border-t p-2 sm:p-4">
 								<div className="space-y-3">
 									<Skeleton className="h-8 w-full" />
 									<Skeleton className="h-8 w-full" />
@@ -32,7 +32,7 @@ export function CalendarSkeleton() {
 
 					{/* Main content skeleton */}
 					<div className="min-w-0 flex-1">
-						<div className="flex items-center justify-between border-b p-6">
+						<div className="flex items-center justify-between border-b p-2 sm:p-6">
 							<div className="flex items-center gap-3">
 								<Skeleton className="size-9" />
 								<Skeleton className="size-9" />
@@ -43,7 +43,7 @@ export function CalendarSkeleton() {
 						</div>
 						<div className="grid grid-cols-7 border-b">
 							{Array.from({ length: 7 }).map((_, i) => (
-								<div key={i} className="border-r p-4 last:border-r-0">
+								<div key={i} className="border-r p-2 sm:p-4 last:border-r-0">
 									<Skeleton className="mx-auto h-4 w-8" />
 								</div>
 							))}

@@ -18,7 +18,7 @@ export function VerifyForm({
 	return (
 		<Card
 			className={cn(
-				"w-full max-w-md border-none p-6 text-center shadow-sm",
+				"w-full max-w-md border-none p-2 text-center shadow-sm sm:p-6",
 				className,
 			)}
 			{...props}

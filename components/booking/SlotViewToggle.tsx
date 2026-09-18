@@ -40,7 +40,7 @@ export function SlotViewToggle({ view, onViewChange, className }: SlotViewToggle
             key={item.id}
             value={item.id}
             aria-label={`${item.label} view`}
-            className="relative h-8 flex-1 cursor-pointer select-none rounded-lg border-0 px-3 py-1.5 text-xs font-medium text-muted-foreground outline-none transition-colors hover:bg-background/40 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 data-[state=on]:bg-transparent! data-[state=on]:text-foreground! data-[state=on]:font-semibold data-[state=on]:hover:bg-transparent! sm:flex-none"
+            className="relative h-8 flex-1 cursor-pointer select-none rounded-lg border-0 px-2 sm:px-3 py-1.5 text-xs font-medium text-muted-foreground outline-none transition-colors hover:bg-background/40 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 data-[state=on]:bg-transparent! data-[state=on]:text-foreground! data-[state=on]:font-semibold data-[state=on]:hover:bg-transparent! sm:flex-none"
           >
             <div className="relative z-10 flex items-center justify-center gap-1.5">
               <item.icon className="size-3.5 shrink-0" aria-hidden="true" />

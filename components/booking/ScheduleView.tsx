@@ -90,8 +90,8 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
   if (filteredBookings.length === 0) {
     return (
       <Card className="h-full flex flex-col">
-        <div className="border-b px-4">{tabsContent}</div>
-        <CardContent className="flex flex-col items-center justify-center p-8 text-center flex-1">
+        <div className="border-b px-2 sm:px-4">{tabsContent}</div>
+        <CardContent className="flex flex-col items-center justify-center p-2 text-center flex-1 sm:p-8">
           <Calendar className="size-10 text-muted-foreground/40" aria-hidden="true" />
           <p className="mt-3 text-sm font-medium text-muted-foreground">{emptyMessage}</p>
           <p className="mt-1 text-xs text-muted-foreground">Book a slot to see it here</p>
@@ -102,9 +102,9 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
 
   return (
     <Card className="h-full flex flex-col">
-      <div className="border-b px-4">{tabsContent}</div>
+      <div className="border-b px-2 sm:px-4">{tabsContent}</div>
 
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-2 sm:p-4">
         <div className="space-y-4">
           {/* Upcoming Bookings */}
           {groupedBookings.map(([dateLabel, dayBookings]) => (
@@ -128,7 +128,7 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
                       key={booking.id}
                       className={cn(
                         listRowClass,
-                        "flex gap-3 px-3 py-2.5 hover:bg-muted/30"
+                        "flex gap-3 px-2 sm:px-3 py-2.5 hover:bg-muted/30"
                       )}
                     >
                       <div className="flex w-20 shrink-0 flex-col items-end pt-0.5">

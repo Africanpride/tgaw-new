@@ -48,13 +48,13 @@ export default function Dialog12() {
         <Button>Open Dialog</Button>
       </DialogTrigger>
       <DialogContent className="gap-0 rounded-3xl p-0 sm:max-w-lg">
-        <DialogHeader className="border-b px-6 py-4">
+        <DialogHeader className="border-b px-2 py-2 sm:px-6 sm:py-4">
           <DialogTitle className="text-balance font-medium">
             Add a writer
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 px-6 pt-4 pb-6 md:grid-cols-5">
+        <div className="grid grid-cols-1 px-2 pt-2 pb-2 sm:px-6 sm:pt-4 sm:pb-6 md:grid-cols-5">
           <div className="flex flex-col items-center justify-center md:col-span-2">
             <div className="relative mb-2">
               <Avatar className="h-24 w-24 border-2 border-muted">

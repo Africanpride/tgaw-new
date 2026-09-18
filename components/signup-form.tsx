@@ -125,7 +125,7 @@ export function SignupForm({
 					</div>
 				</CardContent>
 			</Card>
-			<FieldDescription className="px-6 text-center">
+			<FieldDescription className="px-2 text-center sm:px-6">
 				By clicking continue, you agree to our{" "}
 				<Link href="/terms" className="cursor-pointer">
 					Terms of Service

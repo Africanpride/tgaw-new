@@ -50,7 +50,7 @@ export function CookieCustomizeDialog() {
         </DialogHeader>
 
         {gpcDetected && (
-          <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200">
+          <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-2.5 text-xs text-emerald-900 sm:px-3 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200">
             <ShieldCheck aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
             <p>
               <span className="font-medium">Global Privacy Control honored</span> — your browser signaled “Do Not Sell/Share”. Marketing is off by default; you can still turn it on below.
@@ -60,7 +60,7 @@ export function CookieCustomizeDialog() {
 
         <div className="space-y-4 py-1">
           {/* Necessary — locked */}
-          <div className="flex items-start justify-between gap-4 rounded-lg border bg-muted/30 p-3">
+          <div className="flex items-start justify-between gap-4 rounded-lg border bg-muted/30 p-2 sm:p-3">
             <div className="min-w-0 flex-1">
               <Label className="text-sm font-medium">{CATEGORY_META.necessary.label}</Label>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{CATEGORY_META.necessary.description}</p>
@@ -72,7 +72,7 @@ export function CookieCustomizeDialog() {
           </div>
 
           {/* Functional */}
-          <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+          <div className="flex items-start justify-between gap-4 rounded-lg border p-2 sm:p-3">
             <div className="min-w-0 flex-1">
               <Label htmlFor="c-functional" className="text-sm font-medium">{CATEGORY_META.functional.label}</Label>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{CATEGORY_META.functional.description}</p>
@@ -81,7 +81,7 @@ export function CookieCustomizeDialog() {
           </div>
 
           {/* Analytics */}
-          <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+          <div className="flex items-start justify-between gap-4 rounded-lg border p-2 sm:p-3">
             <div className="min-w-0 flex-1">
               <Label htmlFor="c-analytics" className="text-sm font-medium">{CATEGORY_META.analytics.label}</Label>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{CATEGORY_META.analytics.description}</p>
@@ -90,7 +90,7 @@ export function CookieCustomizeDialog() {
           </div>
 
           {/* Marketing */}
-          <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+          <div className="flex items-start justify-between gap-4 rounded-lg border p-2 sm:p-3">
             <div className="min-w-0 flex-1">
               <Label htmlFor="c-marketing" className="text-sm font-medium">{CATEGORY_META.marketing.label}</Label>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{CATEGORY_META.marketing.description}</p>

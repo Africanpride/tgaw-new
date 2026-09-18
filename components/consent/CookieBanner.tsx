@@ -58,7 +58,7 @@ export function CookieBanner() {
           >
             <div className="pointer-events-auto overflow-hidden rounded-xl border bg-card shadow-lg ring-1 ring-foreground/5">
               {/* Header */}
-              <div className="flex items-center gap-2 border-b px-4 py-3">
+              <div className="flex items-center gap-2 border-b px-2 py-2 sm:px-4 sm:py-3">
                 <Cookie
                   aria-hidden="true"
                   className="size-4 text-muted-foreground"
@@ -80,7 +80,7 @@ export function CookieBanner() {
               </div>
 
               {/* Body */}
-              <div className="border-b px-4 py-3">
+              <div className="border-b px-2 py-2 sm:px-4 sm:py-3">
                 <p
                   id="cookie-banner-desc"
                   className="text-sm leading-relaxed text-muted-foreground"
@@ -116,7 +116,7 @@ export function CookieBanner() {
               </div>
 
               {/* Actions — equal prominence per CNIL/ICO */}
-              <div className="px-4 py-3">
+              <div className="px-2 py-2 sm:px-4 sm:py-3">
                 <div className="flex items-center gap-2">
                   <Button
                     size="sm"
@@ -145,7 +145,7 @@ export function CookieBanner() {
               </div>
 
               {/* Footer compliance tag */}
-              <div className="bg-muted/40 px-4 py-2.5">
+              <div className="bg-muted/40 px-2 py-2.5 sm:px-4">
                 <p className="text-center text-xs text-muted-foreground">
                   GDPR · CCPA · LGPD compliant
                 </p>

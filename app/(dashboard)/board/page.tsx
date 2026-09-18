@@ -117,7 +117,7 @@ export default async function BoardDashboardPage() {
                 icon={CalendarCheck}
                 title="No upcoming bookings yet"
                 description="Once members start booking devotional slots, engagement will appear here."
-                className="py-10"
+                className="py-2 sm:py-10"
               />
             )}
           </div>

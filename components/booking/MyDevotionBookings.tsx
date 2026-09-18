@@ -57,7 +57,7 @@ export function MyDevotionBookings({ bookings, type, meetingUrl, slotNoun }: MyD
 				description="Claim a quiet window and keep the watch going."
 				actionLabel="Book a slot"
 				actionHref={`/booking?type=${type}`}
-				className="py-8"
+				className="py-2 sm:py-8"
 			/>
 		);
 	}
@@ -74,7 +74,7 @@ export function MyDevotionBookings({ bookings, type, meetingUrl, slotNoun }: MyD
 							key={booking.id}
 							className={cn(
 								listRowClass,
-								"flex items-center justify-between gap-3 border-l-4 p-4 shadow-2xs transition-all",
+								"flex items-center justify-between gap-3 border-l-4 p-2 sm:p-4 shadow-2xs transition-all",
 								accent.rail,
 								live ? cn(accent.mine, "ring-1 ring-inset") : accent.mine,
 								done && "opacity-60",

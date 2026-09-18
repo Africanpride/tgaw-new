@@ -43,7 +43,7 @@ export function MyBookingsCards({ bookings, onCancel, type }: MyBookingsCardsPro
                 : accent.rail,
             )}
           >
-            <div className="flex items-center justify-between gap-2 p-4">
+            <div className="flex items-center justify-between gap-2 p-2 sm:p-4">
               <div className="min-w-0">
                 <p className={cn("flex items-center gap-1.5 font-semibold tabular-nums", accent.text)}>
                   <Clock className="size-3.5 shrink-0" aria-hidden="true" />

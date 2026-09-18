@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 export default function ForgotPasswordOne() {
 	return (
 		<form className="m-auto h-fit w-full max-w-sm overflow-hidden rounded-[calc(var(--radius)+.125rem)] border bg-muted shadow-md shadow-zinc-950/5 dark:[--color-muted:var(--color-zinc-900)]">
-			<div className="-m-px rounded-[calc(var(--radius)+.125rem)] border bg-card p-8 pb-6">
+			<div className="-m-px rounded-[calc(var(--radius)+.125rem)] border bg-card p-2 pb-2 sm:p-8 sm:pb-6">
 				<div className="flex items-start gap-4">
 					<div className="flex size-11 shrink-0 items-center justify-center">
 						<IconFingerprint
@@ -50,7 +50,7 @@ export default function ForgotPasswordOne() {
 				</p>
 			</div>
 
-			<div className="p-4">
+			<div className="p-2 sm:p-4">
 				<p className="text-center text-sm text-accent-foreground">
 					<Link
 						href="/auth/login"

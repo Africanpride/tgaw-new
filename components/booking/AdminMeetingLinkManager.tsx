@@ -334,7 +334,7 @@ export function AdminMeetingLinkManager() {
                       isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <span className="relative flex items-center gap-2 px-4 py-3 rounded-md z-10">
+                    <span className="relative flex items-center gap-2 px-2 sm:px-4 py-3 rounded-md z-10">
                       {isHovered && (
                         <motion.span
                           layoutId="default-link-tab-hover"
@@ -386,7 +386,7 @@ export function AdminMeetingLinkManager() {
                     >
                       <div
                         className={cn(
-                          "flex w-full flex-col justify-between rounded-xl border p-4 shadow-2xs space-y-3 transition-colors",
+                          "flex w-full flex-col justify-between rounded-xl border p-2 sm:p-4 shadow-2xs space-y-3 transition-colors",
                           tAccent.rail,
                           "bg-card/50"
                         )}
@@ -499,7 +499,7 @@ export function AdminMeetingLinkManager() {
         </div>
 
         {/* SECTION 2: DATE-SPECIFIC OVERRIDES */}
-        <div className="space-y-4 pt-4 border-t border-border/40">
+        <div className="space-y-4 pt-2 sm:pt-4 border-t border-border/40">
           <div className="flex items-center justify-between border-b border-border/40 pb-2">
             <div>
               <h3 className="text-sm tracking-tight">Date-Specific Link Overrides</h3>
@@ -602,7 +602,7 @@ export function AdminMeetingLinkManager() {
             </div>
 
             {/* Row 5: Current link status for selected date */}
-            <div className="space-y-2 rounded-lg border border-border/40 bg-muted/20 p-3">
+            <div className="space-y-2 rounded-lg border border-border/40 bg-muted/20 p-2 sm:p-3">
               <div className="flex items-center justify-between gap-2">
                 <Label className="mb-0 text-xs">
                   Link for {format(date, "EEEE, MMMM d")}
@@ -629,7 +629,7 @@ export function AdminMeetingLinkManager() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
                     transition={{ duration: 0.18 }}
-                    className="flex items-center gap-3 rounded-md border p-3"
+                    className="flex items-center gap-3 rounded-md border p-2 sm:p-3"
                   >
                     <div
                       className={cn(
@@ -707,7 +707,7 @@ export function AdminMeetingLinkManager() {
           </div>
 
           {deleteTarget && (
-            <div className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3">
+            <div className="flex items-center justify-between gap-3 rounded-lg border bg-card p-2 sm:p-3">
               <div className="flex items-center gap-3">
                 <Badge className={cn("border-0", slotAccent[deleteTarget.type].solid)}>
                   {deleteTarget.type === "BIBLE"
