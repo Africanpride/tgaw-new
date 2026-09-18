@@ -110,7 +110,7 @@ function NotificationItem({
 		<button
 			type="button"
 			className={cn(
-				"flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50",
+				"flex w-full items-start gap-3 px-2 sm:px-4 py-3 text-left transition-colors hover:bg-muted/50",
 				!notification.isRead && "bg-muted/30",
 			)}
 			onClick={() => onMarkRead(notification.id)}
@@ -231,7 +231,7 @@ function NotificationPreferences() {
 
 	return (
 		<div className="overflow-hidden rounded-lg border">
-			<div className="flex items-center gap-2 border-b bg-card px-4 py-3">
+			<div className="flex items-center gap-2 border-b bg-card px-2 sm:px-4 py-3">
 				<Mic className="size-4 text-muted-foreground" aria-hidden="true" />
 				<span className="font-medium text-sm">Notification Preferences</span>
 			</div>
@@ -239,7 +239,7 @@ function NotificationPreferences() {
 				{PREF_TYPES.map(({ type, label }) => (
 					<div
 						key={type}
-						className="flex items-center justify-between px-4 py-3"
+						className="flex items-center justify-between px-2 sm:px-4 py-3"
 					>
 						<span className="text-sm">{label}</span>
 						<div className="flex items-center gap-4">
@@ -374,7 +374,7 @@ export default function NotificationsPage() {
 
 			{/* ─── Section 0: Original card (kept) ─── */}
 			<Card>
-				<CardContent className="pt-6">
+				<CardContent className="pt-2 sm:pt-6">
 					{loading ? (
 						<p className="text-sm text-muted-foreground">Loading...</p>
 					) : notifications.length === 0 ? (
@@ -386,7 +386,7 @@ export default function NotificationsPage() {
 							{notifications.map((n) => (
 								<div
 									key={n.id}
-									className={`flex items-start gap-3 rounded-lg border p-3 ${
+									className={`flex items-start gap-3 rounded-lg border p-2 sm:p-3 ${
 										!n.isRead ? "bg-muted/50" : ""
 									}`}
 								>
@@ -423,7 +423,7 @@ export default function NotificationsPage() {
 
 			{/* ─── Section 1: Inbox with tabs ─── */}
 			<div className="overflow-hidden rounded-lg border bg-card">
-				<div className="flex items-center justify-between border-b px-4 py-3">
+				<div className="flex items-center justify-between border-b px-2 sm:px-4 py-3">
 					<div className="flex items-center gap-2">
 						<Bell
 							className="size-4 text-muted-foreground"
@@ -466,7 +466,7 @@ export default function NotificationsPage() {
 				</div>
 
 				<Tabs defaultValue="all" className="w-full">
-					<div className="border-b px-4 py-2">
+					<div className="border-b px-2 sm:px-4 py-2">
 						<TabsList variant="line" className="h-8 w-full justify-start">
 							<TabsTrigger value="all" className="text-xs">
 								All
@@ -506,7 +506,7 @@ export default function NotificationsPage() {
 					</div>
 
 					{loading ? (
-						<div className="space-y-3 p-4">
+						<div className="space-y-3 p-2 sm:p-4">
 							{[1, 2, 3].map((i) => (
 								<div key={i} className="flex items-start gap-3">
 									<Skeleton className="size-4 rounded-full" />
@@ -545,7 +545,7 @@ export default function NotificationsPage() {
 					)}
 				</Tabs>
 
-				<div className="border-t px-4 py-2.5">
+				<div className="border-t px-2 sm:px-4 py-2.5">
 					<p className="text-center text-xs text-muted-foreground">
 						{notifications.length} notifications total ·{" "}
 						<span className="font-medium text-foreground">{unreadCount} unread</span>

@@ -242,7 +242,7 @@ export default function ActivityLogsPage() {
         <div className="ml-auto flex gap-2 max-sm:w-full max-sm:pt-1">
           <Link
             href="/admin"
-            className="inline-flex h-10 cursor-pointer items-center justify-center rounded-md border px-3 text-xs hover:bg-muted max-sm:w-full sm:h-8"
+            className="inline-flex h-10 cursor-pointer items-center justify-center rounded-md border px-2 text-xs hover:bg-muted max-sm:w-full sm:h-8 sm:px-3"
           >
             Back to Admin
           </Link>
@@ -251,7 +251,7 @@ export default function ActivityLogsPage() {
 
       <section className="max-w-auto mx-auto w-full">
         <div className="overflow-hidden rounded-lg border bg-card">
-          <div className="border-b px-4 py-3">
+          <div className="border-b px-2 py-3 sm:px-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Terminal
@@ -287,7 +287,7 @@ export default function ActivityLogsPage() {
           </div>
           <form
             onSubmit={handleSearchSubmit}
-            className="flex items-center gap-2 border-b px-4 py-2"
+            className="flex items-center gap-2 border-b px-2 py-2 sm:px-4"
           >
             <div className="relative flex-1">
               <Search
@@ -341,7 +341,7 @@ export default function ActivityLogsPage() {
                 return (
                   <div
                     key={log.id}
-                    className="border-b px-4 py-3 transition-colors last:border-b-0 hover:bg-muted/50"
+                    className="border-b px-2 py-3 transition-colors last:border-b-0 hover:bg-muted/50 sm:px-4"
                   >
                     <div className="flex items-start gap-3">
                       <span

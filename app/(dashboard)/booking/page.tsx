@@ -235,7 +235,7 @@ export default function BookingPage() {
   const accent = slotAccent[type]
 
   return (
-    <div className="max-w-8xl container mx-auto space-y-6 p-4">
+    <div className="max-w-8xl container mx-auto space-y-6 p-2 sm:p-4">
       <div className="flex justify-between">
         <div>
           <h1 className="text-3xl tracking-tight">Slot Booking</h1>
@@ -351,7 +351,7 @@ export default function BookingPage() {
             </div>
           )}
 
-          <div className="space-y-6 pt-6 md:hidden">
+          <div className="space-y-6 pt-2 sm:pt-6 md:hidden">
             <div>
               <h3 className="mb-3 font-semibold">My Bookings</h3>
               <MyBookingsStack
@@ -412,7 +412,7 @@ export default function BookingPage() {
           </div>
 
           {cancelTarget && (
-            <div className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3">
+            <div className="flex items-center justify-between gap-3 rounded-lg border bg-card p-2 sm:p-3">
               <div className="flex min-w-0 items-center gap-3">
                 <Badge className={cn("shrink-0", accent.solid)}>
                   {typeLabel}

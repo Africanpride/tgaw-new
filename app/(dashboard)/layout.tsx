@@ -31,7 +31,7 @@ export default async function DashboardLayout({
 				<AppSidebar role={role} />
 				<div className="flex min-w-0 flex-1 flex-col">
 					<Topbar />
-					<main id="main-content" className="flex-1 p-4 pb-20 md:pb-4 lg:p-6 lg:pb-6">
+					<main id="main-content" className="flex-1 p-2 pb-20 sm:p-4 sm:pb-20 md:pb-4 lg:p-6 lg:pb-6">
 						<PageTransition>{children}</PageTransition>
 					</main>
 				</div>

@@ -172,7 +172,7 @@ function RolePicker({
               onClick={() => onChange(role)}
               aria-pressed={active}
               className={cn(
-                "flex w-full cursor-pointer items-start gap-3 rounded-lg border p-3 text-left transition-all",
+                "flex w-full cursor-pointer items-start gap-3 rounded-lg border p-2 text-left transition-all sm:p-3",
                 active
                   ? "border-primary bg-primary/5 ring-1 ring-primary"
                   : "border-border hover:bg-muted/50"
@@ -672,7 +672,7 @@ export default function UserManagementPage() {
         <div className="ml-auto max-sm:w-full max-sm:pt-1">
           <Link
             href="/admin"
-            className="inline-flex h-10 cursor-pointer items-center justify-center rounded-md border px-3 text-xs hover:bg-muted max-sm:w-full sm:h-8"
+            className="inline-flex h-10 cursor-pointer items-center justify-center rounded-md border px-2 text-xs hover:bg-muted max-sm:w-full sm:h-8 sm:px-3"
           >
             Back to Admin
           </Link>
@@ -775,7 +775,7 @@ export default function UserManagementPage() {
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-3 rounded-lg border bg-card p-3"
+                    className="flex items-center gap-3 rounded-lg border bg-card p-2 sm:p-3"
                   >
                     <Skeleton className="size-9 shrink-0 rounded-full" />
                     <div className="flex-1 space-y-1.5">
@@ -794,7 +794,7 @@ export default function UserManagementPage() {
                     <AccordionItem
                       key={user.id}
                       value={user.id}
-                      className="rounded-lg border bg-card px-3"
+                      className="rounded-lg border bg-card px-2 sm:px-3"
                     >
                       <AccordionTrigger className="gap-2 py-3 hover:no-underline">
                         <span className="flex min-w-0 flex-1 items-center gap-2.5">
@@ -1046,7 +1046,7 @@ export default function UserManagementPage() {
           }
         }}
       >
-        <DialogContent className="pt-6">
+        <DialogContent className="pt-2 sm:pt-6">
           <DialogHeader>
             <DialogTitle>Ban {targetUser?.name}</DialogTitle>
             <DialogDescription>
@@ -1096,7 +1096,7 @@ export default function UserManagementPage() {
           }
         }}
       >
-        <DialogContent className="pt-6">
+        <DialogContent className="pt-2 sm:pt-6">
           <DialogHeader>
             <DialogTitle>Unban {targetUser?.name}</DialogTitle>
             <DialogDescription>
@@ -1136,7 +1136,7 @@ export default function UserManagementPage() {
           }
         }}
       >
-        <DialogContent className="pt-6">
+        <DialogContent className="pt-2 sm:pt-6">
           <DialogHeader>
             <DialogTitle>Delete {targetUser?.name}</DialogTitle>
             <DialogDescription>
@@ -1195,7 +1195,7 @@ export default function UserManagementPage() {
           }
         }}
       >
-        <DialogContent className="pt-6 sm:max-w-2xl">
+        <DialogContent className="pt-2 sm:max-w-2xl sm:pt-6">
           <DialogHeader>
             <DialogTitle>
               {roleStep === 1
@@ -1220,7 +1220,7 @@ export default function UserManagementPage() {
                 onChange={setSelectedRole}
               />
               {selectedRole === "coordinator" && (
-                <div className="space-y-3 rounded-lg border p-3">
+                <div className="space-y-3 rounded-lg border p-2 sm:p-3">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-medium">Assigned timezones</Label>
                     <span className="text-xs text-muted-foreground">{coordinatorTimezones.length} selected</span>
@@ -1264,7 +1264,7 @@ export default function UserManagementPage() {
                       )
                     })}
                     {allTimezones.filter((tz) => tz.toLowerCase().includes(tzFilter.toLowerCase())).length === 0 && (
-                      <p className="p-3 text-sm text-muted-foreground">No matches.</p>
+                      <p className="p-2 text-sm text-muted-foreground sm:p-3">No matches.</p>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">Coordinators see only these timezones in their dashboard. At least one is required.</p>
@@ -1294,20 +1294,20 @@ export default function UserManagementPage() {
           ) : (
             <>
               <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="flex items-center justify-between rounded-lg border p-2 sm:p-3">
                   <span className="text-sm text-muted-foreground">
                     Current role
                   </span>
                   <RoleBadge role={targetUser?.role ?? ""} />
                 </div>
-                <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="flex items-center justify-between rounded-lg border p-2 sm:p-3">
                   <span className="text-sm text-muted-foreground">
                     New role
                   </span>
                   <RoleBadge role={selectedRole} />
                 </div>
                 {selectedRole === "coordinator" && (
-                  <div className="rounded-lg border p-3">
+                  <div className="rounded-lg border p-2 sm:p-3">
                     <p className="text-sm font-medium">Timezones ({coordinatorTimezones.length})</p>
                     {coordinatorTimezones.length === 0 ? (
                       <p className="mt-1 text-sm text-destructive">No timezone selected — add at least one before saving.</p>

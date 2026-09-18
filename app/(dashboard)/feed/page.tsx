@@ -255,7 +255,7 @@ export default function FeedPage() {
           <div className="flex flex-col gap-4">
             {posts.map((post) => (
               <Card key={post.id} id={post.id} className="overflow-hidden">
-                <CardContent className="flex flex-col gap-3 pt-6">
+                <CardContent className="flex flex-col gap-3 pt-2 sm:pt-6">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="gap-1">
                       {post.type === "BIBLE_VERSE" ? <BookOpen className="size-3" /> : post.type === "QUOTE" ? <QuoteIcon className="size-3" /> : post.type === "SERMON" ? <Mic className="size-3" /> : post.type === "ARTICLE" ? <FileText className="size-3" /> : null}
@@ -275,7 +275,7 @@ export default function FeedPage() {
                     </div>
                   )}
                   {post.poll && (
-                    <div className="rounded-lg border p-3 space-y-2">
+                    <div className="rounded-lg border p-2 sm:p-3 space-y-2">
                       <p className="text-sm font-medium">{post.poll.question}</p>
                       {post.poll.options.map((o) => {
                         const total = post.poll!.options.reduce((a, b) => a + b.voterIds.length, 0)

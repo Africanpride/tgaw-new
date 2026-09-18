@@ -154,7 +154,7 @@ export default function GroupsPage() {
                 )}
                 <p className="text-xs text-muted-foreground">Optional — Cloudinary signed upload. Max 4MB.</p>
               </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="flex items-center justify-between rounded-lg border p-2 sm:p-3">
                 <div>
                   <Label htmlFor="isPrivate" className="flex items-center gap-1.5"><Lock aria-hidden="true" className="size-3.5" /> Private</Label>
                   <p className="text-xs text-muted-foreground">Only invited members can see and join.</p>

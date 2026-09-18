@@ -36,7 +36,7 @@ export default async function AdminPage() {
             Manage booking slots, meeting links, and community moderation.
           </p>
         </div>
-        <a href="/admin/activity-logs" className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+        <a href="/admin/activity-logs" className="inline-flex h-9 items-center rounded-md bg-primary px-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 sm:px-4">
           Activity Logs
         </a>
       </div>

@@ -127,7 +127,7 @@ export default function MessagesPage() {
             const last = c.messages?.[0]
             const isActive = c.id === activeId
             return (
-              <button key={c.id} onClick={() => setActiveId(c.id)} className={`flex w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${isActive ? "bg-muted border-primary/20" : "hover:bg-muted/50"}`}>
+              <button key={c.id} onClick={() => setActiveId(c.id)} className={`flex w-full cursor-pointer items-center gap-3 rounded-lg border px-2 sm:px-3 py-2.5 text-left transition-colors ${isActive ? "bg-muted border-primary/20" : "hover:bg-muted/50"}`}>
                 <Avatar className="size-8"><AvatarFallback className="text-xs">{c.type === "GROUP" ? <Users className="size-3.5" /> : other.slice(0,2).toUpperCase()}</AvatarFallback></Avatar>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{c.type === "GROUP" ? "Group" : other}</p>
@@ -151,12 +151,12 @@ export default function MessagesPage() {
             <CardHeader className="border-b py-3">
               <CardTitle className="text-sm truncate">{activeConv?.type === "GROUP" ? "Group chat" : `Chat with ${activeConv?.memberIds.find((m) => m !== myId)?.slice(0,8) ?? "user"}`}</CardTitle>
             </CardHeader>
-            <div className="flex-1 space-y-2 overflow-auto p-3 max-h-[420px] min-h-[280px]">
+            <div className="flex-1 space-y-2 overflow-auto p-2 sm:p-3 max-h-[420px] min-h-[280px]">
               {msgs.length === 0 ? <p className="py-10 text-center text-sm text-muted-foreground">No messages yet — say hello.</p> : msgs.map((m) => {
                 const mine = m.senderId === myId
                 return (
                   <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-muted border"}`}>
+                    <div className={`max-w-[75%] rounded-lg px-2 sm:px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-muted border"}`}>
                       <p>{m.body}</p>
                       <p className={`mt-1 text-[11px] ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{new Date(m.createdAt).toLocaleTimeString()}</p>
                     </div>
@@ -164,7 +164,7 @@ export default function MessagesPage() {
                 )
               })}
             </div>
-            <div className="flex gap-2 border-t p-3">
+            <div className="flex gap-2 border-t p-2 sm:p-3">
               <Input placeholder="Type a message…" value={body} onChange={(e) => setBody(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} className="h-9" />
               <Button onClick={send} disabled={!body.trim()} className="cursor-pointer gap-1"><Send className="size-4" />Send</Button>
             </div>

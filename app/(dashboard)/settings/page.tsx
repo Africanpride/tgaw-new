@@ -505,7 +505,7 @@ function PushSubscriptionManager() {
   if (isLoading) return <div className="h-10 animate-pulse rounded-xl bg-muted/40" />;
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border p-4">
+    <div className="flex items-center justify-between gap-4 rounded-xl border p-2 sm:p-4">
       <div className="flex items-start gap-3">
         <IconTile icon={Smartphone} size="md" tone="border bg-muted/50" iconClassName="size-4" />
         <div className="space-y-0.5">
@@ -1039,33 +1039,35 @@ export default function SettingsPage() {
                           onSubmit={handleSubmit(handleSaveProfile)}
                           className="flex flex-col gap-6"
                         >
-                          <div className="flex items-center gap-4">
-                            <Avatar className="size-14 border">
-                              <AvatarImage
-                                src={avatarUrl ?? user?.image ?? undefined}
-                                alt={name}
-                              />
-                              <AvatarFallback>{initials}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col gap-1">
-                              <h6 className="flex items-center gap-2 text-sm font-medium">
-                                {name}{" "}
-                                <Badge
-                                  variant="secondary"
-                                  className="w-fit text-xs capitalize"
-                                >
-                                  {role}
-                                </Badge>
-                              </h6>
-                              <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                                {email}
-                              </p>
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                            <div className="flex min-w-0 flex-1 items-center gap-4">
+                              <Avatar className="size-14 shrink-0 border">
+                                <AvatarImage
+                                  src={avatarUrl ?? user?.image ?? undefined}
+                                  alt={name}
+                                />
+                                <AvatarFallback>{initials}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex min-w-0 flex-col gap-1">
+                                <h6 className="flex min-w-0 items-center gap-2 text-sm font-medium">
+                                  <span className="truncate">{name}</span>{" "}
+                                  <Badge
+                                    variant="secondary"
+                                    className="w-fit shrink-0 text-xs capitalize"
+                                  >
+                                    {role}
+                                  </Badge>
+                                </h6>
+                                <p className="max-w-5xl truncate text-xs sm:text-sm text-muted-foreground">
+                                  {email}
+                                </p>
+                              </div>
                             </div>
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="ml-auto cursor-pointer"
+                              className="w-full cursor-pointer sm:ml-auto sm:w-auto"
                               onClick={() => setIsAvatarDialogOpen(true)}
                             >
                               Change photo
@@ -1423,7 +1425,7 @@ export default function SettingsPage() {
                                   onClick={() => setTheme(option.id)}
                                   aria-pressed={isActive}
                                   className={cn(
-                                    "group relative flex cursor-pointer flex-col rounded-lg border p-3 text-left transition-all hover:bg-muted/50",
+                                    "group relative flex cursor-pointer flex-col rounded-lg border p-2 sm:p-3 text-left transition-all hover:bg-muted/50",
                                     isActive
                                       ? "border-foreground ring-1 ring-foreground"
                                       : "border-border"
@@ -1473,7 +1475,7 @@ export default function SettingsPage() {
                         <Separator />
 
                         {/* Two factor card */}
-                        <div className="flex items-center justify-between gap-4 rounded-xl border bg-muted/30 p-5 shadow-xs">
+                        <div className="flex items-center justify-between gap-4 rounded-xl border bg-muted/30 p-2 sm:p-5 shadow-xs">
                           <div className="flex items-start gap-3">
                             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-background">
                               <Shield className="size-4" aria-hidden="true" />
@@ -1620,7 +1622,7 @@ export default function SettingsPage() {
                           </form>
                         ) : (
                           <div className="flex flex-col gap-5">
-                            <div className="rounded-xl border border-dashed border-muted-foreground/25 bg-muted/30 p-4">
+                            <div className="rounded-xl border border-dashed border-muted-foreground/25 bg-muted/30 p-2 sm:p-4">
                               <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                 You signed in with an OAuth provider and
                                 don&apos;t have a password yet. Set one so you
@@ -1745,12 +1747,12 @@ export default function SettingsPage() {
 
                           <div className="flex flex-col gap-3">
                             {isSessionsLoading ? (
-                              <div className="space-y-2 py-4">
+                              <div className="space-y-2 py-2 sm:py-4">
                                 <div className="h-10 w-full animate-pulse rounded-lg bg-muted/60" />
                                 <div className="h-10 w-full animate-pulse rounded-lg bg-muted/60" />
                               </div>
                             ) : userSessions.length === 0 ? (
-                              <p className="max-w-5xl py-4 text-xs sm:text-sm text-muted-foreground">
+                              <p className="max-w-5xl py-2 sm:py-4 text-xs sm:text-sm text-muted-foreground">
                                 No active sessions found.
                               </p>
                             ) : (
@@ -1763,7 +1765,7 @@ export default function SettingsPage() {
                                 return (
                                   <div
                                     key={sessionItem.id}
-                                    className="flex items-center justify-between gap-3 rounded-2xl border bg-muted/10 p-4 text-xs"
+                                    className="flex items-center justify-between gap-3 rounded-2xl border bg-muted/10 p-2 sm:p-4 text-xs"
                                   >
                                     <div className="flex min-w-0 flex-1 items-start gap-3">
                                       <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl border bg-muted/40">
@@ -1861,7 +1863,7 @@ export default function SettingsPage() {
                         <Separator />
                         <div className="flex flex-col gap-5">
                           {/* iCal card */}
-                          <div className="flex flex-col gap-4 rounded-xl border p-5 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex flex-col gap-4 rounded-xl border p-2 sm:p-5 shadow-xs sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-start gap-3">
                               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
                                 <KeyRound
@@ -1892,7 +1894,7 @@ export default function SettingsPage() {
                           </div>
 
                           {/* GDPR Data Export card */}
-                          <div className="flex flex-col gap-4 rounded-xl border p-5 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex flex-col gap-4 rounded-xl border p-2 sm:p-5 shadow-xs sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-start gap-3">
                               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
                                 <Download
@@ -1936,7 +1938,7 @@ export default function SettingsPage() {
                           </div>
 
                           {/* Sign out */}
-                          <div className="rounded-xl border p-5 shadow-xs">
+                          <div className="rounded-xl border p-2 sm:p-5 shadow-xs">
                             <div className="flex items-start gap-3">
                               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
                                 <XCircle
@@ -1964,7 +1966,7 @@ export default function SettingsPage() {
                           </div>
 
                           {/* Danger Zone / Deletion */}
-                          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 shadow-xs">
+                          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-2 sm:p-5 shadow-xs">
                             <div className="flex items-start gap-3">
                               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-destructive/30 bg-background">
                                 <XCircle
@@ -2121,7 +2123,7 @@ export default function SettingsPage() {
                   onChange={(e) => setTwoFactorPassword(e.target.value)}
                 />
               </div>
-              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-4">
+              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-2 sm:p-4">
                 <Button
                   variant="outline"
                   onClick={() => setIs2FAModalOpen(false)}
@@ -2143,7 +2145,7 @@ export default function SettingsPage() {
               <div className="flex flex-col items-center justify-center gap-5 sm:flex-row sm:justify-start">
                 {/* Render QR code from free instant zero-dependency QR code API */}
                 {totpURI && (
-                  <div className="shrink-0 rounded-2xl border bg-white p-3 shadow-sm">
+                  <div className="shrink-0 rounded-2xl border bg-white p-2 sm:p-3 shadow-sm">
                     <Image
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(totpURI)}`}
                       alt="Two Factor QR Code"
@@ -2198,7 +2200,7 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-4">
+              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-2 sm:p-4">
                 <Button
                   variant="outline"
                   onClick={() => setTwoFactorStep("auth")}
@@ -2258,7 +2260,7 @@ export default function SettingsPage() {
                 </Button>
               </div>
 
-              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-4">
+              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-2 sm:p-4">
                 <Button
                   className="w-full"
                   onClick={() => {
@@ -2299,7 +2301,7 @@ export default function SettingsPage() {
                 onChange={(e) => setTwoFactorPassword(e.target.value)}
               />
             </div>
-            <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-4">
+            <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-2 sm:p-4">
               <Button
                 variant="outline"
                 onClick={() => setIsDisableModalOpen(false)}
@@ -2342,7 +2344,7 @@ export default function SettingsPage() {
                   onChange={(e) => setRegenPassword(e.target.value)}
                 />
               </div>
-              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-4">
+              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-2 sm:p-4">
                 <Button
                   variant="outline"
                   onClick={() => setIsRegenModalOpen(false)}
@@ -2396,7 +2398,7 @@ export default function SettingsPage() {
                   {copiedBackup ? "Copied" : "Copy Codes"}
                 </Button>
               </div>
-              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-4">
+              <DialogFooter className="-mx-4 -mb-4 border-t bg-muted/40 p-2 sm:p-4">
                 <Button
                   className="w-full"
                   onClick={() => {
