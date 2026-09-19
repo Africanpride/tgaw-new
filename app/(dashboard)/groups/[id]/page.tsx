@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useSocket } from "@/providers/SocketProvider"
+import { useTranslation } from "react-i18next"
 
 interface Group {
   id: string
@@ -30,6 +31,7 @@ interface Member {
 interface Msg { id: string; senderId: string; body: string; createdAt: string }
 
 export default function GroupDetailPage() {
+  const { t } = useTranslation("groups")
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [group, setGroup] = useState<Group | null>(null)
@@ -90,11 +92,11 @@ export default function GroupDetailPage() {
       const alt = await fetch(`/api/v1/admin/users?search=${encodeURIComponent(email)}`).then((r) => r.json()).catch(() => null)
       userId = alt?.data?.[0]?.id
     }
-    if (!userId) { toast.error("User not found by email"); return }
+    if (!userId) { toast.error(t("toast.userNotFound")); return }
     const res = await fetch(`/api/v1/groups/${id}/members`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId }) })
     const data = await res.json()
-    if (!data.success) { toast.error(data.error || "Invite failed"); return }
-    setMembers((prev) => [...prev, data.data]); setInviteEmail(""); toast.success("Member added")
+    if (!data.success) { toast.error(data.error || t("toast.inviteFailed")); return }
+    setMembers((prev) => [...prev, data.data]); setInviteEmail(""); toast.success(t("toast.memberAdded"))
   }
 
   async function send() {
@@ -103,7 +105,7 @@ export default function GroupDetailPage() {
     // persist via REST then broadcast
     const res = await fetch(`/api/v1/messages`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
     const data = await res.json()
-    if (!data.success) { toast.error("Send failed"); return }
+    if (!data.success) { toast.error(t("toast.sendFailed")); return }
     socket?.emit("message:send", { conversationId: convId, ...data.data })
     setChat((prev) => [...prev, data.data]); setBody("")
   }
@@ -112,45 +114,45 @@ export default function GroupDetailPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Button variant="ghost" size="sm" className="w-fit cursor-pointer gap-1" onClick={() => router.push("/groups")}><ArrowLeft className="size-4" />Back</Button>
+      <Button variant="ghost" size="sm" className="w-fit cursor-pointer gap-1" onClick={() => router.push("/groups")}><ArrowLeft aria-hidden="true" className="size-4" />{t("detail.back")}</Button>
 
       <Card className="overflow-hidden">
         <div className="relative h-36 w-full bg-muted">
           {group.coverImageUrl ? <Image src={group.coverImageUrl} alt={group.name} fill className="object-cover" unoptimized /> : null}
-          <Badge variant="secondary" className="absolute left-3 top-3 gap-1">{group.isPrivate ? <Lock className="size-3" /> : <Globe className="size-3" />}{group.isPrivate ? "Private" : "Public"}</Badge>
+          <Badge variant="secondary" className="absolute left-3 top-3 gap-1">{group.isPrivate ? <Lock aria-hidden="true" className="size-3" /> : <Globe aria-hidden="true" className="size-3" />}{group.isPrivate ? t("card.private") : t("card.public")}</Badge>
         </div>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Users className="size-5" />{group.name}</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Users aria-hidden="true" className="size-5" />{group.name}</CardTitle>
           {group.description && <p className="text-sm text-muted-foreground">{group.description}</p>}
         </CardHeader>
       </Card>
 
       <div className="grid gap-2 lg:grid-cols-3">
         <Card className="lg:col-span-1">
-          <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><Users className="size-4" />Members ({members.length})</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><Users aria-hidden="true" className="size-4" />{t("detail.membersTitle", { count: members.length })}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div className="flex gap-2">
-              <Input placeholder="Invite by email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} className="h-8" />
-              <Button size="sm" className="cursor-pointer gap-1" onClick={invite}><UserPlus className="size-3.5" />Invite</Button>
+              <Input placeholder={t("detail.invitePlaceholder")} value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} className="h-8" />
+              <Button size="sm" className="cursor-pointer gap-1" onClick={invite}><UserPlus aria-hidden="true" className="size-3.5" />{t("detail.inviteButton")}</Button>
             </div>
             <div className="space-y-2">
               {members.map((m) => (
                 <div key={m.id} className="flex items-center gap-2 rounded-lg border px-2 py-1.5 text-sm">
                   <Avatar className="size-6"><AvatarFallback className="text-[10px]">{m.userId.slice(0,2).toUpperCase()}</AvatarFallback></Avatar>
                   <span className="truncate flex-1 text-xs">{m.userId.slice(0,8)}…</span>
-                  <Badge variant="outline" className="text-[10px] capitalize gap-1">{m.role === "owner" ? <Crown className="size-3" /> : m.role === "moderator" ? <Shield className="size-3" /> : null}{m.role}</Badge>
+                  <Badge variant="outline" className="text-[10px] capitalize gap-1">{m.role === "owner" ? <Crown aria-hidden="true" className="size-3" /> : m.role === "moderator" ? <Shield aria-hidden="true" className="size-3" /> : null}{m.role}</Badge>
                 </div>
               ))}
-              {members.length === 0 && <p className="text-xs text-muted-foreground">No members yet.</p>}
+              {members.length === 0 && <p className="text-xs text-muted-foreground">{t("detail.noMembers")}</p>}
             </div>
           </CardContent>
         </Card>
 
         <Card className="lg:col-span-2 flex flex-col">
-          <CardHeader><CardTitle className="text-sm">Group Chat {connected ? <span className="ml-2 text-xs font-normal text-emerald-600">● live</span> : <span className="ml-2 text-xs font-normal text-muted-foreground">offline</span>}</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">{t("detail.chatTitle")} {connected ? <span className="ml-2 text-xs font-normal text-emerald-600">● {t("detail.live")}</span> : <span className="ml-2 text-xs font-normal text-muted-foreground">{t("detail.offline")}</span>}</CardTitle></CardHeader>
           <CardContent className="flex flex-1 flex-col gap-3">
             <div className="flex-1 space-y-2 overflow-auto rounded-xl border bg-muted/20 p-2 sm:p-3 max-h-[360px] min-h-[240px]">
-              {chat.length === 0 ? <p className="py-2 text-center text-sm text-muted-foreground sm:py-10">No messages yet — say hello.</p> : chat.map((m) => (
+              {chat.length === 0 ? <p className="py-2 text-center text-sm text-muted-foreground sm:py-10">{t("detail.emptyChat")}</p> : chat.map((m) => (
                 <div key={m.id} className="rounded-lg bg-card border px-2 sm:px-3 py-2 text-sm">
                   <p className="text-xs text-muted-foreground">{new Date(m.createdAt).toLocaleTimeString()} · {m.senderId.slice(0,6)}</p>
                   <p className="mt-1">{m.body}</p>
@@ -158,8 +160,8 @@ export default function GroupDetailPage() {
               ))}
             </div>
             <div className="flex gap-2">
-              <Input placeholder={convId ? "Type a message…" : "Joining conversation…"} value={body} onChange={(e) => setBody(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} disabled={!convId} className="h-9" />
-              <Button onClick={send} disabled={!body.trim() || !convId} className="cursor-pointer gap-1"><Send className="size-4" />Send</Button>
+              <Input placeholder={convId ? t("detail.composerActive") : t("detail.composerJoining")} value={body} onChange={(e) => setBody(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} disabled={!convId} className="h-9" />
+              <Button onClick={send} disabled={!body.trim() || !convId} className="cursor-pointer gap-1"><Send aria-hidden="true" className="size-4" />{t("detail.send")}</Button>
             </div>
           </CardContent>
         </Card>

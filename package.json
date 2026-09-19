@@ -10,7 +10,8 @@
 		"lint": "eslint",
 		"format": "prettier --write \"**/*.{ts,tsx}\"",
 		"typecheck": "tsc --noEmit",
-		"set-superadmin": "tsx --env-file=.env scripts/set-superadmin.ts"
+		"set-superadmin": "tsx --env-file=.env scripts/set-superadmin.ts",
+		"i18n:check": "node scripts/check-translations.mjs"
 	},
 	"dependencies": {
 		"@base-ui-components/react": "^1.0.0-rc.0",
@@ -29,11 +30,15 @@
 		"date-fns": "^4.4.0",
 		"date-fns-tz": "^3.2.0",
 		"embla-carousel-react": "^8.6.0",
+		"i18next": "^26.4.2",
+		"i18next-browser-languagedetector": "^8.2.1",
+		"i18next-http-backend": "^4.0.2",
 		"libphonenumber-js": "^1.13.10",
 		"lucide-react": "^1.30.0",
 		"mongodb": "^7.5.0",
 		"motion": "^13.0.0",
 		"next": "16.2.6",
+		"next-intl": "^4.14.5",
 		"next-themes": "^0.4.6",
 		"nodemailer": "^9.0.3",
 		"prisma": "6.19.2",
@@ -43,6 +48,7 @@
 		"react-day-picker": "^10.0.1",
 		"react-dom": "19.2.4",
 		"react-hook-form": "^7.83.0",
+		"react-i18next": "^17.0.14",
 		"shadcn": "^4.16.1",
 		"socket.io": "^4.8.3",
 		"socket.io-client": "^4.8.3",

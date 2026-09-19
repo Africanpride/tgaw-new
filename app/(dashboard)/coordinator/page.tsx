@@ -1,9 +1,11 @@
 import { Users, CalendarCheck, Loader, Clock } from "lucide-react"
-import { headers } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
 import { EmptyState } from "@/components/EmptyState"
+import { getServerTranslation } from "@/lib/notifications/locale"
+import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME } from "@/i18n/config"
 
 function toDateKey(d: Date) {
   return d.toISOString().split("T")[0]
@@ -44,27 +46,64 @@ export default async function CoordinatorDashboardPage() {
   const engagement =
     totalSlots > 0 ? Math.round((bookedSlots / totalSlots) * 100) : 0
 
+  const cookieStore = await cookies()
+  const locale = cookieStore.get(LOCALE_COOKIE_NAME)?.value ?? DEFAULT_LOCALE
+  const L = (key: string) => getServerTranslation(locale, "admin", key)
+  const [
+    pageTitle,
+    emptyCardTitle,
+    emptyCardDesc,
+    emptyTitle,
+    emptyDesc,
+    assignedTimezones,
+    bookingsToday,
+    bookingsTodayDesc,
+    engagementLabel,
+    engagementDesc,
+    totalBookingsLabel,
+    totalBookingsDesc,
+    overviewTitle,
+    overviewOne,
+    overviewOther,
+  ] = await Promise.all([
+    L("coordinator.title"),
+    L("coordinator.emptyCardTitle"),
+    L("coordinator.emptyCardDesc"),
+    L("coordinator.emptyTitle"),
+    L("coordinator.emptyDesc"),
+    L("coordinator.assignedTimezones"),
+    L("coordinator.bookingsToday"),
+    L("coordinator.bookingsTodayDesc"),
+    L("coordinator.engagement"),
+    L("coordinator.engagementDesc"),
+    L("coordinator.totalBookings"),
+    L("coordinator.totalBookingsDesc"),
+    L("coordinator.overviewTitle"),
+    L("coordinator.overview_one"),
+    L("coordinator.overview_other"),
+  ])
+  const overviewDesc = (timezones.length === 1 ? overviewOne : overviewOther).replace("{{count}}", String(timezones.length))
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-2">
         <Users className="size-6 text-primary" aria-hidden="true" />
-        <h2 className="text-2xl tracking-tight">Coordinator Dashboard</h2>
+        <h2 className="text-2xl tracking-tight">{pageTitle}</h2>
       </div>
 
       {timezones.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Timezone Scoped Oversight</CardTitle>
+            <CardTitle>{emptyCardTitle}</CardTitle>
             <CardDescription>
-              View and manage devotion & altar schedules across your assigned
-              timezone(s).
+              {emptyCardDesc}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <EmptyState
               icon={Clock}
-              title="No timezones assigned yet"
-              description="A superadmin will assign your timezone coverage. Metrics will appear here once you have one."
+              title={emptyTitle}
+              description={emptyDesc}
             />
           </CardContent>
         </Card>
@@ -75,7 +114,7 @@ export default async function CoordinatorDashboardPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <Clock className="size-4 text-muted-foreground" aria-hidden="true" />
-                  Assigned Timezones
+                  {assignedTimezones}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -88,13 +127,13 @@ export default async function CoordinatorDashboardPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <CalendarCheck className="size-4 text-muted-foreground" aria-hidden="true" />
-                  Bookings Today
+                  {bookingsToday}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold tabular-nums">{todayBookings}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  devotional slots confirmed
+                  {bookingsTodayDesc}
                 </p>
               </CardContent>
             </Card>
@@ -103,13 +142,13 @@ export default async function CoordinatorDashboardPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <Loader className="size-4 text-muted-foreground" aria-hidden="true" />
-                  Slot Engagement
+                  {engagementLabel}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold tabular-nums">{engagement}%</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  of upcoming slots filled
+                  {engagementDesc}
                 </p>
               </CardContent>
             </Card>
@@ -118,13 +157,13 @@ export default async function CoordinatorDashboardPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <Users className="size-4 text-muted-foreground" aria-hidden="true" />
-                  Total Bookings
+                  {totalBookingsLabel}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold tabular-nums">{totalBookings}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  all-time confirmed slots
+                  {totalBookingsDesc}
                 </p>
               </CardContent>
             </Card>
@@ -132,10 +171,9 @@ export default async function CoordinatorDashboardPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Timezone Overview</CardTitle>
+              <CardTitle>{overviewTitle}</CardTitle>
               <CardDescription>
-                You oversee the devotional watch across {timezones.length}{" "}
-                {timezones.length === 1 ? "timezone" : "timezones"}.
+                {overviewDesc}
               </CardDescription>
             </CardHeader>
             <CardContent>

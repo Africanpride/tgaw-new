@@ -1,0 +1,10 @@
+{
+  "notFound.title": "Página não encontrada",
+  "notFound.description": "A vigília que você procura não existe ou foi movida.",
+  "notFound.home": "Voltar ao início",
+  "notFound.dashboard": "Painel",
+  "error.title": "Algo deu errado",
+  "error.fallback": "Ocorreu um erro inesperado. Sua sessão está segura — tente novamente.",
+  "error.retry": "Tentar novamente",
+  "error.dashboard": "Painel"
+}

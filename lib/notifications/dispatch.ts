@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/db/prisma";
 import { sendEmail } from "@/lib/notifications/email";
 import { sendPush } from "@/lib/notifications/push";
+import { DEFAULT_LOCALE, isLocale } from "@/i18n/config";
+import { resolveUserLocale } from "@/lib/notifications/locale";
+
+export { resolveUserLocale };
 
 type NotificationType =
 	| "NEW_MESSAGE"
@@ -38,6 +42,21 @@ export async function dispatchNotification(params: DispatchParams) {
 	const user = await prisma.user.findUnique({ where: { id: userId } });
 	if (!user) return;
 
+	// Locale-aware touchpoint (§7): resolve the recipient's preferred locale.
+	// Titles/bodies are still built by callers; the locale is carried here for
+	// log context so future template localization can use it without rewrites.
+	let recipientLocale = DEFAULT_LOCALE;
+	try {
+		const pref = (user as { preferredLocale?: unknown }).preferredLocale;
+		if (isLocale(pref)) {
+			recipientLocale = pref;
+		} else {
+			recipientLocale = await resolveUserLocale(userId);
+		}
+	} catch {
+		recipientLocale = DEFAULT_LOCALE;
+	}
+
 	const prefs = (user.notificationPrefs ?? null) as NotificationPrefs | null;
 	const emailEnabled = isEnabled(prefs, "email", type);
 	const pushEnabled = isEnabled(prefs, "push", type);
@@ -52,7 +71,7 @@ export async function dispatchNotification(params: DispatchParams) {
 						data: { userId, type, channel: "EMAIL", title, body, link },
 					});
 				} catch (e) {
-					console.error(`[ERROR] Failed to create EMAIL notification for ${userId}`, e instanceof Error ? e.message : String(e));
+					console.error(`[ERROR] Failed to create EMAIL notification for ${userId} (locale=${recipientLocale})`, e instanceof Error ? e.message : String(e));
 				}
 				if (user.email) {
 					try {
@@ -73,7 +92,7 @@ export async function dispatchNotification(params: DispatchParams) {
 						data: { userId, type, channel: "PUSH", title, body, link },
 					});
 				} catch (e) {
-					console.error(`[ERROR] Failed to create PUSH notification for ${userId}`, e instanceof Error ? e.message : String(e));
+					console.error(`[ERROR] Failed to create PUSH notification for ${userId} (locale=${recipientLocale})`, e instanceof Error ? e.message : String(e));
 				}
 				const subscriptions = await prisma.pushSubscription.findMany({
 					where: { userId },

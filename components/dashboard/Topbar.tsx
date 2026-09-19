@@ -4,6 +4,7 @@ import { Bell, Monitor, Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { NavUser } from "@/components/nav-user";
 import { useTheme } from "@/components/theme-provider";
 import {
@@ -17,91 +18,96 @@ import {
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-const pageTitles: Record<string, string> = {
-	"/overview": "Dashboard",
-	"/calendar": "Calendar",
-	"/bible": "Bible Reading",
-	"/prayer": "Prayer",
-	"/worship": "Praise & Worship",
-	"/booking": "Slot Booking",
-	"/feed": "Community Feed",
-	"/messages": "Messages",
-	"/groups": "Groups",
-	"/settings": "Settings",
-	"/notifications": "Notifications",
-	"/admin": "Admin Portal",
-	"/admin/reports": "Moderation Queue",
-	"/admin/users": "User Management",
-};
-
-const breadcrumbMap: Record<string, { label: string; href?: string }[]> = {
-	"/overview": [{ label: "Dashboard" }],
-	"/calendar": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Calendar" },
-	],
-	"/bible": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Bible Reading" },
-	],
-	"/prayer": [{ label: "Dashboard", href: "/overview" }, { label: "Prayer" }],
-	"/worship": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Praise & Worship" },
-	],
-	"/booking": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Slot Booking" },
-	],
-	"/feed": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Community", href: "/feed" },
-		{ label: "Feed" },
-	],
-	"/messages": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Community", href: "/feed" },
-		{ label: "Messages" },
-	],
-	"/groups": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Community", href: "/feed" },
-		{ label: "Groups" },
-	],
-	"/settings": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Account" },
-		{ label: "Settings" },
-	],
-	"/notifications": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Account" },
-		{ label: "Notifications" },
-	],
-	"/admin": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Admin" },
-		{ label: "Admin Portal" },
-	],
-	"/admin/reports": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Admin" },
-		{ label: "Moderation Queue" },
-	],
-	"/admin/users": [
-		{ label: "Dashboard", href: "/overview" },
-		{ label: "Admin" },
-		{ label: "User Management" },
-	],
-};
-
 const themes = ["light", "dark", "system"] as const;
 const themeIcons = { light: Sun, dark: Moon, system: Monitor };
 
 export function Topbar() {
+	const { t } = useTranslation("dashboard");
 	const pathname = usePathname();
 	const { theme, setTheme } = useTheme();
-	const title = pageTitles[pathname] || "Dashboard";
+
+	const pageTitles: Record<string, string> = {
+		"/overview": t("topbar.page.dashboard"),
+		"/calendar": t("topbar.page.calendar"),
+		"/bible": t("sidebar.bible"),
+		"/prayer": t("sidebar.prayer"),
+		"/worship": t("sidebar.worship"),
+		"/booking": t("topbar.page.booking"),
+		"/feed": t("sidebar.feed"),
+		"/messages": t("sidebar.messages"),
+		"/groups": t("sidebar.groups"),
+		"/settings": t("sidebar.settings"),
+		"/notifications": t("topbar.notifications"),
+		"/admin": t("sidebar.admin"),
+		"/admin/reports": t("topbar.page.reports"),
+		"/admin/users": t("sidebar.users"),
+	};
+
+	const breadcrumbMap: Record<string, { label: string; href?: string }[]> = {
+		"/overview": [{ label: t("topbar.page.dashboard") }],
+		"/calendar": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("topbar.page.calendar") },
+		],
+		"/bible": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("sidebar.bible") },
+		],
+		"/prayer": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("sidebar.prayer") },
+		],
+		"/worship": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("sidebar.worship") },
+		],
+		"/booking": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("topbar.page.booking") },
+		],
+		"/feed": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("topbar.page.community"), href: "/feed" },
+			{ label: t("topbar.page.feed") },
+		],
+		"/messages": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("topbar.page.community"), href: "/feed" },
+			{ label: t("sidebar.messages") },
+		],
+		"/groups": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("topbar.page.community"), href: "/feed" },
+			{ label: t("sidebar.groups") },
+		],
+		"/settings": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("topbar.page.account") },
+			{ label: t("sidebar.settings") },
+		],
+		"/notifications": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("topbar.page.account") },
+			{ label: t("topbar.notifications") },
+		],
+		"/admin": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("topbar.page.admin") },
+			{ label: t("sidebar.admin") },
+		],
+		"/admin/reports": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("topbar.page.admin") },
+			{ label: t("topbar.page.reports") },
+		],
+		"/admin/users": [
+			{ label: t("topbar.page.dashboard"), href: "/overview" },
+			{ label: t("topbar.page.admin") },
+			{ label: t("sidebar.users") },
+		],
+	};
+
+	const title = pageTitles[pathname] || t("topbar.page.dashboard");
 	const crumbs = breadcrumbMap[pathname] ?? [{ label: title }];
 	const [mounted, setMounted] = useState(false);
 
@@ -156,12 +162,16 @@ export function Topbar() {
 					size="icon"
 					className="cursor-pointer"
 					onClick={cycleTheme}
-					aria-label="Toggle theme"
+					aria-label={t("topbar.toggleTheme")}
 				>
 					<Icon className="size-5" />
 				</Button>
 				<Button variant="ghost" size="icon" asChild>
-					<Link href="/notifications" className="cursor-pointer">
+					<Link
+						href="/notifications"
+						className="cursor-pointer"
+						aria-label={t("topbar.notifications")}
+					>
 						<Bell className="size-5" />
 					</Link>
 				</Button>

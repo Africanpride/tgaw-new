@@ -4,40 +4,43 @@ import {
   IconBrandX,
   IconMail,
 } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
-const links = [
-  { title: "Features", href: "/#features" },
-  { title: "Community", href: "/feed" },
-  { title: "Privacy", href: "/privacy" },
-  { title: "Terms", href: "/terms" },
-  { title: "Cookies", href: "/cookies" },
-];
-
-const socials = [
-  {
-    title: "LinkedIn",
-    href: "https://linkedin.com",
-    icon: IconBrandLinkedin,
-  },
-  {
-    title: "GitHub",
-    href: "https://github.com/anomalyco/tgaw",
-    icon: IconBrandGithub,
-  },
-  {
-    title: "Twitter",
-    href: "https://x.com",
-    icon: IconBrandX,
-  },
-  {
-    title: "Email",
-    href: "mailto:info@tgaw.app",
-    icon: IconMail,
-  },
-];
-
 export default function FooterSectionTwo() {
+  const t = useTranslations("common");
+
+  const links = [
+    { title: t("nav.features"), href: "/#features" },
+    { title: t("nav.community"), href: "/feed" },
+    { title: t("footer.privacy"), href: "/privacy" },
+    { title: t("footer.terms"), href: "/terms" },
+    { title: t("footer.cookies"), href: "/cookies" },
+  ];
+
+  const socials = [
+    {
+      title: "LinkedIn",
+      href: "https://linkedin.com",
+      icon: IconBrandLinkedin,
+    },
+    {
+      title: "GitHub",
+      href: "https://github.com/anomalyco/tgaw",
+      icon: IconBrandGithub,
+    },
+    {
+      title: "Twitter",
+      href: "https://x.com",
+      icon: IconBrandX,
+    },
+    {
+      title: t("footer.social.email"),
+      href: "mailto:info@tgaw.app",
+      icon: IconMail,
+    },
+  ];
+
   return (
     <footer className="py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -48,11 +51,11 @@ export default function FooterSectionTwo() {
                 TGA<span className="text-red-500">W</span>
               </span>
               <span className="ml-2 hidden text-xs text-muted-foreground sm:inline">
-                The Global Altar Watch — 8 Gates of Society
+                {t("footer.tagline")}
               </span>
             </div>
             <p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
-              Daily devotion, prayer, and fellowship with believers worldwide. Built mobile-first, cookie-consent aware (GDPR · CCPA · LGPD).
+              {t("footer.description")}
             </p>
           </div>
 
@@ -60,7 +63,7 @@ export default function FooterSectionTwo() {
             {links.map((item) => (
               <Link
                 href={item.href}
-                key={item.title}
+                key={item.href}
                 className="cursor-pointer text-sm font-normal text-neutral-600 transition-colors duration-200 hover:text-black dark:text-neutral-400 dark:hover:text-neutral-100"
               >
                 {item.title}
@@ -71,10 +74,9 @@ export default function FooterSectionTwo() {
 
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-dashed border-neutral-200 py-6 sm:flex-row dark:border-neutral-800">
           <span className="text-center text-sm text-muted-foreground sm:text-left">
-            © {new Date().getFullYear()} The Global Altar Watch. All rights
-            reserved. · <Link href="/privacy" className="cursor-pointer underline underline-offset-2 hover:text-foreground">Privacy</Link> ·{" "}
-            <Link href="/terms" className="cursor-pointer underline underline-offset-2 hover:text-foreground">Terms</Link> ·{" "}
-            <Link href="/cookies" className="cursor-pointer underline underline-offset-2 hover:text-foreground">Cookies</Link>
+            {t("footer.rights", { year: new Date().getFullYear() })} · <Link href="/privacy" className="cursor-pointer underline underline-offset-2 hover:text-foreground">{t("footer.privacy")}</Link> ·{" "}
+            <Link href="/terms" className="cursor-pointer underline underline-offset-2 hover:text-foreground">{t("footer.terms")}</Link> ·{" "}
+            <Link href="/cookies" className="cursor-pointer underline underline-offset-2 hover:text-foreground">{t("footer.cookies")}</Link>
           </span>
           <ul className="flex items-center gap-5">
             {socials.map((item) => {

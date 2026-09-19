@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { Calendar, LayoutDashboard, MessageSquare, Settings, Users } from "lucide-react";
 import {
@@ -16,34 +17,9 @@ interface CommandPaletteProps {
   role: string;
 }
 
-const NAV: { group: string; items: { label: string; href: string; icon: typeof Calendar }[] }[] = [
-  {
-    group: "Devotion",
-    items: [
-      { label: "Dashboard", href: "/overview", icon: LayoutDashboard },
-      { label: "Slot Booking", href: "/booking", icon: Calendar },
-      { label: "Bible Reading", href: "/bible", icon: Calendar },
-      { label: "Prayer", href: "/prayer", icon: Calendar },
-      { label: "Praise & Worship", href: "/worship", icon: Calendar },
-      { label: "Calendar", href: "/calendar", icon: Calendar },
-    ],
-  },
-  {
-    group: "Community",
-    items: [
-      { label: "Feed", href: "/feed", icon: MessageSquare },
-      { label: "Messages", href: "/messages", icon: MessageSquare },
-      { label: "Groups", href: "/groups", icon: Users },
-    ],
-  },
-  {
-    group: "Account",
-    items: [{ label: "Settings", href: "/settings", icon: Settings }],
-  },
-];
-
 /** Quick navigation command palette, opened with Cmd/Ctrl+K. */
 export function CommandPalette({ role }: CommandPaletteProps) {
+  const { t } = useTranslation("dashboard");
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
@@ -53,24 +29,45 @@ export function CommandPalette({ role }: CommandPaletteProps) {
   const isBoard = isSuper || role === "board";
 
   const groups = useMemo(() => {
-    const g = NAV.map((group) => ({
-      ...group,
-      items: [...group.items],
-    }));
-    if (isCoordinator) g.push({ group: "Leadership", items: [{ label: "Coordinator Dashboard", href: "/coordinator", icon: LayoutDashboard }] });
-    if (isBoard) g.push({ group: "Leadership", items: [{ label: "Org Dashboard", href: "/board", icon: LayoutDashboard }] });
+    const g: { group: string; items: { label: string; href: string; icon: typeof Calendar }[] }[] = [
+      {
+        group: t("palette.group.devotion"),
+        items: [
+          { label: t("topbar.page.dashboard"), href: "/overview", icon: LayoutDashboard },
+          { label: t("topbar.page.booking"), href: "/booking", icon: Calendar },
+          { label: t("sidebar.bible"), href: "/bible", icon: Calendar },
+          { label: t("sidebar.prayer"), href: "/prayer", icon: Calendar },
+          { label: t("sidebar.worship"), href: "/worship", icon: Calendar },
+          { label: t("topbar.page.calendar"), href: "/calendar", icon: Calendar },
+        ],
+      },
+      {
+        group: t("palette.group.community"),
+        items: [
+          { label: t("sidebar.feed"), href: "/feed", icon: MessageSquare },
+          { label: t("sidebar.messages"), href: "/messages", icon: MessageSquare },
+          { label: t("sidebar.groups"), href: "/groups", icon: Users },
+        ],
+      },
+      {
+        group: t("palette.group.account"),
+        items: [{ label: t("sidebar.settings"), href: "/settings", icon: Settings }],
+      },
+    ];
+    if (isCoordinator) g.push({ group: t("palette.group.leadership"), items: [{ label: t("sidebar.coordinatorDashboard"), href: "/coordinator", icon: LayoutDashboard }] });
+    if (isBoard) g.push({ group: t("palette.group.leadership"), items: [{ label: t("sidebar.orgDashboard"), href: "/board", icon: LayoutDashboard }] });
     if (isLeader) {
       g.push({
-        group: "Leadership",
+        group: t("palette.group.leadership"),
         items: [
-          { label: "Admin Portal", href: "/admin", icon: Settings },
-          { label: "Moderation Queue", href: "/admin/reports", icon: Settings },
+          { label: t("sidebar.admin"), href: "/admin", icon: Settings },
+          { label: t("topbar.page.reports"), href: "/admin/reports", icon: Settings },
         ],
       });
     }
-    if (isSuper) g.push({ group: "Leadership", items: [{ label: "User Management", href: "/admin/users", icon: Users }] });
+    if (isSuper) g.push({ group: t("palette.group.leadership"), items: [{ label: t("sidebar.users"), href: "/admin/users", icon: Users }] });
     return g;
-  }, [isSuper, isLeader, isCoordinator, isBoard]);
+  }, [t, isSuper, isLeader, isCoordinator, isBoard]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -85,9 +82,9 @@ export function CommandPalette({ role }: CommandPaletteProps) {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Type a command or search…" />
+      <CommandInput placeholder={t("palette.placeholder")} />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>{t("palette.empty")}</CommandEmpty>
         {groups.map((group) => (
           <CommandGroup key={group.group} heading={group.group}>
             {group.items.map((item) => (

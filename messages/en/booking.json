@@ -1,0 +1,20 @@
+{
+  "title": "Slot Booking",
+  "type.bible": "Bible Reading",
+  "type.prayer": "Prayer",
+  "type.worship": "Praise & Worship",
+  "selected_one": "{{count}} slot selected",
+  "selected_other": "{{count}} slots selected",
+  "action.bookSelected": "Book Selected",
+  "action.clearSelected": "Clear selected slots",
+  "myBookings": "My Bookings",
+  "cancel.title": "Cancel this booking?",
+  "cancel.description": "This frees the slot for another member to book. You can book it again if you change your mind.",
+  "action.keepBooking": "Keep booking",
+  "action.cancelBooking": "Cancel booking",
+  "toast.booked": "Slots booked successfully",
+  "toast.bookFailed": "Failed to book slots",
+  "toast.cancelPast": "Cannot cancel a booking that is in the past",
+  "toast.cancelled": "Booking cancelled",
+  "toast.cancelFailed": "Failed to cancel booking"
+}

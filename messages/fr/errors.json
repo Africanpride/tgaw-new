@@ -1,0 +1,10 @@
+{
+  "notFound.title": "Page introuvable",
+  "notFound.description": "La veillée que vous cherchez n'existe pas ou a été déplacée.",
+  "notFound.home": "Retour à l'accueil",
+  "notFound.dashboard": "Tableau de bord",
+  "error.title": "Une erreur s'est produite",
+  "error.fallback": "Une erreur inattendue s'est produite. Votre session est en sécurité — réessayez.",
+  "error.retry": "Réessayer",
+  "error.dashboard": "Tableau de bord"
+}

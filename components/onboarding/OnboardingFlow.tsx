@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { useForm, type UseFormReturn } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useTranslation } from "react-i18next"
 import { Check, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react"
 
 import { CountryDropdown } from "@/components/country-dropdown"
@@ -48,6 +49,7 @@ export function OnboardingFlow({
   onComplete,
   defaultName = "",
 }: OnboardingFlowProps) {
+  const { t } = useTranslation("onboarding")
   const [stepIndex, setStepIndex] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -78,7 +80,7 @@ export function OnboardingFlow({
       setIsSubmitting(false)
       if (!ok) {
         setErrorMsg(
-          "Failed to save profile. Please check your network and try again."
+          t("saveFailed", "Failed to save profile. Please check your network and try again.")
         )
         return
       }
@@ -98,7 +100,7 @@ export function OnboardingFlow({
         <div className="relative hidden overflow-hidden md:col-span-2 md:block">
           <Image
             src="/images/onboarding.jpg"
-            alt="Community fellowship"
+            alt={t("imageAlt", "Community fellowship")}
             fill
             sizes="50vw"
             className="object-cover"
@@ -110,7 +112,7 @@ export function OnboardingFlow({
               <ShieldCheck className="size-4 text-white" aria-hidden="true" />
             </div>
             <span className="text-sm font-semibold text-white drop-shadow">
-              The Global Altar Watch
+              {t("brand", "The Global Altar Watch")}
             </span>
           </div>
         </div>
@@ -123,7 +125,7 @@ export function OnboardingFlow({
               <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
             </div>
             <span className="text-sm font-semibold">
-              The Global Altar Watch
+              {t("brand", "The Global Altar Watch")}
             </span>
           </div>
 
@@ -156,7 +158,7 @@ export function OnboardingFlow({
                       className="gap-1.5 text-muted-foreground hover:text-foreground"
                     >
                       <ChevronLeft className="size-4" aria-hidden="true" />
-                      Back
+                      {t("back", "Back")}
                     </Button>
                   ) : (
                     <div />
@@ -169,10 +171,10 @@ export function OnboardingFlow({
                       className="gap-1.5 px-2 sm:px-6"
                     >
                       {isSubmitting
-                        ? "Saving..."
+                        ? t("saving", "Saving...")
                         : isLastContentStep
-                          ? "Finish"
-                          : "Next"}
+                          ? t("finish", "Finish")
+                          : t("next", "Next")}
                       <ChevronRight className="size-4" aria-hidden="true" />
                     </Button>
                   </div>
@@ -187,8 +189,9 @@ export function OnboardingFlow({
 }
 
 function Stepper({ stepIndex }: { stepIndex: number }) {
+  const { t } = useTranslation("onboarding")
   const contentSteps = ONBOARDING_STEPS
-  const currentLabel = contentSteps[stepIndex].label
+  const currentLabel = t(`stepLabel.${contentSteps[stepIndex].id}`, contentSteps[stepIndex].label)
 
   return (
     <div className="w-full">
@@ -233,7 +236,7 @@ function Stepper({ stepIndex }: { stepIndex: number }) {
                     : "text-muted-foreground"
                 )}
               >
-                {s.label}
+                {t(`stepLabel.${s.id}`, s.label)}
               </span>
             </div>
           )
@@ -245,7 +248,11 @@ function Stepper({ stepIndex }: { stepIndex: number }) {
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-semibold">{currentLabel}</span>
           <span className="text-xs text-muted-foreground">
-            Step {stepIndex + 1} of {contentSteps.length}
+            {t("stepProgress", {
+              current: stepIndex + 1,
+              total: contentSteps.length,
+              defaultValue: `Step ${stepIndex + 1} of ${contentSteps.length}`,
+            })}
           </span>
         </div>
         <div className="flex gap-1">
@@ -269,23 +276,24 @@ function Stepper({ stepIndex }: { stepIndex: number }) {
 // --- Step content ---
 
 function NameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
+  const { t } = useTranslation("onboarding")
   const { register, formState } = form
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold">What&apos;s your name?</h2>
+        <h2 className="text-lg font-semibold">{t("name.title", "What's your name?")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          This is how other members will see you.
+          {t("name.subtitle", "This is how other members will see you.")}
         </p>
       </div>
       <div className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="name">
-            Full name <span className="text-destructive">*</span>
+            {t("name.label", "Full name")} <span className="text-destructive">*</span>
           </Label>
           <Input
             id="name"
-            placeholder="Kwame Mensah"
+            placeholder={t("name.placeholder", "Kwame Mensah")}
             className="h-12"
             {...register("name")}
           />
@@ -301,19 +309,20 @@ function NameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
 }
 
 function ContactStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
+  const { t } = useTranslation("onboarding")
   const { watch, setValue, formState } = form
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold">How can we reach you?</h2>
+        <h2 className="text-lg font-semibold">{t("contact.title", "How can we reach you?")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Used for reminders and account recovery.
+          {t("contact.subtitle", "Used for reminders and account recovery.")}
         </p>
       </div>
       <div className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="phone">
-            Phone number <span className="text-destructive">*</span>
+            {t("contact.phone", "Phone number")} <span className="text-destructive">*</span>
           </Label>
           <PhoneInput
             id="phone"
@@ -331,7 +340,7 @@ function ContactStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
                 })
               }
             }}
-            placeholder="Enter your phone number"
+            placeholder={t("contact.phonePlaceholder", "Enter your phone number")}
             className="h-12 w-full"
             aria-invalid={!!formState.errors.phone}
           />
@@ -343,7 +352,7 @@ function ContactStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
         </div>
         <div className="space-y-1.5">
           <Label>
-            Country <span className="text-destructive">*</span>
+            {t("contact.country", "Country")} <span className="text-destructive">*</span>
           </Label>
           <CountryDropdown
             defaultValue={resolveCountryAlpha3(watch("country"))}
@@ -353,7 +362,7 @@ function ContactStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
               })
             }
             className="h-12 w-full"
-            placeholder="Select your country"
+            placeholder={t("contact.countryPlaceholder", "Select your country")}
           />
           {formState.errors.country && (
             <p className="text-sm text-destructive">

@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Ellipsis, Search, Terminal, CalendarCheck } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
+import type { TFunction } from "i18next"
 
 type AuditLog = {
   id: string
@@ -95,35 +97,35 @@ function formatTime(iso: string): string {
   )
 }
 
-function titleForLog(log: AuditLog): string {
+function titleForLog(log: AuditLog, t: TFunction<"admin">): string {
   const meta = log.metadata as Record<string, unknown> | undefined
   switch (log.action) {
     case "USER_ROLE_CHANGE":
-      return `Role changed: ${(meta?.before as string) ?? "member"} → ${(meta?.after as string) ?? log.targetId}`
+      return t("logs.event.roleChanged", { before: (meta?.before as string) ?? "member", after: (meta?.after as string) ?? log.targetId })
     case "USER_BAN":
-      return `User banned${meta?.reason ? `: ${meta.reason}` : ""}`
+      return meta?.reason ? t("logs.event.userBannedReason", { reason: String(meta.reason) }) : t("logs.event.userBanned")
     case "COORDINATOR_ASSIGN":
-      return `Coordinator timezones updated: ${(meta?.timezones as string[] | undefined)?.join(", ") ?? log.targetId}`
+      return t("logs.event.tzUpdated", { timezones: (meta?.timezones as string[] | undefined)?.join(", ") ?? log.targetId })
     case "SLOT_ASSIGN":
-      return `Slot assigned to ${(meta?.targetUserId as string | undefined)?.slice(0, 8) ?? log.targetId}`
+      return t("logs.event.slotAssigned", { user: (meta?.targetUserId as string | undefined)?.slice(0, 8) ?? log.targetId })
     case "SLOT_ADMIN_CANCEL":
-      return `Slot cancelled by admin${meta?.reason ? `: ${meta.reason}` : ""}`
+      return meta?.reason ? t("logs.event.slotCancelledReason", { reason: String(meta.reason) }) : t("logs.event.slotCancelled")
     case "BOOKING_CONFIG_CHANGE":
-      return `Booking config changed: ${Object.keys((meta?.after as object | undefined) ?? {}).join(", ") || "limits"}`
+      return t("logs.event.configChanged", { fields: Object.keys((meta?.after as object | undefined) ?? {}).join(", ") || "limits" })
     case "MEETING_LINK_UPSERT":
-      return `Meeting link upsert: ${(meta?.type as string) ?? ""} ${String(meta?.date ?? "")}`
+      return t("logs.event.meetingLink", { type: (meta?.type as string) ?? "", date: String(meta?.date ?? "") })
     case "POST_HIDE":
-      return `Post hidden`
+      return t("logs.event.postHidden")
     case "REPORT_RESOLVE":
-      return `Report resolved`
+      return t("logs.event.reportResolved")
     case "GROUP_CREATE":
-      return `Group created: ${(meta?.name as string) ?? log.targetId}`
+      return t("logs.event.groupCreated", { name: (meta?.name as string) ?? log.targetId })
     default:
       return log.action.replace(/_/g, " ").toLowerCase()
   }
 }
 
-function detailForLog(log: AuditLog): string {
+function detailForLog(log: AuditLog, t: TFunction<"admin">): string {
   const meta = log.metadata as Record<string, unknown> | undefined
   if (!meta) return `${log.targetType} ${log.targetId.slice(0, 8)}`
   // Prefer before/after for config
@@ -133,7 +135,7 @@ function detailForLog(log: AuditLog): string {
     const changes = Object.keys(a)
       .map((k) => `${k}: ${String(b[k] ?? "—")} → ${String(a[k])}`)
       .join(", ")
-    return changes || `Config ${log.targetId.slice(0, 8)}`
+    return changes || t("logs.event.configShort", { id: log.targetId.slice(0, 8) })
   }
   if (meta.reason) return String(meta.reason)
   if (meta.url) return String(meta.url)
@@ -142,6 +144,7 @@ function detailForLog(log: AuditLog): string {
 }
 
 export default function ActivityLogsPage() {
+  const { t } = useTranslation("admin")
   const [logs, setLogs] = useState<AuditLog[] | null>(null)
   const [search, setSearch] = useState("")
   const [level, setLevel] = useState<Level>("all")
@@ -160,7 +163,7 @@ export default function ActivityLogsPage() {
     const res = await fetch(`/api/v1/admin/audit-logs?${params.toString()}`)
     const json = await res.json()
     if (json.success) setLogs(json.data)
-    else toast.error(json.error ?? "Failed to load logs")
+    else toast.error(json.error ?? t("logs.loadFailed"))
   }
 
   useEffect(() => {
@@ -208,7 +211,7 @@ export default function ActivityLogsPage() {
     a.download = `audit-logs-${new Date().toISOString().split("T")[0]}.json`
     a.click()
     URL.revokeObjectURL(url)
-    toast.success("Exported audit logs")
+    toast.success(t("logs.exported"))
   }
 
   async function handleClearDebug() {
@@ -218,13 +221,13 @@ export default function ActivityLogsPage() {
       .filter((l) => levelForAction(l.action) === "debug")
       .map((l) => l.id)
     if (debugIds.length === 0) {
-      toast.info("No debug logs to clear")
+      toast.info(t("logs.noDebug"))
       return
     }
     setLogs((prev) =>
       prev ? prev.filter((l) => levelForAction(l.action) !== "debug") : prev
     )
-    toast.success(`Cleared ${debugIds.length} debug logs (view only)`)
+    toast.success(t("logs.cleared", { count: debugIds.length }))
   }
 
   return (
@@ -234,9 +237,9 @@ export default function ActivityLogsPage() {
           <CalendarCheck className="size-5 text-primary" aria-hidden="true" />
         </div>
         <div className="min-w-0">
-          <h2 className="text-xl font-semibold sm:text-2xl">Activity Logs</h2>
+          <h2 className="text-xl font-semibold sm:text-2xl">{t("logs.title")}</h2>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            Audit trail for RBAC, bookings, moderation and auth — latest 30.
+            {t("logs.subtitle")}
           </p>
         </div>
         <div className="ml-auto flex gap-2 max-sm:w-full max-sm:pt-1">
@@ -244,7 +247,7 @@ export default function ActivityLogsPage() {
             href="/admin"
             className="inline-flex h-10 cursor-pointer items-center justify-center rounded-md border px-2 text-xs hover:bg-muted max-sm:w-full sm:h-8 sm:px-3"
           >
-            Back to Admin
+            {t("logs.backToAdmin")}
           </Link>
         </div>
       </div>
@@ -259,9 +262,9 @@ export default function ActivityLogsPage() {
                   aria-hidden="true"
                 />
                 <div>
-                  <h2 className="text-sm font-medium">Application Logs</h2>
+                  <h2 className="text-sm font-medium">{t("logs.appLogs")}</h2>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {counts.total} entries · {counts.errors} errors
+                    {t("logs.entries", { total: counts.total, errors: counts.errors })}
                   </p>
                 </div>
               </div>
@@ -272,7 +275,7 @@ export default function ActivityLogsPage() {
                   className="h-7 px-2 text-xs"
                   onClick={handleClearDebug}
                 >
-                  Clear Debug
+                  {t("logs.clearDebug")}
                 </Button>
                 <Button
                   variant="outline"
@@ -280,7 +283,7 @@ export default function ActivityLogsPage() {
                   className="h-7 px-2 text-xs"
                   onClick={handleExport}
                 >
-                  Export
+                  {t("logs.export")}
                 </Button>
               </div>
             </div>
@@ -296,7 +299,7 @@ export default function ActivityLogsPage() {
               />
               <Input
                 className="h-8 border-0 bg-transparent pl-8 text-xs shadow-none focus-visible:ring-0"
-                placeholder="Search logs..."
+                placeholder={t("logs.search")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -320,7 +323,7 @@ export default function ActivityLogsPage() {
                         : "rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
                     }
                   >
-                    {l[0]!.toUpperCase() + l.slice(1)}
+                    {t(`logs.level.${l}`)}
                   </button>
                 )
               )}
@@ -329,11 +332,11 @@ export default function ActivityLogsPage() {
           <div>
             {filtered === null ? (
               <div className="p-2 text-center text-sm text-muted-foreground sm:p-8">
-                Loading logs…
+                {t("logs.loading")}
               </div>
             ) : filtered.length === 0 ? (
               <div className="p-2 text-center text-sm text-muted-foreground sm:p-8">
-                No logs match.
+                {t("logs.noMatch")}
               </div>
             ) : (
               filtered.map((log) => {
@@ -365,10 +368,10 @@ export default function ActivityLogsPage() {
                           </span>
                         </div>
                         <p className="mt-0.5 text-sm font-medium">
-                          {titleForLog(log)}
+                          {titleForLog(log, t)}
                         </p>
                         <p className="mt-0.5 line-clamp-1 font-mono text-xs text-muted-foreground">
-                          {detailForLog(log)}
+                          {detailForLog(log, t)}
                         </p>
                         <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
                           <span className="font-mono">

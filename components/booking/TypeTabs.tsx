@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { EventType } from "@prisma/client";
 import { BookOpen, HandHeart, Music } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { slotAccent } from "./slotAccent";
 
@@ -11,16 +12,19 @@ interface TypeTabsProps {
   onChange: (value: EventType) => void;
 }
 
-const TABS: { value: EventType; label: string; short: string; icon: typeof BookOpen }[] = [
-  { value: "BIBLE", label: "Bible Reading", short: "Bible", icon: BookOpen },
-  { value: "PRAYER", label: "Prayer", short: "Prayer", icon: HandHeart },
-  { value: "PRAISE_WORSHIP", label: "Praise & Worship", short: "Worship", icon: Music },
+const TABS: { value: EventType; labelKey: string; shortKey: string; icon: typeof BookOpen }[] = [
+  { value: "BIBLE", labelKey: "type.bible", shortKey: "type.bibleShort", icon: BookOpen },
+  { value: "PRAYER", labelKey: "type.prayer", shortKey: "type.prayer", icon: HandHeart },
+  { value: "PRAISE_WORSHIP", labelKey: "type.worship", shortKey: "type.worshipShort", icon: Music },
 ];
 
 export function TypeTabs({ value, onChange }: TypeTabsProps) {
+  const { t } = useTranslation("booking");
   return (
     <div className="flex w-full rounded-lg bg-muted/60 p-1" role="tablist">
-      {TABS.map(({ value: v, label, short, icon: Icon }) => {
+      {TABS.map(({ value: v, labelKey, shortKey, icon: Icon }) => {
+        const label = t(labelKey);
+        const short = t(shortKey);
         const isActive = value === v;
         const accent = slotAccent[v];
         return (

@@ -1,5 +1,5 @@
 import { BookOpen, CalendarDays, Clock, Flame, Heart } from "lucide-react"
-import { headers } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { redirect } from "next/navigation"
 import type { EventType } from "@prisma/client"
 import { StatCard } from "@/components/dashboard/StatCard"
@@ -27,15 +27,36 @@ import {
 } from "@/lib/services/slotService"
 import { formatMinutes } from "@/lib/services/slotStats"
 import { eventEndTime } from "@/lib/services/eventBlockService"
+import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE_NAME,
+  isLocale,
+  type Locale,
+} from "@/i18n/config"
+import { getServerTranslation } from "@/lib/notifications/locale"
+import { formatDate } from "@/lib/formatters"
 
 const WINDOW_MIN = 16 * 60
 
-function slotTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
-    BIBLE: "Bible Reading",
-    PRAYER: "Prayer",
-    PRAISE_WORSHIP: "Praise & Worship",
+/** Cookie locale (same source the dashboard I18nProvider reads); en fallback. */
+async function resolveOverviewLocale(): Promise<Locale> {
+  const cookieLocale = (await cookies()).get(LOCALE_COOKIE_NAME)?.value
+  return isLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE
+}
+
+/** Minimal {{var}} interpolation for server-rendered dashboard strings. */
+function interp(
+  template: string,
+  vars: Record<string, string | number>
+): string {
+  let out = template
+  for (const [key, value] of Object.entries(vars)) {
+    out = out.replaceAll(`{{${key}}}`, String(value))
   }
+  return out
+}
+
+function slotTypeLabel(type: string, labels: Record<string, string>): string {
   return labels[type] ?? type
 }
 
@@ -91,11 +112,13 @@ function mergeBlocks(slots: SlotBlock[]): SlotBlock[] {
   return blocks
 }
 
-function formatDateLabel(date: string): string {
-  return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-US", {
+function formatDateLabel(date: string, locale: Locale): string {
+  // year: undefined clears formatDate's default so output stays "Tue, Sep 22".
+  return formatDate(new Date(`${date}T00:00:00Z`), locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
+    year: undefined,
     timeZone: "UTC",
   })
 }
@@ -111,6 +134,62 @@ export default async function OverviewPage() {
   if (!session) redirect("/login")
 
   const user = session.user
+  const locale = await resolveOverviewLocale()
+  const t = (key: string) => getServerTranslation(locale, "dashboard", key)
+  const [
+    greetMorning,
+    greetAfternoon,
+    greetEvening,
+    greetNight,
+    badgeOne,
+    badgeOther,
+    statSessionsToday,
+    statSessionsTodayActive,
+    statSessionsTodayEmpty,
+    statSessionsWeek,
+    statSessionsWeekHint,
+    statPrayerMonth,
+    statThisMonth,
+    statTotalTime,
+    statTotalTimeHint,
+    coverageTitle,
+    slotBible,
+    slotPrayer,
+    slotWorship,
+    dayToday,
+    dayTomorrow,
+    meetingLocationTpl,
+    meetingFallback,
+  ] = await Promise.all([
+    t("overview.greeting.morning"),
+    t("overview.greeting.afternoon"),
+    t("overview.greeting.evening"),
+    t("overview.greeting.night"),
+    t("overview.sessionsBadge.one"),
+    t("overview.sessionsBadge.other"),
+    t("overview.stat.sessionsToday"),
+    t("overview.stat.sessionsTodayActive"),
+    t("overview.stat.sessionsTodayEmpty"),
+    t("overview.stat.sessionsWeek"),
+    t("overview.stat.sessionsWeekHint"),
+    t("overview.stat.prayerMonth"),
+    t("overview.stat.thisMonth"),
+    t("overview.stat.totalTime"),
+    t("overview.stat.totalTimeHint"),
+    t("overview.coverage.title"),
+    t("overview.slotType.bible"),
+    t("overview.slotType.prayer"),
+    t("overview.slotType.worship"),
+    t("overview.day.today"),
+    t("overview.day.tomorrow"),
+    t("overview.meeting.location"),
+    t("overview.meeting.linkFallback"),
+  ])
+  const slotLabels: Record<string, string> = {
+    BIBLE: slotBible,
+    PRAYER: slotPrayer,
+    PRAISE_WORSHIP: slotWorship,
+  }
   const today = new Date().toISOString().split("T")[0]
   const tomorrow = addDays(today, 1)
 
@@ -221,12 +300,16 @@ export default async function OverviewPage() {
       return {
         id: block.id,
         type: block.type,
-        title: slotTypeLabel(block.type),
+        title: slotTypeLabel(block.type, slotLabels),
         note: block.notes,
         startTime: block.startTime,
         endTime: block.endTime,
         hasLink: !!link,
-        locationText: link ? `Zoom · ${link.label ?? "Meeting"}` : null,
+        locationText: link
+          ? interp(meetingLocationTpl, {
+              label: link.label ?? meetingFallback,
+            })
+          : null,
         locationUrl: link?.url ?? null,
         leaderInitials: leader
           ? (leader.initials ?? deriveInitials(leader.name ?? undefined))
@@ -239,16 +322,16 @@ export default async function OverviewPage() {
   if (todayBlocks.length > 0) {
     days.push({
       key: "today",
-      label: "Today",
-      dateLabel: formatDateLabel(today),
+      label: dayToday,
+      dateLabel: formatDateLabel(today, locale),
       events: buildEvents(today, todayBlocks),
     })
   }
   if (nextBlocks.length > 0 && nextDate) {
     days.push({
       key: "next",
-      label: nextDate === tomorrow ? "Tomorrow" : formatDateLabel(nextDate),
-      dateLabel: formatDateLabel(nextDate),
+      label: nextDate === tomorrow ? dayTomorrow : formatDateLabel(nextDate, locale),
+      dateLabel: formatDateLabel(nextDate, locale),
       events: buildEvents(nextDate, nextBlocks),
     })
   }
@@ -271,12 +354,12 @@ export default async function OverviewPage() {
   const hour = new Date().getHours()
   const greeting =
     hour >= 5 && hour < 12
-      ? "Good morning"
+      ? greetMorning
       : hour >= 12 && hour < 17
-        ? "Good afternoon"
+        ? greetAfternoon
         : hour >= 17 && hour < 22
-          ? "Good evening"
-          : "Good night"
+          ? greetEvening
+          : greetNight
 
   const firstName = user.name?.split(" ")[0] || "there"
 
@@ -287,7 +370,7 @@ export default async function OverviewPage() {
           {greeting}, {firstName}
         </h2>
         <p className="text-muted-foreground">
-          {new Date().toLocaleDateString("en-US", {
+          {formatDate(new Date(), locale, {
             weekday: "long",
             year: "numeric",
             month: "long",
@@ -297,7 +380,9 @@ export default async function OverviewPage() {
             <span className="ml-2 inline-flex items-center gap-1">
               &middot;{" "}
               <Badge variant="secondary" className="text-xs">
-                {sessionCount} session{sessionCount !== 1 ? "s" : ""} today
+                {interp(sessionCount === 1 ? badgeOne : badgeOther, {
+                  count: sessionCount,
+                })}
               </Badge>
             </span>
           )}
@@ -305,29 +390,29 @@ export default async function OverviewPage() {
       </div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Sessions Today"
+          title={statSessionsToday}
           value={sessionCount}
           description={
-            sessionCount > 0 ? "On today's watch" : "Nothing booked yet"
+            sessionCount > 0 ? statSessionsTodayActive : statSessionsTodayEmpty
           }
           icon={CalendarDays}
         />
         <StatCard
-          title="Sessions This Week"
+          title={statSessionsWeek}
           value={stats?.weekSessions ?? 0}
-          description="Keep the rhythm going!"
+          description={statSessionsWeekHint}
           icon={Flame}
         />
         <StatCard
-          title="Prayer Sessions"
+          title={statPrayerMonth}
           value={stats?.monthByType["PRAYER"] ?? 0}
-          description="This month"
+          description={statThisMonth}
           icon={Heart}
         />
         <StatCard
-          title="Total Time"
+          title={statTotalTime}
           value={formatMinutes(stats?.monthMinutes ?? 0)}
-          description="Devotion this month"
+          description={statTotalTimeHint}
           icon={Clock}
         />
       </div>
@@ -359,7 +444,7 @@ export default async function OverviewPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="size-5" />
-              Weekly Watch Coverage
+              {coverageTitle}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
@@ -391,7 +476,7 @@ export default async function OverviewPage() {
               return (
                 <div key={type}>
                   <div className="flex items-center justify-between text-sm">
-                    <span>{slotTypeLabel(type)}</span>
+                    <span>{slotTypeLabel(type, slotLabels)}</span>
                     <span className="text-muted-foreground">
                       {booked}/{capacity} &middot; {percent}%
                     </span>

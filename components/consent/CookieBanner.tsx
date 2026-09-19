@@ -7,8 +7,10 @@ import { Cookie, ShieldCheck, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useConsent } from "./ConsentProvider"
+import { useConsentTranslation } from "@/lib/consent/translations"
 
 export function CookieBanner() {
+  const { t } = useConsentTranslation()
   const {
     showBanner,
     region,
@@ -64,17 +66,16 @@ export function CookieBanner() {
                   className="size-4 text-muted-foreground"
                 />
                 <span id="cookie-banner-title" className="text-sm font-medium">
-                  Cookie Preferences
+                  {t("bannerTitle")}
                 </span>
                 {gpcDetected && (
                   <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
-                    <ShieldCheck aria-hidden="true" className="size-3" /> GPC
-                    honored
+                    <ShieldCheck aria-hidden="true" className="size-3" /> {t("gpcHonored")}
                   </span>
                 )}
                 {region === "us_opt_out" && !gpcDetected && (
                   <span className="ml-auto hidden items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground sm:inline-flex">
-                    <Globe aria-hidden="true" className="size-3" /> US · opt-out
+                    <Globe aria-hidden="true" className="size-3" /> {t("usOptOut")}
                   </span>
                 )}
               </div>
@@ -85,34 +86,40 @@ export function CookieBanner() {
                   id="cookie-banner-desc"
                   className="text-sm leading-relaxed text-muted-foreground"
                 >
-                  We use cookies to improve your experience, analyze site
-                  traffic, and personalize content.
+                  {t("descriptionBase")}
                   {region === "strict"
-                    ? " You can choose which cookies to allow — non-essential cookies stay off until you consent."
+                    ? t("descriptionStrict")
                     : region === "us_opt_out"
-                      ? " You can manage preferences or opt out of sale/share at any time."
-                      : " Manage your preferences below."}{" "}
+                      ? t("descriptionUs")
+                      : t("descriptionNotice")}{" "}
                   {gpcDetected && (
                     <span className="font-medium text-foreground">
-                      Global Privacy Control detected — marketing cookies are
-                      off by default.{" "}
+                      {t("descriptionGpc")}{" "}
                     </span>
                   )}
                 </p>
-                <Link
-                  href="/privacy"
-                  className="mt-1.5 inline-block cursor-pointer text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
-                >
-                  Read our Privacy Policy
-                </Link>
-                {region === "us_opt_out" && (
+                <div className="mt-1.5 flex flex-wrap items-center gap-3">
                   <Link
-                    href="/cookies#do-not-sell"
-                    className="ml-3 inline-block cursor-pointer text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    href="/privacy"
+                    className="cursor-pointer text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
                   >
-                    Do Not Sell or Share
+                    {t("privacyPolicy")}
                   </Link>
-                )}
+                  <Link
+                    href="/cookies"
+                    className="cursor-pointer text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
+                  >
+                    {t("cookiePolicy")}
+                  </Link>
+                  {region === "us_opt_out" && (
+                    <Link
+                      href="/cookies#do-not-sell"
+                      className="cursor-pointer text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    >
+                      {t("doNotSellLink")}
+                    </Link>
+                  )}
+                </div>
               </div>
 
               {/* Actions — equal prominence per CNIL/ICO */}
@@ -123,7 +130,7 @@ export function CookieBanner() {
                     className="h-8 flex-1 cursor-pointer text-xs"
                     onClick={acceptAll}
                   >
-                    Accept All
+                    {t("acceptAll")}
                   </Button>
                   <Button
                     variant="outline"
@@ -131,7 +138,7 @@ export function CookieBanner() {
                     className="h-8 flex-1 cursor-pointer text-xs"
                     onClick={rejectAll}
                   >
-                    Reject All
+                    {region === "strict" ? t("rejectNonEssential") : t("rejectAll")}
                   </Button>
                   <Button
                     variant="ghost"
@@ -139,7 +146,7 @@ export function CookieBanner() {
                     className="h-8 flex-1 cursor-pointer text-xs"
                     onClick={openCustomize}
                   >
-                    Customize
+                    {t("customize")}
                   </Button>
                 </div>
               </div>

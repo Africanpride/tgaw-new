@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -11,10 +12,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-export function VerifyForm({
+export async function VerifyForm({
 	className,
 	...props
 }: React.ComponentProps<"div">) {
+	const t = await getTranslations("auth");
 	return (
 		<Card
 			className={cn(
@@ -27,7 +29,7 @@ export function VerifyForm({
 				<Link href="/" className="cursor-pointer">
 					<Image
 						src="/images/logos/logoicon.svg"
-						alt="Logo"
+						alt={t("verify.logoAlt")}
 						width={40}
 						height={40}
 						priority
@@ -35,11 +37,10 @@ export function VerifyForm({
 				</Link>
 				<div className="flex flex-col gap-1">
 					<CardTitle className="text-xl font-medium">
-						Verify your email
+						{t("verify.title")}
 					</CardTitle>
 					<CardDescription className="text-sm text-muted-foreground">
-						We sent a verification code to your email. Enter the code below to
-						verify your identity.
+						{t("verify.subtitle")}
 					</CardDescription>
 				</div>
 			</CardHeader>
@@ -58,13 +59,13 @@ export function VerifyForm({
 						)}
 					</div>
 					<Button type="submit" className="w-full">
-						Verify Now
+						{t("verify.submit")}
 					</Button>
 				</form>
 				<div className="mt-6 flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
-					<p>Didn&apos;t get the code?</p>
-					<Link className="font-medium text-primary hover:underline" href="#">
-						Resend
+					<p>{t("verify.noCode")}</p>
+					<Link className="cursor-pointer font-medium text-primary hover:underline" href="#">
+						{t("verify.resend")}
 					</Link>
 				</div>
 			</CardContent>

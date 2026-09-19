@@ -2,6 +2,7 @@
 
 import { CalendarClock, CalendarDays } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,14 +22,15 @@ interface EventBlockPopoverProps {
  * (title, local time window) and offers its Zoom link when available.
  */
 export function EventBlockPopover({ event, children, contentClassName }: EventBlockPopoverProps) {
+  const { t } = useTranslation("booking");
   return (
     <Popover>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent className={cn("w-64 p-2 sm:p-4", contentClassName)} role="dialog" aria-label={`Special event: ${event.title}`}>
+      <PopoverContent className={cn("w-64 p-2 sm:p-4", contentClassName)} role="dialog" aria-label={t("event.specialEventLabel", { title: event.title })}>
         <div className="space-y-3">
           <div className="flex items-center gap-1.5 text-xs font-medium text-violet-700 dark:text-violet-300 ">
             <CalendarClock className="size-3.5" aria-hidden="true" /> 
-            Special Event
+            {t("event.specialEvent")}
           </div>
           <p className="font-semibold leading-snug">{event.title}</p>
           <p className="text-sm tabular-nums text-muted-foreground">
@@ -38,14 +40,14 @@ export function EventBlockPopover({ event, children, contentClassName }: EventBl
             {event.zoomUrl && (
               <Button size="sm" asChild className="h-8">
                 <a href={event.zoomUrl} target="_blank" rel="noreferrer">
-                  Join Meeting
+                  {t("event.joinMeeting")}
                 </a>
               </Button>
             )}
             <Button variant="ghost" size="sm" asChild className="h-8 text-muted-foreground">
               <Link href="/calendar" className="cursor-pointer">
                 <CalendarDays className="size-3.5" aria-hidden="true" />
-                View in calendar
+                {t("event.viewInCalendar")}
               </Link>
             </Button>
           </div>
@@ -66,11 +68,12 @@ interface EventBlockBadgeProps {
  * are known, the badge doubles as the details popover trigger.
  */
 export function EventBlockBadge({ event, children, className }: EventBlockBadgeProps) {
+  const { t } = useTranslation("booking");
   const badge = (
     <Badge
       variant="outline"
       tabIndex={event ? 0 : undefined}
-      aria-label={event ? `Special event: ${event.title}` : undefined}
+      aria-label={event ? t("event.specialEventLabel", { title: event.title }) : undefined}
       className={cn(
         "gap-1 border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300",
         event && "cursor-pointer focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",

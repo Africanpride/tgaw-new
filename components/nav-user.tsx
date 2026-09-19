@@ -13,6 +13,7 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { UserAvatar } from "@/components/UserAvatar"
 import {
   DropdownMenu,
@@ -30,27 +31,28 @@ import { cn } from "@/lib/utils"
 
 interface ZoomSessionLink {
   id: string
-  label: string
+  labelKey: string
   url: string
   isActive: boolean
+  customLabel?: string | null
 }
 
 const DEFAULT_ZOOM_LINKS: ZoomSessionLink[] = [
   {
     id: "bible",
-    label: "Bible Reading",
+    labelKey: "sidebar.bible",
     url: "https://zoom.us/j/89234156701",
     isActive: false,
   },
   {
     id: "prayer",
-    label: "Morning Intercession",
+    labelKey: "usermenu.session.prayer",
     url: "https://zoom.us/j/89234156702",
     isActive: false,
   },
   {
     id: "worship",
-    label: "Praise & Worship",
+    labelKey: "sidebar.worship",
     url: "https://zoom.us/j/89234156703",
     isActive: false,
   },
@@ -97,6 +99,7 @@ interface NavUserProps {
 export function NavUser({
   zoomLinks: initialLinks = DEFAULT_ZOOM_LINKS,
 }: NavUserProps) {
+  const { t } = useTranslation("dashboard")
   const { data: session } = useSession()
   const { isMobile } = useSidebar()
   const router = useRouter()
@@ -158,9 +161,7 @@ export function NavUser({
               ...link,
               isActive: live,
               url: realUrl || link.url,
-              label: linksMap[link.id]?.label
-                ? `${link.label} · ${linksMap[link.id]!.label}`
-                : link.label,
+              customLabel: linksMap[link.id]?.label ?? null,
             }
           })
         )
@@ -177,9 +178,10 @@ export function NavUser({
   }, [])
 
   const user = session?.user
-  const name = user?.name ?? "User"
+  const name = user?.name ?? t("usermenu.guest")
   const email = user?.email ?? ""
   const role = (user?.role as string) ?? "member"
+  const roleLabel = t(`usermenu.role.${role}`, { defaultValue: role })
 
   const handleSignOut = async () => {
     await signOut()
@@ -209,7 +211,7 @@ export function NavUser({
                 <span className="truncate font-medium">{name}</span>
                 <span className="flex items-center gap-1.5 text-xs">
                   <span className="rounded-sm bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground capitalize">
-                    {role}
+                    {roleLabel}
                   </span>
                   <span className="truncate">{email}</span>
                 </span>
@@ -221,12 +223,15 @@ export function NavUser({
         {zoomLinks.length > 0 && (
           <DropdownMenuGroup>
             <DropdownMenuLabel className="tracking-wide uppercase">
-              Live Meetings
+              {t("usermenu.liveMeetings")}
             </DropdownMenuLabel>
             {zoomLinks.map((link) => {
               const meta = CHANNEL_META[link.id]
               const Icon = meta?.icon ?? Video
               const activeTint = meta?.dot ?? "bg-emerald-500"
+              const displayLabel = link.customLabel
+                ? `${t(link.labelKey)} · ${link.customLabel}`
+                : t(link.labelKey)
               return (
                 <DropdownMenuItem
                   key={link.id}
@@ -251,11 +256,11 @@ export function NavUser({
                   >
                     <Icon className="size-3" aria-hidden="true" />
                   </span>
-                  <span className="flex-1 truncate text-sm">{link.label}</span>
+                  <span className="flex-1 truncate text-sm">{displayLabel}</span>
                   {link.isActive ? (
                     <span className="ml-auto inline-flex items-center gap-1.5">
                       <span className="hidden text-[10px] font-medium text-emerald-700 sm:inline dark:text-emerald-400">
-                        Live
+                        {t("usermenu.live")}
                       </span>
                       <span className="relative flex size-2" aria-hidden="true">
                         <span
@@ -290,24 +295,24 @@ export function NavUser({
             onClick={() => router.push("/settings")}
           >
             <Settings />
-            My Settings
+            {t("usermenu.mySettings")}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={() => openCustomize()}
           >
             <Cookie />
-            Cookie Preferences
+            {t("usermenu.cookiePreferences")}
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/" className="cursor-pointer" />}>
           <Globe />
-          Back to Website
+          {t("usermenu.backToWebsite")}
         </DropdownMenuItem>
         <DropdownMenuItem className="cursor-pointer" onClick={handleSignOut}>
           <LogOut />
-          Sign out
+          {t("usermenu.signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

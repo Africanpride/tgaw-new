@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { useSocket } from "@/providers/SocketProvider"
 import { EmptyState } from "@/components/EmptyState"
 import { useSession } from "@/lib/auth-client"
+import { useTranslation } from "react-i18next"
 
 interface Conv {
   id: string
@@ -24,6 +25,7 @@ interface Conv {
 interface Msg { id: string; senderId: string; body: string; conversationId: string; createdAt: string }
 
 export default function MessagesPage() {
+  const { t } = useTranslation("messages")
   const { data: session } = useSession()
   const myId = session?.user?.id
   const { socket, connected } = useSocket()
@@ -84,16 +86,16 @@ export default function MessagesPage() {
         const alt = await fetch(`/api/v1/admin/users?search=${encodeURIComponent(email)}`).then((r) => r.json()).catch(() => null)
         userId = alt?.data?.[0]?.id
       }
-      if (!userId) throw new Error("User not found")
+      if (!userId) throw new Error(t("start.userNotFound"))
       const cRes = await fetch("/api/v1/conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "DIRECT", memberIds: [userId] }) })
       const cData = await cRes.json()
-      if (!cData.success) throw new Error(cData.error || "Failed")
+      if (!cData.success) throw new Error(cData.error || t("start.failed"))
       await loadConvs()
       setActiveId(cData.data.id)
       setStartEmail("")
-      toast.success("Conversation ready")
+      toast.success(t("start.ready"))
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed")
+      toast.error(e instanceof Error ? e.message : t("start.failed"))
     } finally { setStarting(false) }
   }
 
@@ -102,7 +104,7 @@ export default function MessagesPage() {
     const payload = { conversationId: activeId, body: body.trim() }
     const res = await fetch("/api/v1/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
     const data = await res.json()
-    if (!data.success) { toast.error("Send failed"); return }
+    if (!data.success) { toast.error(t("composer.sendFailed")); return }
     socket?.emit("message:send", { conversationId: activeId, ...data.data })
     setMsgs((prev) => [...prev, data.data]); setBody("")
   }
@@ -113,27 +115,27 @@ export default function MessagesPage() {
     <div className="grid gap-2 lg:grid-cols-[360px_1fr]">
       <Card className="flex flex-col">
         <CardHeader className="pb-2 sm:pb-3">
-          <CardTitle className="flex items-center gap-2 text-base"><MessageSquare className="size-4" />Messages {connected ? <span className="text-xs font-normal text-emerald-600">● live</span> : null}</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base"><MessageSquare aria-hidden="true" className="size-4" />{t("header.title")} {connected ? <span className="text-xs font-normal text-emerald-600">● {t("header.live")}</span> : null}</CardTitle>
           <div className="flex gap-2 pt-2">
-            <Input placeholder="Start by email…" value={startEmail} onChange={(e) => setStartEmail(e.target.value)} className="h-8" />
-            <Button size="sm" className="cursor-pointer gap-1 h-8" onClick={startConversation} disabled={starting}>{starting ? <Loader2 className="size-3.5 animate-spin" /> : <MessageSquarePlus className="size-3.5" />}Start</Button>
+            <Input placeholder={t("start.placeholder")} value={startEmail} onChange={(e) => setStartEmail(e.target.value)} className="h-8" />
+            <Button size="sm" className="cursor-pointer gap-1 h-8" onClick={startConversation} disabled={starting}>{starting ? <Loader2 aria-hidden="true" className="size-3.5 animate-spin" /> : <MessageSquarePlus aria-hidden="true" className="size-3.5" />}{t("start.button")}</Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-2 overflow-auto max-h-[60vh]">
-          {loading ? <p className="py-2 text-center text-sm text-muted-foreground sm:py-8">Loading…</p> : convs.length === 0 ? (
-            <EmptyState icon={MessageSquare} title="No conversations yet" description="Start a conversation by email. Direct and group chats will appear here." />
+          {loading ? <p className="py-2 text-center text-sm text-muted-foreground sm:py-8">{t("list.loading")}</p> : convs.length === 0 ? (
+            <EmptyState icon={MessageSquare} title={t("list.emptyTitle")} description={t("list.emptyDescription")} />
           ) : convs.map((c) => {
-            const other = c.type === "DIRECT" ? c.memberIds.find((m) => m !== myId)?.slice(0,8) ?? "Group" : `Group ${c.groupId?.slice(0,4) ?? ""}`
+            const other = c.type === "DIRECT" ? c.memberIds.find((m) => m !== myId)?.slice(0,8) ?? t("list.groupFallback") : t("list.groupShort", { short: c.groupId?.slice(0,4) ?? "" })
             const last = c.messages?.[0]
             const isActive = c.id === activeId
             return (
               <button key={c.id} onClick={() => setActiveId(c.id)} className={`flex w-full cursor-pointer items-center gap-3 rounded-lg border px-2 sm:px-3 py-2.5 text-left transition-colors ${isActive ? "bg-muted border-primary/20" : "hover:bg-muted/50"}`}>
-                <Avatar className="size-8"><AvatarFallback className="text-xs">{c.type === "GROUP" ? <Users className="size-3.5" /> : other.slice(0,2).toUpperCase()}</AvatarFallback></Avatar>
+                <Avatar className="size-8"><AvatarFallback className="text-xs">{c.type === "GROUP" ? <Users aria-hidden="true" className="size-3.5" /> : other.slice(0,2).toUpperCase()}</AvatarFallback></Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{c.type === "GROUP" ? "Group" : other}</p>
-                  <p className="truncate text-xs text-muted-foreground">{last?.body ?? "No messages yet"}</p>
+                  <p className="truncate text-sm font-medium">{c.type === "GROUP" ? t("list.groupName") : other}</p>
+                  <p className="truncate text-xs text-muted-foreground">{last?.body ?? t("list.noMessages")}</p>
                 </div>
-                {c.type === "GROUP" && <Badge variant="secondary" className="text-[10px]">Group</Badge>}
+                {c.type === "GROUP" && <Badge variant="secondary" className="text-[10px]">{t("list.groupBadge")}</Badge>}
               </button>
             )
           })}
@@ -143,16 +145,16 @@ export default function MessagesPage() {
       <Card className="flex min-h-[480px] flex-col">
         {!activeId ? (
           <CardContent className="flex flex-1 flex-col items-center justify-center gap-2 py-2 sm:py-12">
-            <MessageSquare className="size-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Select a conversation or start a new one.</p>
+            <MessageSquare aria-hidden="true" className="size-8 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">{t("detail.selectPrompt")}</p>
           </CardContent>
         ) : (
           <>
             <CardHeader className="border-b py-2 sm:py-3">
-              <CardTitle className="text-sm truncate">{activeConv?.type === "GROUP" ? "Group chat" : `Chat with ${activeConv?.memberIds.find((m) => m !== myId)?.slice(0,8) ?? "user"}`}</CardTitle>
+              <CardTitle className="text-sm truncate">{activeConv?.type === "GROUP" ? t("detail.groupTitle") : t("detail.directTitle", { id: activeConv?.memberIds.find((m) => m !== myId)?.slice(0,8) ?? t("detail.userFallback") })}</CardTitle>
             </CardHeader>
             <div className="flex-1 space-y-2 overflow-auto p-2 sm:p-3 max-h-[420px] min-h-[280px]">
-              {msgs.length === 0 ? <p className="py-2 text-center text-sm text-muted-foreground sm:py-10">No messages yet — say hello.</p> : msgs.map((m) => {
+              {msgs.length === 0 ? <p className="py-2 text-center text-sm text-muted-foreground sm:py-10">{t("detail.emptyChat")}</p> : msgs.map((m) => {
                 const mine = m.senderId === myId
                 return (
                   <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
@@ -165,8 +167,8 @@ export default function MessagesPage() {
               })}
             </div>
             <div className="flex gap-2 border-t p-2 sm:p-3">
-              <Input placeholder="Type a message…" value={body} onChange={(e) => setBody(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} className="h-9" />
-              <Button onClick={send} disabled={!body.trim()} className="cursor-pointer gap-1"><Send className="size-4" />Send</Button>
+              <Input placeholder={t("composer.placeholder")} value={body} onChange={(e) => setBody(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} className="h-9" />
+              <Button onClick={send} disabled={!body.trim()} className="cursor-pointer gap-1"><Send aria-hidden="true" className="size-4" />{t("composer.send")}</Button>
             </div>
           </>
         )}

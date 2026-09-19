@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { motion, useReducedMotion } from "motion/react"
 import { useSession } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
@@ -61,6 +62,7 @@ function DockBadge({
 }
 
 export function MobileDock() {
+  const { t } = useTranslation("dashboard")
   const pathname = usePathname()
   const { data: session } = useSession()
   const reduceMotion = useReducedMotion()
@@ -94,12 +96,21 @@ export function MobileDock() {
     }
   }, [])
 
+  const dockLabelByHref: Record<string, string> = {
+    "/overview": t("dock.home"),
+    "/feed": t("dock.feed"),
+    "/booking": t("dock.booking"),
+    "/messages": t("dock.messages"),
+    "/settings": t("dock.profile"),
+  }
+
   return (
-    <nav aria-label="Mobile navigation" className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+    <nav aria-label={t("dock.navLabel")} className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
       <div className="grid min-h-[56px] grid-cols-5 border-t border-border bg-card pb-[env(safe-area-inset-bottom)]">
         {dockItems.map((item) => {
           const isActive = isDockPathActive(pathname, item.href)
           const Icon = icons[item.icon]
+          const label = dockLabelByHref[item.href] ?? item.label
 
           return (
             <Link
@@ -116,7 +127,7 @@ export function MobileDock() {
                   userImage ? (
                     <Image
                       src={userImage}
-                      alt={userName ?? "Profile"}
+                      alt={userName ?? t("dock.profile")}
                       width={20}
                       height={20}
                       unoptimized
@@ -145,13 +156,17 @@ export function MobileDock() {
                 {item.href === "/booking" && (
                   <DockBadge
                     count={counts?.todayBookings ?? null}
-                    label={`${counts?.todayBookings ?? 0} active bookings`}
+                    label={t("dock.activeBookings", {
+                      count: counts?.todayBookings ?? 0,
+                    })}
                   />
                 )}
                 {item.href === "/messages" && (
                   <DockBadge
                     count={counts?.unreadMessages ?? null}
-                    label={`${counts?.unreadMessages ?? 0} unread messages`}
+                    label={t("dock.unreadMessages", {
+                      count: counts?.unreadMessages ?? 0,
+                    })}
                   />
                 )}
               </span>
@@ -161,7 +176,7 @@ export function MobileDock() {
                   isActive ? "text-foreground" : "text-muted-foreground",
                 )}
               >
-                {item.label}
+                {label}
               </span>
               {isActive &&
                 (reduceMotion ? (

@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useSession } from "@/lib/auth-client"
+import { useTranslation } from "react-i18next"
 
 const postTypes = [
   { value: "TEXT", label: "Text" },
@@ -45,6 +46,7 @@ interface Post {
 }
 
 export default function FeedPage() {
+  const { t } = useTranslation("feed")
   const { data: session } = useSession()
   const role = (session?.user as { role?: string })?.role ?? "member"
   const isLeader = role === "leader" || role === "superadmin"
@@ -77,12 +79,12 @@ export default function FeedPage() {
       const text = await res.text()
       const data = text ? JSON.parse(text) : null
       if (!data) {
-        toast.error("Feed unavailable — please refresh")
+        toast.error(t("toast.feedUnavailable"))
         return
       }
       if (!res.ok || !data.success) {
-        if (res.status === 401) toast.error("Please sign in to view the feed")
-        else toast.error(data?.error ? String(data.error) : "Failed to load feed")
+        if (res.status === 401) toast.error(t("toast.signIn"))
+        else toast.error(data?.error ? String(data.error) : t("toast.loadFailed"))
         return
       }
       if (cursor) setPosts((prev) => [...prev, ...data.data])
@@ -91,7 +93,7 @@ export default function FeedPage() {
       setHasMore(!!data.nextCursor)
     } catch (e) {
       console.error("[ERROR] fetchPosts", e instanceof Error ? e.message : String(e))
-      toast.error("Feed unavailable — please refresh")
+      toast.error(t("toast.feedUnavailable"))
     }
   }
 
@@ -102,24 +104,24 @@ export default function FeedPage() {
   async function handleMediaUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 8 * 1024 * 1024) { toast.error("File must be < 8MB"); return }
+    if (file.size > 8 * 1024 * 1024) { toast.error(t("toast.fileTooBig")); return }
     setUploading(true)
     try {
       const signRes = await fetch("/api/v1/uploads/sign", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ folder: "posts/media" }) })
       const sign = await signRes.json()
-      if (!sign.success) throw new Error(sign.error || "Sign failed")
+      if (!sign.success) throw new Error(sign.error || t("toast.signFailed"))
       const fd = new FormData()
       fd.append("file", file); fd.append("api_key", sign.data.apiKey); fd.append("timestamp", String(sign.data.timestamp)); fd.append("signature", sign.data.signature); fd.append("folder", sign.data.folder)
       const up = await fetch(`https://api.cloudinary.com/v1_1/${sign.data.cloudName}/auto/upload`, { method: "POST", body: fd })
       const j = await up.json()
-      if (!j.secure_url) throw new Error(j.error?.message || "Upload failed")
+      if (!j.secure_url) throw new Error(j.error?.message || t("toast.uploadFailed"))
       // store in body as mediaUrls? For MVP, append to body as link or use postData
       // We'll keep a temp mediaUrls array via post body tag
       const current = (newPost as unknown as { mediaUrls?: string[] }).mediaUrls ?? []
       setNewPost({ ...newPost, ...( { mediaUrls: [...current, j.secure_url] } as unknown as object) } as typeof newPost)
-      toast.success("Media uploaded")
+      toast.success(t("toast.mediaUploaded"))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed")
+      toast.error(err instanceof Error ? err.message : t("toast.uploadFailed"))
     } finally { setUploading(false) }
   }
 
@@ -134,7 +136,7 @@ export default function FeedPage() {
     if (newPost.linkUrl) body.linkUrl = newPost.linkUrl
     if (newPost.type === "POLL") {
       const opts = pollOptions.map((o) => o.trim()).filter(Boolean)
-      if (!newPost.pollQuestion.trim() || opts.length < 2) { toast.error("Poll needs a question and 2+ options"); return }
+      if (!newPost.pollQuestion.trim() || opts.length < 2) { toast.error(t("toast.pollNeeds")); return }
       body.poll = { question: newPost.pollQuestion.trim(), options: opts }
     }
 
@@ -143,15 +145,15 @@ export default function FeedPage() {
     if (data.success) {
       setPosts([data.data, ...posts]); setOpen(false)
       setNewPost({ type: "TEXT", body: "", versePassage: "", linkUrl: "", pollQuestion: "", pollOptions: ["", ""] }); setPollOptions(["", ""])
-      toast.success("Posted")
+      toast.success(t("toast.posted"))
     } else {
-      toast.error(data.error ? JSON.stringify(data.error) : "Failed to post")
+      toast.error(data.error ? JSON.stringify(data.error) : t("toast.postFailed"))
     }
   }
 
   async function toggleLike(postId: string) {
     const res = await fetch(`/api/v1/posts/${postId}/likes`, { method: "POST" })
-    if (!res.ok) { toast.error("Like failed"); return }
+    if (!res.ok) { toast.error(t("toast.likeFailed")); return }
     // optimistic bump
     setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, _count: { ...p._count, likes: p._count.likes + 1 } } : p))
     // refetch to get true count
@@ -160,23 +162,23 @@ export default function FeedPage() {
 
   async function share(postId: string) {
     const url = `${window.location.origin}/feed#${postId}`
-    try { await navigator.clipboard.writeText(url); toast.success("Link copied") } catch { toast.success(url) }
+    try { await navigator.clipboard.writeText(url); toast.success(t("toast.linkCopied")) } catch { toast.success(url) }
   }
 
   async function report() {
     if (!reportPost || !reportReason.trim()) return
     const res = await fetch("/api/v1/reports", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ targetType: "POST", targetId: reportPost, reason: reportReason.trim() }) })
     const data = await res.json()
-    if (!data.success) { toast.error("Report failed"); return }
-    toast.success("Report submitted — thank you")
+    if (!data.success) { toast.error(t("toast.reportFailed")); return }
+    toast.success(t("toast.reportSubmitted"))
     setReportPost(null); setReportReason("")
   }
 
   async function hide(postId: string) {
     const res = await fetch(`/api/v1/posts/${postId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isHidden: true }) })
     const data = await res.json()
-    if (!data.success) { toast.error("Hide failed"); return }
-    setPosts((prev) => prev.filter((p) => p.id !== postId)); toast.success("Hidden")
+    if (!data.success) { toast.error(t("toast.hideFailed")); return }
+    setPosts((prev) => prev.filter((p) => p.id !== postId)); toast.success(t("toast.hidden"))
   }
 
   async function loadMore() {
@@ -189,52 +191,52 @@ export default function FeedPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl tracking-tight">Community Feed</h2>
+        <h2 className="text-2xl tracking-tight">{t("header.title")}</h2>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="cursor-pointer gap-2"><PenSquare className="size-4" />New Post</Button>
+            <Button className="cursor-pointer gap-2"><PenSquare aria-hidden="true" className="size-4" />{t("composer.newPost")}</Button>
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-auto sm:max-w-lg">
-            <DialogHeader><DialogTitle>Create a Post</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t("composer.title")}</DialogTitle></DialogHeader>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label>Type</Label>
+                <Label>{t("composer.typeLabel")}</Label>
                 <Select value={newPost.type} onValueChange={(v) => v && setNewPost({ ...newPost, type: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{postTypes.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                  <SelectContent>{postTypes.map((pt) => <SelectItem key={pt.value} value={pt.value}>{t(`type.${pt.value}`)}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="flex flex-col gap-2">
-                <Label>Content</Label>
-                <Textarea value={newPost.body} onChange={(e) => setNewPost({ ...newPost, body: e.target.value })} placeholder={newPost.type === "SERMON" ? "Sermon title & summary…" : newPost.type === "ARTICLE" ? "Article body…" : newPost.type === "GOSPEL_TRACT" ? "Tract content…" : "Share your thoughts…"} rows={4} />
+                <Label>{t("composer.contentLabel")}</Label>
+                <Textarea value={newPost.body} onChange={(e) => setNewPost({ ...newPost, body: e.target.value })} placeholder={newPost.type === "SERMON" ? t("composer.contentPlaceholderSermon") : newPost.type === "ARTICLE" ? t("composer.contentPlaceholderArticle") : newPost.type === "GOSPEL_TRACT" ? t("composer.contentPlaceholderTract") : t("composer.contentPlaceholderDefault")} rows={4} />
               </div>
               {newPost.type === "BIBLE_VERSE" && (
-                <div className="flex flex-col gap-2"><Label>Passage</Label><Input value={newPost.versePassage} onChange={(e) => setNewPost({ ...newPost, versePassage: e.target.value })} placeholder="e.g. John 3:16" /></div>
+                <div className="flex flex-col gap-2"><Label>{t("composer.passageLabel")}</Label><Input value={newPost.versePassage} onChange={(e) => setNewPost({ ...newPost, versePassage: e.target.value })} placeholder={t("composer.passagePlaceholder")} /></div>
               )}
               {(newPost.type === "LINK" || newPost.type === "ARTICLE" || newPost.type === "GOSPEL_TRACT" || newPost.type === "SERMON") && (
-                <div className="flex flex-col gap-2"><Label>Link URL</Label><Input value={newPost.linkUrl} onChange={(e) => setNewPost({ ...newPost, linkUrl: e.target.value })} placeholder="https://…" /></div>
+                <div className="flex flex-col gap-2"><Label>{t("composer.linkLabel")}</Label><Input value={newPost.linkUrl} onChange={(e) => setNewPost({ ...newPost, linkUrl: e.target.value })} placeholder={t("composer.linkPlaceholder")} /></div>
               )}
               {newPost.type === "MEDIA" && (
                 <div className="flex flex-col gap-2">
-                  <Label className="flex items-center gap-1.5"><ImageIcon className="size-3.5" />Media</Label>
+                  <Label className="flex items-center gap-1.5"><ImageIcon aria-hidden="true" className="size-3.5" />{t("composer.mediaLabel")}</Label>
                   <Input type="file" accept="image/*,video/*,audio/*,.pdf,.doc,.docx" onChange={handleMediaUpload} disabled={uploading} />
-                  {uploading && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Loader2 className="size-3 animate-spin" />Uploading…</span>}
+                  {uploading && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Loader2 aria-hidden="true" className="size-3 animate-spin" />{t("composer.uploading")}</span>}
                   {(newPost as unknown as { mediaUrls?: string[] }).mediaUrls?.length ? (
-                    <p className="text-xs text-emerald-600">{(newPost as unknown as { mediaUrls: string[] }).mediaUrls.length} file(s) ready</p>
+                    <p className="text-xs text-emerald-600">{t("composer.filesReady", { count: (newPost as unknown as { mediaUrls: string[] }).mediaUrls.length })}</p>
                   ) : null}
                 </div>
               )}
               {newPost.type === "POLL" && (
                 <div className="flex flex-col gap-2">
-                  <Label className="flex items-center gap-1.5"><Vote className="size-3.5" />Poll</Label>
-                  <Input value={newPost.pollQuestion} onChange={(e) => setNewPost({ ...newPost, pollQuestion: e.target.value })} placeholder="Question" />
+                  <Label className="flex items-center gap-1.5"><Vote aria-hidden="true" className="size-3.5" />{t("composer.pollLabel")}</Label>
+                  <Input value={newPost.pollQuestion} onChange={(e) => setNewPost({ ...newPost, pollQuestion: e.target.value })} placeholder={t("composer.pollQuestionPlaceholder")} />
                   {pollOptions.map((opt, i) => (
-                    <Input key={i} value={opt} onChange={(e) => setPollOptions((prev) => prev.map((v, idx) => idx === i ? e.target.value : v))} placeholder={`Option ${i+1}`} />
+                    <Input key={i} value={opt} onChange={(e) => setPollOptions((prev) => prev.map((v, idx) => idx === i ? e.target.value : v))} placeholder={t("composer.pollOptionPlaceholder", { n: i + 1 })} />
                   ))}
-                  <Button type="button" variant="outline" size="sm" className="w-fit cursor-pointer" onClick={() => setPollOptions((prev) => [...prev, ""])}>Add option</Button>
+                  <Button type="button" variant="outline" size="sm" className="w-fit cursor-pointer" onClick={() => setPollOptions((prev) => [...prev, ""])}>{t("composer.addOption")}</Button>
                 </div>
               )}
-              <Button onClick={createPost} disabled={uploading} className="cursor-pointer">{uploading ? <Loader2 className="size-4 animate-spin" /> : null}Post</Button>
+              <Button onClick={createPost} disabled={uploading} className="cursor-pointer">{uploading ? <Loader2 aria-hidden="true" className="size-4 animate-spin" /> : null}{t("composer.post")}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -245,9 +247,9 @@ export default function FeedPage() {
       ) : posts.length === 0 ? (
         <EmptyState
           icon={PenSquare}
-          title="No posts yet"
-          description="Be the first to share a testimony, verse, or prayer request with the community."
-          actionLabel="Create a post"
+          title={t("list.emptyTitle")}
+          description={t("list.emptyDescription")}
+          actionLabel={t("list.emptyAction")}
           onAction={() => setOpen(true)}
         />
       ) : (
@@ -258,12 +260,12 @@ export default function FeedPage() {
                 <CardContent className="flex flex-col gap-3 pt-2 sm:pt-6">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="gap-1">
-                      {post.type === "BIBLE_VERSE" ? <BookOpen className="size-3" /> : post.type === "QUOTE" ? <QuoteIcon className="size-3" /> : post.type === "SERMON" ? <Mic className="size-3" /> : post.type === "ARTICLE" ? <FileText className="size-3" /> : null}
-                      {post.type.replace("_"," ")}
+                      {post.type === "BIBLE_VERSE" ? <BookOpen aria-hidden="true" className="size-3" /> : post.type === "QUOTE" ? <QuoteIcon aria-hidden="true" className="size-3" /> : post.type === "SERMON" ? <Mic aria-hidden="true" className="size-3" /> : post.type === "ARTICLE" ? <FileText aria-hidden="true" className="size-3" /> : null}
+                      {t(`type.${post.type}`, { defaultValue: post.type.replace("_", " ") })}
                     </Badge>
                     <span className="text-xs text-muted-foreground">{new Date(post.createdAt).toLocaleDateString()}</span>
                     {isLeader && (
-                      <Button variant="ghost" size="sm" className="ml-auto h-6 cursor-pointer text-xs gap-1" onClick={() => hide(post.id)}><EyeOff className="size-3" />Hide</Button>
+                      <Button variant="ghost" size="sm" className="ml-auto h-6 cursor-pointer text-xs gap-1" onClick={() => hide(post.id)}><EyeOff aria-hidden="true" className="size-3" />{t("card.hide")}</Button>
                     )}
                   </div>
                   {post.body && <p className="text-sm whitespace-pre-wrap">{post.body}</p>}
@@ -293,10 +295,10 @@ export default function FeedPage() {
                     </div>
                   )}
                   <div className="flex items-center gap-2 pt-2">
-                    <Button variant="ghost" size="sm" className="cursor-pointer gap-1" onClick={() => toggleLike(post.id)}><Heart className="size-4" />{post._count.likes}</Button>
-                    <Button variant="ghost" size="sm" className="cursor-pointer gap-1"><MessageCircle className="size-4" />{post._count.comments}</Button>
-                    <Button variant="ghost" size="sm" className="cursor-pointer gap-1" onClick={() => share(post.id)}><Share2 className="size-4" />Share</Button>
-                    <Button variant="ghost" size="sm" className="ml-auto cursor-pointer gap-1 text-muted-foreground" onClick={() => setReportPost(post.id)}><Flag className="size-3" />Report</Button>
+                    <Button variant="ghost" size="sm" className="cursor-pointer gap-1" onClick={() => toggleLike(post.id)}><Heart aria-hidden="true" className="size-4" />{post._count.likes}</Button>
+                    <Button variant="ghost" size="sm" className="cursor-pointer gap-1"><MessageCircle aria-hidden="true" className="size-4" />{post._count.comments}</Button>
+                    <Button variant="ghost" size="sm" className="cursor-pointer gap-1" onClick={() => share(post.id)}><Share2 aria-hidden="true" className="size-4" />{t("card.share")}</Button>
+                    <Button variant="ghost" size="sm" className="ml-auto cursor-pointer gap-1 text-muted-foreground" onClick={() => setReportPost(post.id)}><Flag aria-hidden="true" className="size-3" />{t("card.report")}</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -305,15 +307,15 @@ export default function FeedPage() {
           {hasMore && (
             <div className="flex justify-center">
               <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="cursor-pointer gap-1.5">
-                {loadingMore ? <Loader2 className="size-4 animate-spin" /> : null}Load more
+                {loadingMore ? <Loader2 aria-hidden="true" className="size-4 animate-spin" /> : null}{t("list.loadMore")}
               </Button>
             </div>
           )}
           <Dialog open={!!reportPost} onOpenChange={(o) => !o && setReportPost(null)}>
             <DialogContent>
-              <DialogHeader><DialogTitle>Report post</DialogTitle><DialogDescription>Help moderators review this content.</DialogDescription></DialogHeader>
-              <Textarea value={reportReason} onChange={(e) => setReportReason(e.target.value)} placeholder="Reason…" rows={3} />
-              <DialogFooter><Button variant="outline" onClick={() => setReportPost(null)} className="cursor-pointer">Cancel</Button><Button onClick={report} disabled={!reportReason.trim()} className="cursor-pointer">Submit report</Button></DialogFooter>
+              <DialogHeader><DialogTitle>{t("report.title")}</DialogTitle><DialogDescription>{t("report.description")}</DialogDescription></DialogHeader>
+              <Textarea value={reportReason} onChange={(e) => setReportReason(e.target.value)} placeholder={t("report.placeholder")} rows={3} />
+              <DialogFooter><Button variant="outline" onClick={() => setReportPost(null)} className="cursor-pointer">{t("report.cancel")}</Button><Button onClick={report} disabled={!reportReason.trim()} className="cursor-pointer">{t("report.submit")}</Button></DialogFooter>
             </DialogContent>
           </Dialog>
         </>

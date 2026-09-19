@@ -38,8 +38,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { CalendarX2, Clock, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "react-i18next"
 
 export default function BookingPage() {
+  const { t } = useTranslation("booking")
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -185,7 +187,7 @@ export default function BookingPage() {
 
     setIsSubmitting(false)
     if (result.success) {
-      toast.success("Slots booked successfully")
+      toast.success(t("toast.booked"))
       // The sheet shows a brief success celebration, then closes itself.
       setSelectedIds([])
       // Refresh slots
@@ -195,14 +197,14 @@ export default function BookingPage() {
       if (data.success) setSlots(data.data.slots)
       return true
     } else {
-      toast.error(result.error || "Failed to book slots")
+      toast.error(result.error || t("toast.bookFailed"))
       return false
     }
   }
 
   const handleCancelBooking = (slot: SlotData) => {
     if (isPastSlot(slot)) {
-      toast.error("Cannot cancel a booking that is in the past")
+      toast.error(t("toast.cancelPast"))
       return
     }
     setCancelTarget(slot)
@@ -213,13 +215,13 @@ export default function BookingPage() {
     const result = await cancelSlotAction({ slotId: cancelTarget.id })
     setCancelTarget(null)
     if (result.success) {
-      toast.success("Booking cancelled")
+      toast.success(t("toast.cancelled"))
       const dateStr = format(date, "yyyy-MM-dd")
       const res = await fetch(`/api/v1/slots?date=${dateStr}&type=${type}`)
       const data = await res.json()
       if (data.success) setSlots(data.data.slots)
     } else {
-      toast.error(result.error || "Failed to cancel booking")
+      toast.error(result.error || t("toast.cancelFailed"))
     }
   }
 
@@ -228,17 +230,17 @@ export default function BookingPage() {
 
   const typeLabel =
     type === "BIBLE"
-      ? "Bible Reading"
+      ? t("type.bible")
       : type === "PRAYER"
-        ? "Prayer"
-        : "Praise & Worship"
+        ? t("type.prayer")
+        : t("type.worship")
   const accent = slotAccent[type]
 
   return (
     <div className="max-w-8xl container mx-auto space-y-6 p-2 sm:p-4">
       <div className="flex justify-between">
         <div>
-          <h1 className="text-3xl tracking-tight">Slot Booking</h1>
+          <h1 className="text-3xl tracking-tight">{t("title")}</h1>
           <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
             {format(date, "EEEE, MMMM d")}
             <Badge variant="secondary">{typeLabel}</Badge>
@@ -328,21 +330,20 @@ export default function BookingPage() {
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => setSelectedIds([])}
-                        aria-label="Clear selected slots"
+                        aria-label={t("action.clearSelected")}
                         className="cursor-pointer rounded-xs"
                       >
                         <X className="size-4" aria-hidden="true" />
                       </Button>
                       <span className="flex-1 text-sm font-medium tabular-nums">
-                        {selectedIds.length} slot
-                        {selectedIds.length === 1 ? "" : "s"} selected
+                        {t("selected", { count: selectedIds.length })}
                       </span>
                       <Button
                         size="sm"
                         onClick={() => setSheetOpen(true)}
                         className="cursor-pointer rounded-xs"
                       >
-                        Book Selected
+                        {t("action.bookSelected")}
                       </Button>
                     </div>
                   </motion.div>
@@ -353,7 +354,7 @@ export default function BookingPage() {
 
           <div className="space-y-6 pt-2 sm:pt-6 md:hidden">
             <div>
-              <h3 className="mb-3 font-semibold">My Bookings</h3>
+              <h3 className="mb-3 font-semibold">{t("myBookings")}</h3>
               <MyBookingsStack
                 bookings={myBookings}
                 onCancel={handleCancelBooking}
@@ -402,11 +403,10 @@ export default function BookingPage() {
             </div>
             <AlertDialogHeader className="gap-1.5">
               <AlertDialogTitle className="text-base sm:text-lg">
-                Cancel this booking?
+                {t("cancel.title")}
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This frees the slot for another member to book. You can book it
-                again if you change your mind.
+                {t("cancel.description")}
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
@@ -449,7 +449,7 @@ export default function BookingPage() {
                 "cursor-pointer",
               )}
             >
-              Keep booking
+              {t("action.keepBooking")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmCancelBooking}
@@ -459,7 +459,7 @@ export default function BookingPage() {
               )}
             >
               <Trash2 className="size-4" aria-hidden="true" />
-              Cancel booking
+              {t("action.cancelBooking")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

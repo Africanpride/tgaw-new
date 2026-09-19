@@ -1,0 +1,20 @@
+{
+  "title": "Réservation de créneau",
+  "type.bible": "Lecture biblique",
+  "type.prayer": "Prière",
+  "type.worship": "Louange & Adoration",
+  "selected_one": "{{count}} créneau sélectionné",
+  "selected_other": "{{count}} créneaux sélectionnés",
+  "action.bookSelected": "Réserver la sélection",
+  "action.clearSelected": "Effacer les créneaux sélectionnés",
+  "myBookings": "Mes réservations",
+  "cancel.title": "Annuler cette réservation ?",
+  "cancel.description": "Cela libère le créneau pour qu'un autre membre puisse le réserver. Vous pourrez le réserver à nouveau si vous changez d'avis.",
+  "action.keepBooking": "Garder la réservation",
+  "action.cancelBooking": "Annuler la réservation",
+  "toast.booked": "Créneaux réservés avec succès",
+  "toast.bookFailed": "Échec de la réservation des créneaux",
+  "toast.cancelPast": "Impossible d'annuler une réservation déjà passée",
+  "toast.cancelled": "Réservation annulée",
+  "toast.cancelFailed": "Échec de l'annulation de la réservation"
+}

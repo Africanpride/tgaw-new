@@ -1,0 +1,20 @@
+{
+  "title": "Reserva de horários",
+  "type.bible": "Leitura bíblica",
+  "type.prayer": "Oração",
+  "type.worship": "Louvor & Adoração",
+  "selected_one": "{{count}} horário selecionado",
+  "selected_other": "{{count}} horários selecionados",
+  "action.bookSelected": "Reservar seleção",
+  "action.clearSelected": "Limpar os horários selecionados",
+  "myBookings": "Minhas reservas",
+  "cancel.title": "Cancelar esta reserva?",
+  "cancel.description": "Isso libera o horário para que outro membro possa reservá-lo. Você pode reservá-lo novamente se mudar de ideia.",
+  "action.keepBooking": "Manter a reserva",
+  "action.cancelBooking": "Cancelar a reserva",
+  "toast.booked": "Horários reservados com sucesso",
+  "toast.bookFailed": "Falha ao reservar os horários",
+  "toast.cancelPast": "Não é possível cancelar uma reserva que já passou",
+  "toast.cancelled": "Reserva cancelada",
+  "toast.cancelFailed": "Falha ao cancelar a reserva"
+}

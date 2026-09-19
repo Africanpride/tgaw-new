@@ -465,6 +465,7 @@ model User {
   image         String?
   notificationPrefs Json?
   onboardingComplete Boolean @default(false)
+  preferredLocale String? @default("en")
   userProfile        UserProfile?
   sessions      Session[]
   accounts      Account[]

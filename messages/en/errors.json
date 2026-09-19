@@ -1,0 +1,10 @@
+{
+  "notFound.title": "Page not found",
+  "notFound.description": "The watch you're looking for doesn't exist or was moved.",
+  "notFound.home": "Back to home",
+  "notFound.dashboard": "Dashboard",
+  "error.title": "Something went wrong",
+  "error.fallback": "An unexpected error occurred. Your session is safe — try again.",
+  "error.retry": "Try again",
+  "error.dashboard": "Dashboard"
+}
