@@ -15,6 +15,9 @@ import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, isLocale } from "@/i18n/config"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  ),
   title: "The Global Altar Watch",
   description: "8 Gates of Society — Isaiah 19 Highway",
   manifest: "/manifest.json",

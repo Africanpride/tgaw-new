@@ -22,7 +22,6 @@ import {
 import Link from "next/link"
 import type * as React from "react"
 import { useTranslation } from "react-i18next"
-import { DashboardLocaleSwitcher } from "@/components/i18n/DashboardLocaleSwitcher"
 import { NavMain } from "@/components/nav-main"
 import {
   Sidebar,
@@ -228,9 +227,6 @@ export function AppSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="flex justify-center px-2 pt-1 group-data-[collapsible=icon]:px-0">
-          <DashboardLocaleSwitcher compact />
-        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

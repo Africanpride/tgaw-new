@@ -16,5 +16,11 @@
   "toast.bookFailed": "Échec de la réservation des créneaux",
   "toast.cancelPast": "Impossible d'annuler une réservation déjà passée",
   "toast.cancelled": "Réservation annulée",
-  "toast.cancelFailed": "Échec de l'annulation de la réservation"
+  "toast.cancelFailed": "Échec de l'annulation de la réservation",
+  "agenda.headingYourAgenda": "Votre agenda",
+  "agenda.headingTodayAndTomorrow": "Aujourd'hui et demain",
+  "agenda.headingToday": "Aujourd'hui",
+  "agenda.emptyTitle": "Aucune session réservée",
+  "agenda.emptyDescription": "Réservez un créneau dévotionnel et maintenez votre veille.",
+  "agenda.emptyAction": "Réserver un créneau"
 }

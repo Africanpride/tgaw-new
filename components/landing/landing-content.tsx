@@ -5,6 +5,7 @@ import {
   BookOpen,
   Church,
   Flame,
+  Globe,
   Heart,
   LogIn,
   Menu,
@@ -25,7 +26,7 @@ import FooterSectionTwo from "@/components/blocks/footer/footer-section-two";
 import { CountUp } from "@/components/landing/count-up";
 import { IconTile } from "@/components/IconTile";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
+import { LanguageDialog } from "@/components/i18n/LanguageDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -150,7 +151,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
 
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
-            <LocaleSwitcher />
+            <LanguageDialog />
             {isLoggedIn ? (
               <>
                 <Link href="/overview" className="cursor-pointer">
@@ -191,6 +192,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
           {/* Mobile menu */}
           <div className="flex items-center gap-2 md:hidden">
             <ThemeToggle />
+            <LanguageDialog />
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button
@@ -224,7 +226,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
                     </Link>
                   ))}
                   <div className="my-2 h-px bg-border" />
-                  <LocaleSwitcher />
+                  <LanguageDialog label={tc("nav.language")} />
                   {isLoggedIn ? (
                     <Link href="/overview" onClick={() => setMobileOpen(false)} className="cursor-pointer">
                       <Button className="w-full cursor-pointer gap-2">

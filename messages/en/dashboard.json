@@ -27,6 +27,8 @@
   "topbar.notifications": "Notifications",
   "topbar.commandPalette": "Command palette",
   "topbar.toggleTheme": "Toggle theme",
+  "topbar.changeLanguage": "Change language",
+  "topbar.languageDescription": "Choose the language used across the dashboard. Your choice is saved to your account and this device.",
   "topbar.page.dashboard": "Dashboard",
   "topbar.page.calendar": "Calendar",
   "topbar.page.booking": "Slot Booking",
@@ -88,5 +90,12 @@
   "palette.group.devotion": "Devotion",
   "palette.group.community": "Community",
   "palette.group.account": "Account",
-  "palette.group.leadership": "Leadership"
+  "palette.group.leadership": "Leadership",
+  "liveGrid.title": "Live Now & Up Next",
+  "liveGrid.subtitle": "Live now and coming up next — all times in your local time.",
+  "communityActivity.title": "Community Activity",
+  "communityActivity.badgeLive": "Live",
+  "communityActivity.emptyTitle": "Quiet watch",
+  "communityActivity.emptyAll": "No recent activity — be first to share a testimony or prayer.",
+  "communityActivity.emptyFilter": "No {{filter}} activity recently."
 }

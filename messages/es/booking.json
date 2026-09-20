@@ -16,5 +16,11 @@
   "toast.bookFailed": "No se pudieron reservar los turnos",
   "toast.cancelPast": "No se puede cancelar una reserva que ya pasó",
   "toast.cancelled": "Reserva cancelada",
-  "toast.cancelFailed": "No se pudo cancelar la reserva"
+  "toast.cancelFailed": "No se pudo cancelar la reserva",
+  "agenda.headingYourAgenda": "Tu agenda",
+  "agenda.headingTodayAndTomorrow": "Hoy y mañana",
+  "agenda.headingToday": "Hoy",
+  "agenda.emptyTitle": "Sin sesiones reservadas",
+  "agenda.emptyDescription": "Reserva un turno de devoción y mantén tu vigilia.",
+  "agenda.emptyAction": "Reservar un turno"
 }

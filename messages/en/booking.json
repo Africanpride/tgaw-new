@@ -16,5 +16,11 @@
   "toast.bookFailed": "Failed to book slots",
   "toast.cancelPast": "Cannot cancel a booking that is in the past",
   "toast.cancelled": "Booking cancelled",
-  "toast.cancelFailed": "Failed to cancel booking"
+  "toast.cancelFailed": "Failed to cancel booking",
+  "agenda.headingYourAgenda": "Your agenda",
+  "agenda.headingTodayAndTomorrow": "Today and tomorrow",
+  "agenda.headingToday": "Today",
+  "agenda.emptyTitle": "No sessions booked yet",
+  "agenda.emptyDescription": "Claim a devotional slot and keep your watch alive.",
+  "agenda.emptyAction": "Book a Slot"
 }

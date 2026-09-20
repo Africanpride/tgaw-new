@@ -15,6 +15,7 @@ import { sectionLabelClass } from "@/components/eyebrow"
 import { cookies } from "next/headers"
 import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, isLocale } from "@/i18n/config"
 import { getServerTranslation } from "@/lib/notifications/locale"
+import { auth } from "@/lib/auth"
 
 export default async function BannedPage({
   searchParams,

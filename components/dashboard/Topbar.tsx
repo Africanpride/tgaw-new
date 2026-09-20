@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { LanguageDialog } from "@/components/i18n/LanguageDialog";
 import { NavUser } from "@/components/nav-user";
 import { useTheme } from "@/components/theme-provider";
 import {
@@ -157,6 +158,7 @@ export function Topbar() {
 				</BreadcrumbList>
 			</Breadcrumb>
 			<div className="ml-auto flex shrink-0 items-center gap-2">
+				<LanguageDialog />
 				<Button
 					variant="ghost"
 					size="icon"

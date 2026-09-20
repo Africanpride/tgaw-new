@@ -477,6 +477,7 @@ function PushSubscriptionManager() {
 }
 
 function LanguageSection() {
+  const router = useRouter()
   const { t } = useTranslation("settings")
   const [locale, setLocale] = useState<string>(() => {
     if (typeof document !== "undefined") {
@@ -505,6 +506,7 @@ function LanguageSection() {
       if (!res.ok || !data?.success) throw new Error("locale update failed")
       document.cookie = `${LOCALE_COOKIE_NAME}=${next}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`
       await i18n.changeLanguage(next)
+      router.refresh()
       toast.success(t("language.saved"))
     } catch {
       toast.error(t("language.saveFailed"))
@@ -766,7 +768,7 @@ export default function SettingsPage() {
         timezone: data.timezone,
       })
       if (res.success) {
-        await refetchSession()
+        await refetchSession({ query: { disableCookieCache: true } })
         toast.success(t("toast.profileUpdated"))
       } else {
         toast.error(res.error || t("toast.profileFailed"))
@@ -826,7 +828,7 @@ export default function SettingsPage() {
       toast.success(t("toast.passwordSet"))
       setNewPassword("")
       setConfirmNewPassword("")
-      refetchSession()
+      refetchSession({ query: { disableCookieCache: true } })
     } else {
       toast.error(res.error || t("toast.setPasswordFailed"))
     }
@@ -865,7 +867,7 @@ export default function SettingsPage() {
       if (res.error) {
         toast.error(res.error.message || t("toast.codeInvalid"))
       } else {
-        await refetchSession()
+        await refetchSession({ query: { disableCookieCache: true } })
         setTwoFactorStep("backup")
       }
     } catch (err: unknown) {
@@ -884,7 +886,7 @@ export default function SettingsPage() {
       if (res.error) {
         toast.error(res.error.message || t("toast.disableFailed"))
       } else {
-        await refetchSession()
+        await refetchSession({ query: { disableCookieCache: true } })
         toast.success(t("toast.tfaDisabled"))
         setIsDisableModalOpen(false)
         setTwoFactorPassword("")
@@ -2463,7 +2465,7 @@ export default function SettingsPage() {
         initials={initials}
         onAvatarUpdated={(newUrl) => {
           setAvatarUrl(newUrl)
-          refetchSession?.()
+          refetchSession?.({ query: { disableCookieCache: true } })
         }}
       />
     </div>
