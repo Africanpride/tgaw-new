@@ -6,5 +6,15 @@
   "error.title": "Something went wrong",
   "error.fallback": "An unexpected error occurred. Your session is safe — try again.",
   "error.retry": "Try again",
-  "error.dashboard": "Dashboard"
+  "error.dashboard": "Dashboard",
+  "unauthorized.title": "Access Denied",
+  "unauthorized.description": "Your account role does not have permission to view this page.",
+  "unauthorized.return": "Return to Dashboard",
+  "banned.title": "Account suspended",
+  "banned.reason": "Reason",
+  "banned.expires": "Expires on",
+  "banned.permanent": "Permanent suspension",
+  "banned.support": "Contact support",
+  "banned.home": "Back to home",
+  "banned.defaultReason": "Your account has been banned by an administrator."
 }

@@ -376,20 +376,21 @@ function ContactStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
 }
 
 function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
+  const { t } = useTranslation("onboarding")
   const { watch, setValue, formState } = form
   const sex = watch("sex")
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold">A bit about you</h2>
+        <h2 className="text-lg font-semibold">{t("about.title", "A bit about you")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Helps us tailor slots and groups.
+          {t("about.subtitle", "Helps us tailor slots and groups.")}
         </p>
       </div>
       <div className="space-y-4">
         <div className="space-y-1.5">
           <Label>
-            Sex <span className="text-destructive">*</span>
+            {t("about.sex", "Sex")} <span className="text-destructive">*</span>
           </Label>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <button
@@ -429,9 +430,9 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
                 </svg>
               </div>
               <div>
-                <div className="font-medium">Male</div>
+                <div className="font-medium">{t("about.male", "Male")}</div>
                 <div className="mt-0.5 text-sm text-muted-foreground">
-                  Brother in faith
+                  {t("about.maleSubtitle", "Brother in faith")}
                 </div>
               </div>
             </button>
@@ -475,9 +476,9 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
                 </svg>
               </div>
               <div>
-                <div className="font-medium">Female</div>
+                <div className="font-medium">{t("about.female", "Female")}</div>
                 <div className="mt-0.5 text-sm text-muted-foreground">
-                  Sister in faith
+                  {t("about.femaleSubtitle", "Sister in faith")}
                 </div>
               </div>
             </button>
@@ -490,7 +491,7 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
         </div>
         <div className="space-y-1.5">
           <Label>
-            Age range <span className="text-destructive">*</span>
+            {t("about.ageRange", "Age range")} <span className="text-destructive">*</span>
           </Label>
           <Select
             value={watch("ageRange") ?? ""}
@@ -502,7 +503,7 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
             }
           >
             <SelectTrigger className="h-12 w-full data-[size=default]:h-12">
-              <SelectValue placeholder="Select your age range" />
+              <SelectValue placeholder={t("about.ageRangePlaceholder", "Select your age range")} />
             </SelectTrigger>
             <SelectContent>
               {AGE_RANGES.map((r) => (
@@ -524,18 +525,19 @@ function AboutStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
 }
 
 function TimezoneStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
+  const { t } = useTranslation("onboarding")
   const { watch, setValue, formState } = form
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold">Your time zone</h2>
+        <h2 className="text-lg font-semibold">{t("timezone.title", "Your time zone")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Slots and reminders are shown in your local time.
+          {t("timezone.subtitle", "Slots and reminders are shown in your local time.")}
         </p>
       </div>
       <div className="space-y-1.5">
         <Label>
-          Time zone <span className="text-destructive">*</span>
+          {t("timezone.label", "Time zone")} <span className="text-destructive">*</span>
         </Label>
         <Select
           value={watch("timezone") ?? ""}
@@ -544,7 +546,7 @@ function TimezoneStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
           }
         >
           <SelectTrigger className="h-12 w-full data-[size=default]:h-12">
-            <SelectValue placeholder="Select your time zone" />
+            <SelectValue placeholder={t("timezone.placeholder", "Select your time zone")} />
           </SelectTrigger>
           <SelectContent>
             {TIMEZONE_OPTIONS.map((tz) => (
@@ -566,19 +568,22 @@ function TimezoneStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
 
 function CompleteStep() {
   const router = useRouter()
+  const { t } = useTranslation("onboarding")
   return (
     <div className="flex flex-col items-center justify-center space-y-4 text-center">
       <div className="flex size-14 items-center justify-center rounded-full bg-primary/10">
         <Check className="size-7 text-primary" aria-hidden="true" />
       </div>
       <div>
-        <h2 className="text-lg font-semibold">You&apos;re all set</h2>
+        <h2 className="text-lg font-semibold">
+          {t("complete.title", "You're all set")}
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Your profile is ready. Let&apos;s find your first slot.
+          {t("complete.subtitle", "Your profile is ready. Let's find your first slot.")}
         </p>
       </div>
       <Button className="" onClick={() => router.push("/overview")}>
-        Go to dashboard
+        {t("complete.cta", "Go to dashboard")}
       </Button>
     </div>
   )

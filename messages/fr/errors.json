@@ -6,5 +6,15 @@
   "error.title": "Une erreur s'est produite",
   "error.fallback": "Une erreur inattendue s'est produite. Votre session est en sécurité — réessayez.",
   "error.retry": "Réessayer",
-  "error.dashboard": "Tableau de bord"
+  "error.dashboard": "Tableau de bord",
+  "unauthorized.title": "Accès refusé",
+  "unauthorized.description": "Le rôle de votre compte ne dispose pas des autorisations nécessaires pour afficher cette page.",
+  "unauthorized.return": "Retour au tableau de bord",
+  "banned.title": "Compte suspendu",
+  "banned.reason": "Raison",
+  "banned.expires": "Expire le",
+  "banned.permanent": "Suspension permanente",
+  "banned.support": "Contacter l'assistance",
+  "banned.home": "Retour à l'accueil",
+  "banned.defaultReason": "Votre compte a été suspendu par un administrateur."
 }

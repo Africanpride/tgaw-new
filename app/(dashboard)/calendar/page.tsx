@@ -1,5 +1,5 @@
 import { addMonths, format, startOfMonth } from "date-fns";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { EventType } from "@prisma/client";
 import { auth } from "@/lib/auth";
@@ -14,6 +14,8 @@ import {
 	convertTimeToTimezone,
 	utcSlotToLocalDate,
 } from "@/lib/calendar-utils";
+import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, isLocale } from "@/i18n/config";
+import { getServerTranslation } from "@/lib/notifications/locale";
 
 const SLOT_COLOR_MAP: Record<EventType, CalendarItemColor> = {
 	BIBLE: "purple",
@@ -22,24 +24,31 @@ const SLOT_COLOR_MAP: Record<EventType, CalendarItemColor> = {
 	SPECIAL: "violet",
 };
 
-function slotTypeLabel(type: EventType): string {
-	switch (type) {
-		case "BIBLE":
-			return "Bible Reading";
-		case "PRAYER":
-			return "Prayer";
-		case "PRAISE_WORSHIP":
-			return "Praise & Worship";
-		case "SPECIAL":
-			return "Special Event";
-	}
-}
-
 export default async function CalendarPage(props: {
 	searchParams: Promise<{ month?: string }>;
 }) {
 	const searchParams = await props.searchParams;
 	const monthParam = searchParams?.month;
+
+	const cookieLocale = (await cookies()).get(LOCALE_COOKIE_NAME)?.value;
+	const locale = isLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE;
+	const t = (key: string) => getServerTranslation(locale, "calendar", key);
+
+	const [pageTitle, pageSubtitle, bibleLabel, prayerLabel, worshipLabel, specialLabel] = await Promise.all([
+		t("header.title"),
+		t("header.subtitle"),
+		t("type.BIBLE"),
+		t("type.PRAYER"),
+		t("type.PRAISE_WORSHIP"),
+		t("type.SPECIAL"),
+	]);
+
+	const typeLabelMap: Record<EventType, string> = {
+		BIBLE: bibleLabel,
+		PRAYER: prayerLabel,
+		PRAISE_WORSHIP: worshipLabel,
+		SPECIAL: specialLabel,
+	};
 
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session?.user?.id) redirect("/login");
@@ -120,7 +129,7 @@ export default async function CalendarPage(props: {
 			id: `slot-${slot.id}`,
 			source: "slot",
 			type: slot.type,
-			title: `${slotTypeLabel(slot.type)} ${convertTimeToTimezone(slot.startTime, slot.date, userTimezone)}–${convertTimeToTimezone(slot.endTime, slot.date, userTimezone)}`,
+			title: `${typeLabelMap[slot.type] ?? slot.type} ${convertTimeToTimezone(slot.startTime, slot.date, userTimezone)}–${convertTimeToTimezone(slot.endTime, slot.date, userTimezone)}`,
 			color: SLOT_COLOR_MAP[slot.type],
 			date: utcSlotToLocalDate(slot.date, slot.startTime).toISOString(),
 			startTime: convertTimeToTimezone(slot.startTime, slot.date, userTimezone),
@@ -154,10 +163,10 @@ export default async function CalendarPage(props: {
 		<div className="flex flex-col gap-6">
 			<div className="flex flex-col gap-3">
 				<div>
-					<h1 className="text-2xl">Calendar</h1>
-				<p className="text-muted-foreground">
-					Manage your schedule and events
-				</p>
+					<h1 className="text-2xl">{pageTitle}</h1>
+					<p className="text-muted-foreground">
+						{pageSubtitle}
+					</p>
 				</div>
 				<IcalCopyButton token={session.user.id} />
 			</div>
