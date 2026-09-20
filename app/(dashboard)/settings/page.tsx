@@ -6,6 +6,7 @@ import {
   Bell,
   CircleUserRound,
   KeyRound,
+  Languages,
   Mail,
   Monitor,
   Moon,
@@ -49,6 +50,10 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "react-i18next"
+import i18n from "@/i18n/client"
+import { LOCALES, LOCALE_NAMES, LOCALE_COOKIE_NAME, type Locale } from "@/i18n/config"
+import type { TFunction } from "i18next"
 import { resolveCountryAlpha3, resolveCountryAlpha2 } from "@/lib/countries"
 import { phoneSchema } from "@/lib/schemas/phoneSchema"
 import { authClient, signOut, useSession } from "@/lib/auth-client"
@@ -63,6 +68,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   Dialog,
   DialogContent,
@@ -87,34 +93,6 @@ import { AvatarUploadDialog } from "@/components/settings/AvatarUploadDialog"
 import { IconTile } from "@/components/IconTile"
 import { sectionLabelClass } from "@/components/eyebrow"
 import { getAllTimezones } from "@/lib/timezones"
-
-const profileSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Enter a valid email address"),
-  phone: phoneSchema,
-  country: z.string().min(1, "Select a country"),
-  sex: z.enum(["male", "female"], { message: "Select an option" }),
-  ageRange: z.enum(
-    ["under-18", "18-24", "25-34", "35-44", "45-54", "55-64", "65-plus"],
-    { message: "Select an age range" }
-  ),
-  timezone: z.string().min(1, "Select a timezone"),
-})
-
-type ProfileForm = z.infer<typeof profileSchema>
-
-const passwordSchema = z
-  .object({
-    currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z.string().min(8, "Use at least 8 characters"),
-    confirmPassword: z.string().min(1, "Confirm your new password"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  })
-
-type PasswordForm = z.infer<typeof passwordSchema>
 
 const TIMEZONE_OPTIONS = getAllTimezones().map((tz) => {
   try {
@@ -141,46 +119,13 @@ type TabId = "profile" | "notifications" | "appearance" | "security" | "account"
 
 const tabs: {
   id: TabId
-  label: string
-  shortLabel: string
   icon: typeof UserRound
-  description: string
 }[] = [
-  {
-    id: "profile",
-    label: "Profile",
-    shortLabel: "Profile",
-    icon: UserRound,
-    description: "Your name, email, and public details",
-  },
-  {
-    id: "notifications",
-    label: "Notifications",
-    shortLabel: "Alerts",
-    icon: Bell,
-    description: "Choose when and how we reach you",
-  },
-  {
-    id: "appearance",
-    label: "Appearance",
-    shortLabel: "Theme",
-    icon: Palette,
-    description: "Theme and display preferences",
-  },
-  {
-    id: "security",
-    label: "Security",
-    shortLabel: "Security",
-    icon: ShieldCheck,
-    description: "Password, two-factor, and sessions",
-  },
-  {
-    id: "account",
-    label: "Account",
-    shortLabel: "Account",
-    icon: CircleUserRound,
-    description: "Linked data, preferences, and danger zone",
-  },
+  { id: "profile", icon: UserRound },
+  { id: "notifications", icon: Bell },
+  { id: "appearance", icon: Palette },
+  { id: "security", icon: ShieldCheck },
+  { id: "account", icon: CircleUserRound },
 ]
 
 function ToggleRow({
@@ -241,18 +186,18 @@ function SectionHeader({
   )
 }
 
-function parseUA(uaString?: string) {
-  if (!uaString) return { device: "Unknown Device", browser: "Web Browser" }
+function parseUA(uaString: string | undefined, t: TFunction<"settings">) {
+  if (!uaString) return { device: t("device.unknown"), browser: t("device.browser") }
   const ua = uaString.toLowerCase()
-  let device = "Desktop"
-  let browser = "Web Browser"
+  let device = t("device.desktop")
+  let browser = t("device.browser")
 
   if (ua.includes("mobi") || ua.includes("android") || ua.includes("iphone")) {
     device = ua.includes("iphone")
       ? "iPhone"
       : ua.includes("ipad")
         ? "iPad"
-        : "Mobile Device"
+        : t("device.mobile")
   } else if (ua.includes("macintosh")) {
     device = "Mac"
   } else if (ua.includes("windows")) {
@@ -366,6 +311,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 function PushSubscriptionManager() {
+  const { t } = useTranslation("settings")
   const [permission, setPermission] = React.useState<NotificationPermission | "unsupported">("default");
   const [isSubscribed, setIsSubscribed] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -400,7 +346,7 @@ function PushSubscriptionManager() {
 
   const handleEnable = async () => {
     if (!("Notification" in window)) {
-      toast.error("Notifications not supported in this browser");
+      toast.error(t("push.notSupported"));
       return;
     }
     setIsBusy(true);
@@ -408,12 +354,12 @@ function PushSubscriptionManager() {
       const perm = await Notification.requestPermission();
       setPermission(perm);
       if (perm !== "granted") {
-        toast.error(perm === "denied" ? "Notifications blocked — enable in browser settings" : "Permission not granted");
+        toast.error(perm === "denied" ? t("push.blockedToast") : t("push.noPermission"));
         setIsBusy(false);
         return;
       }
       if (!vapidKey) {
-        toast.error("Push not configured (VAPID key missing)");
+        toast.error(t("push.noVapidToast"));
         setIsBusy(false);
         return;
       }
@@ -434,7 +380,7 @@ function PushSubscriptionManager() {
           body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
         });
         setIsSubscribed(true);
-        toast.success("Push notifications enabled");
+        toast.success(t("push.enabledToast"));
         setIsBusy(false);
         return;
       }
@@ -450,15 +396,15 @@ function PushSubscriptionManager() {
       });
       if (!res.ok) {
         const j = await res.json().catch(() => null);
-        throw new Error(j?.error ? JSON.stringify(j.error) : "Failed to save subscription");
+        throw new Error(j?.error ? JSON.stringify(j.error) : t("push.saveFailed"));
       }
       setIsSubscribed(true);
-      toast.success("Push notifications enabled");
+      toast.success(t("push.enabledToast"));
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (msg.toLowerCase().includes("push service")) {
         toast.error(
-          "Your browser's push service is unavailable (common on Chromium/Brave builds without Google integration, or networks blocking fcm.googleapis.com). Try Firefox or Google Chrome.",
+          t("push.unavailable"),
         );
       } else {
         toast.error(msg);
@@ -479,7 +425,7 @@ function PushSubscriptionManager() {
         await fetch(`/api/v1/push?endpoint=${encodeURIComponent(endpoint)}`, { method: "DELETE" }).catch(() => {});
       }
       setIsSubscribed(false);
-      toast.success("Push notifications disabled");
+      toast.success(t("push.disabledToast"));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
     } finally {
@@ -493,12 +439,12 @@ function PushSubscriptionManager() {
       const j = await res.json().catch(() => null);
       if (res.ok) {
         const d = j?.data as { sent?: number; failed?: number } | null;
-        toast.success(d?.sent && d.sent > 1 ? `Test sent to ${d.sent} devices` : "Test notification sent");
+        toast.success(d?.sent && d.sent > 1 ? t("push.testSentMany", { count: d.sent }) : t("push.testSent"));
       } else {
-        toast.error(j?.error ?? "Test failed");
+        toast.error(j?.error ?? t("push.testFailed"));
       }
     } catch {
-      toast.error("Test failed");
+      toast.error(t("push.testFailed"));
     }
   };
 
@@ -509,32 +455,115 @@ function PushSubscriptionManager() {
       <div className="flex items-start gap-3">
         <IconTile icon={Smartphone} size="md" tone="border bg-muted/50" iconClassName="size-4" />
         <div className="space-y-0.5">
-          <h6 className="text-sm font-medium">Browser push notifications</h6>
+          <h6 className="text-sm font-medium">{t("push.title")}</h6>
           <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-            {permission === "unsupported" ? "Not supported in this browser" : permission === "denied" ? "Blocked — enable in browser site settings" : isSubscribed ? "Enabled on this device" : "Allow notifications to get instant alerts"}
+            {permission === "unsupported" ? t("push.unsupported") : permission === "denied" ? t("push.blocked") : isSubscribed ? t("push.enabled") : t("push.prompt")}
           </p>
-          {permission === "default" && !vapidKey && <p className="max-w-5xl text-xs sm:text-sm text-amber-600">VAPID key not configured</p>}
+          {permission === "default" && !vapidKey && <p className="max-w-5xl text-xs sm:text-sm text-amber-600">{t("push.noVapid")}</p>}
         </div>
       </div>
       <div className="flex gap-2">
         {isSubscribed ? (
           <>
             {/* <Button variant="outline" size="sm" className="cursor-pointer" disabled={isBusy} onClick={handleTest}>Test</Button> */}
-            <Button variant="outline" size="sm" className="cursor-pointer" disabled={isBusy} onClick={handleDisable}>{isBusy ? "..." : "Disable"}</Button>
+            <Button variant="outline" size="sm" className="cursor-pointer" disabled={isBusy} onClick={handleDisable}>{isBusy ? "..." : t("push.disable")}</Button>
           </>
         ) : (
-          <Button size="sm" className="cursor-pointer" disabled={isBusy || permission === "denied" || permission === "unsupported"} onClick={handleEnable}>{isBusy ? "..." : "Enable"}</Button>
+          <Button size="sm" className="cursor-pointer" disabled={isBusy || permission === "denied" || permission === "unsupported"} onClick={handleEnable}>{isBusy ? "..." : t("push.enable")}</Button>
         )}
       </div>
     </div>
   );
 }
 
+function LanguageSection() {
+  const router = useRouter()
+  const { t } = useTranslation("settings")
+  const [locale, setLocale] = useState<string>(() => {
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(
+        new RegExp(`(?:^|; )${LOCALE_COOKIE_NAME}=([^;]*)`)
+      )
+      if (match?.[1] && (LOCALES as readonly string[]).includes(match[1])) {
+        return match[1]
+      }
+    }
+    return i18n.language?.split("-")[0] ?? "en"
+  })
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleLocaleChange = async (value: string) => {
+    const next = value as Locale
+    setLocale(next)
+    setIsSaving(true)
+    try {
+      const res = await fetch("/api/v1/locale", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale: next }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.success) throw new Error("locale update failed")
+      document.cookie = `${LOCALE_COOKIE_NAME}=${next}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`
+      await i18n.changeLanguage(next)
+      router.refresh()
+      toast.success(t("language.saved"))
+    } catch {
+      toast.error(t("language.saveFailed"))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4 rounded-xl border p-2 sm:p-5 shadow-xs">
+      <div className="flex items-start gap-3">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/50">
+          <Languages className="size-4" aria-hidden="true" />
+        </span>
+        <div className="space-y-0.5">
+          <h6 className="text-sm font-medium">{t("language.title")}</h6>
+          <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
+            {t("language.description")}
+          </p>
+        </div>
+      </div>
+      <RadioGroup
+        value={locale}
+        onValueChange={handleLocaleChange}
+        disabled={isSaving}
+        aria-label={t("language.title")}
+        className="grid gap-2 sm:grid-cols-2"
+      >
+        {LOCALES.map((loc) => (
+          <Label
+            key={loc}
+            htmlFor={`lang-${loc}`}
+            className={cn(
+              "flex cursor-pointer items-center gap-3 rounded-lg border p-2 transition-colors hover:bg-muted/50 sm:p-3",
+              locale === loc
+                ? "border-primary bg-primary/5"
+                : "border-border"
+            )}
+          >
+            <RadioGroupItem value={loc} id={`lang-${loc}`} />
+            <span className="text-sm font-medium">{LOCALE_NAMES[loc]}</span>
+          </Label>
+        ))}
+      </RadioGroup>
+      {isSaving && (
+        <p className="text-xs text-muted-foreground">{t("language.saving")}</p>
+      )}
+    </div>
+  )
+}
+
 export default function SettingsPage() {
+  const { t } = useTranslation("settings")
   const { data: session, isPending, refetch: refetchSession } = useSession()
   const user = session?.user
   const currentSessionId = session?.session?.id
-  const name = user?.name ?? "User"
+  const name = user?.name ?? t("profile.fallbackName")
   const email = user?.email ?? ""
   const role = (user?.role as string) ?? "member"
   const twoFactorEnabled = user?.twoFactorEnabled ?? false
@@ -650,6 +679,40 @@ export default function SettingsPage() {
     }
   }, [activeTab])
 
+  const profileSchema = React.useMemo(
+    () =>
+      z.object({
+        name: z.string().min(2, t("validation.nameMin")),
+        email: z.string().email(t("validation.email")),
+        phone: phoneSchema,
+        country: z.string().min(1, t("validation.country")),
+        sex: z.enum(["male", "female"], { message: t("validation.sex") }),
+        ageRange: z.enum(
+          ["under-18", "18-24", "25-34", "35-44", "45-54", "55-64", "65-plus"],
+          { message: t("validation.ageRange") }
+        ),
+        timezone: z.string().min(1, t("validation.timezone")),
+      }),
+    [t]
+  )
+  type ProfileForm = z.infer<typeof profileSchema>
+
+  const passwordSchema = React.useMemo(
+    () =>
+      z
+        .object({
+          currentPassword: z.string().min(1, t("validation.currentPassword")),
+          newPassword: z.string().min(8, t("validation.newPassword")),
+          confirmPassword: z.string().min(1, t("validation.confirmPassword")),
+        })
+        .refine((data) => data.newPassword === data.confirmPassword, {
+          message: t("validation.passwordMismatch"),
+          path: ["confirmPassword"],
+        }),
+    [t]
+  )
+  type PasswordForm = z.infer<typeof passwordSchema>
+
   const {
     register,
     handleSubmit,
@@ -705,13 +768,13 @@ export default function SettingsPage() {
         timezone: data.timezone,
       })
       if (res.success) {
-        await refetchSession()
-        toast.success("Profile updated")
+        await refetchSession({ query: { disableCookieCache: true } })
+        toast.success(t("toast.profileUpdated"))
       } else {
-        toast.error(res.error || "Failed to update profile")
+        toast.error(res.error || t("toast.profileFailed"))
       }
     } catch {
-      toast.error("Failed to update profile details")
+      toast.error(t("toast.profileDetailsFailed"))
     }
   }
 
@@ -729,9 +792,9 @@ export default function SettingsPage() {
         },
       })
       if (res.success) {
-        toast.success("Notification preferences saved")
+        toast.success(t("toast.notifSaved"))
       } else {
-        toast.error(res.error || "Failed to save preferences")
+        toast.error(res.error || t("toast.notifFailed"))
       }
     })
   }
@@ -743,31 +806,31 @@ export default function SettingsPage() {
     })
     if (res.success) {
       resetPw()
-      toast.success("Password changed successfully")
+      toast.success(t("toast.passwordChanged"))
     } else {
-      toast.error(res.error || "Failed to update password")
+      toast.error(res.error || t("toast.passwordFailed"))
     }
   }
 
   const handleSetPassword = async () => {
     if (newPassword !== confirmNewPassword) {
-      toast.error("Passwords do not match")
+      toast.error(t("toast.passwordMismatch"))
       return
     }
     if (newPassword.length < 8) {
-      toast.error("Use at least 8 characters")
+      toast.error(t("toast.passwordMin"))
       return
     }
     setIsSettingPassword(true)
     const res = await setPassword({ newPassword })
     setIsSettingPassword(false)
     if (res.success) {
-      toast.success("Password set successfully")
+      toast.success(t("toast.passwordSet"))
       setNewPassword("")
       setConfirmNewPassword("")
-      refetchSession()
+      refetchSession({ query: { disableCookieCache: true } })
     } else {
-      toast.error(res.error || "Failed to set password")
+      toast.error(res.error || t("toast.setPasswordFailed"))
     }
   }
 
@@ -786,10 +849,10 @@ export default function SettingsPage() {
         setBackupCodes(res.data.backupCodes)
         setTwoFactorStep("scan")
       } else {
-        toast.error("Could not generate setup token. Check your password.")
+        toast.error(t("toast.setupTokenFailed"))
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to begin 2FA setup")
+      toast.error(err instanceof Error ? err.message : t("toast.setupFailed"))
     } finally {
       setIs2FALoading(false)
     }
@@ -802,13 +865,13 @@ export default function SettingsPage() {
         code: twoFactorCode,
       })
       if (res.error) {
-        toast.error(res.error.message || "Invalid setup code")
+        toast.error(res.error.message || t("toast.codeInvalid"))
       } else {
-        await refetchSession()
+        await refetchSession({ query: { disableCookieCache: true } })
         setTwoFactorStep("backup")
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to verify setup code")
+      toast.error(err instanceof Error ? err.message : t("toast.verifyFailed"))
     } finally {
       setIs2FALoading(false)
     }
@@ -821,15 +884,15 @@ export default function SettingsPage() {
         password: twoFactorPassword,
       })
       if (res.error) {
-        toast.error(res.error.message || "Could not disable. Check password.")
+        toast.error(res.error.message || t("toast.disableFailed"))
       } else {
-        await refetchSession()
-        toast.success("Two-factor authentication disabled")
+        await refetchSession({ query: { disableCookieCache: true } })
+        toast.success(t("toast.tfaDisabled"))
         setIsDisableModalOpen(false)
         setTwoFactorPassword("")
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to disable 2FA")
+      toast.error(err instanceof Error ? err.message : t("toast.disableError"))
     } finally {
       setIs2FALoading(false)
     }
@@ -851,9 +914,9 @@ export default function SettingsPage() {
       if (res.error) throw new Error(res.error.message)
       setBackupCodes(res.data.backupCodes)
       setRegenStep("done")
-      toast.success("Backup codes generated")
+      toast.success(t("toast.codesGenerated"))
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to generate backup codes")
+      toast.error(err instanceof Error ? err.message : t("toast.codesFailed"))
     } finally {
       setIsRegenerating(false)
     }
@@ -863,20 +926,20 @@ export default function SettingsPage() {
   const handleRevokeSession = async (token: string) => {
     const res = await revokeSession(token)
     if (res.success) {
-      toast.success("Session terminated")
+      toast.success(t("toast.sessionEnded"))
       setUserSessions((prev) => prev.filter((s) => s.token !== token))
     } else {
-      toast.error(res.error || "Failed to terminate session")
+      toast.error(res.error || t("toast.revokeFailed"))
     }
   }
 
   const handleRevokeOtherSessions = async () => {
     const res = await revokeOtherSessions()
     if (res.success) {
-      toast.success("All other sessions terminated")
+      toast.success(t("toast.otherSessionsEnded"))
       setUserSessions((prev) => prev.filter((s) => s.id === currentSessionId))
     } else {
-      toast.error(res.error || "Failed to terminate other sessions")
+      toast.error(res.error || t("toast.revokeOthersFailed"))
     }
   }
 
@@ -886,12 +949,12 @@ export default function SettingsPage() {
     try {
       const res = await fetch("/api/v1/account/export")
       if (res.ok) {
-        toast.success("Export finished! Data emailed and downloaded.")
+        toast.success(t("toast.exportDone"))
       } else {
-        toast.error("Data export failed")
+        toast.error(t("toast.exportFailed"))
       }
     } catch {
-      toast.error("Data export failed")
+      toast.error(t("toast.exportFailed"))
     } finally {
       setIsExporting(false)
     }
@@ -900,7 +963,7 @@ export default function SettingsPage() {
   // Delete account flow
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== "DELETE") {
-      toast.error("Please type DELETE to confirm")
+      toast.error(t("toast.deleteConfirm"))
       return
     }
 
@@ -909,11 +972,11 @@ export default function SettingsPage() {
     setIsDeleting(false)
 
     if (res.success) {
-      toast.success("Account deleted successfully. Goodbye!")
+      toast.success(t("toast.accountDeleted"))
       await signOut()
       router.push("/")
     } else {
-      toast.error(res.error || "Account deletion failed")
+      toast.error(res.error || t("toast.deleteFailed"))
     }
   }
 
@@ -923,9 +986,9 @@ export default function SettingsPage() {
   }
 
   const themeOptions = [
-    { id: "light", label: "Light", icon: Sun },
-    { id: "dark", label: "Dark", icon: Moon },
-    { id: "system", label: "System", icon: Monitor },
+    { id: "light", labelKey: "appearance.light", icon: Sun },
+    { id: "dark", labelKey: "appearance.dark", icon: Moon },
+    { id: "system", labelKey: "appearance.system", icon: Monitor },
   ] as const
 
   const directional = reduceMotion
@@ -944,12 +1007,9 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-light tracking-tight">Settings</h1>
+        <h1 className="text-2xl font-light tracking-tight">{t("title")}</h1>
         <p className="max-w-5xl text-xs sm:text-sm leading-relaxed text-muted-foreground">
-          Update your display name and photo, choose how you receive
-          notifications, switch between light and dark theme, change your
-          password, enable two-factor authentication, manage active sessions,
-          export your data, or delete your account — all in one place.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -960,7 +1020,7 @@ export default function SettingsPage() {
       >
         <div className="flex w-full flex-col gap-6 lg:flex-row">
           <aside className="w-full min-w-0 shrink-0 lg:w-64">
-            <nav aria-label="Settings sections" className="w-full">
+            <nav aria-label={t("nav.sections")} className="w-full">
               <TabsList className="!h-auto group-data-[orientation=horizontal]/tabs:!h-auto group-data-[orientation=vertical]/tabs:!h-auto flex w-full !flex-row flex-nowrap items-stretch gap-1 rounded-none border-none bg-transparent p-0 pb-1 lg:!flex-col lg:items-stretch lg:gap-1.5 lg:pb-0">
                 {tabs.map((tab) => {
                   const Icon = tab.icon
@@ -988,8 +1048,8 @@ export default function SettingsPage() {
                         )}
                         aria-hidden="true"
                       />
-                      <span className="z-10 whitespace-nowrap lg:hidden">{tab.shortLabel}</span>
-                      <span className="z-10 hidden whitespace-nowrap lg:inline">{tab.label}</span>
+                      <span className="z-10 whitespace-nowrap lg:hidden">{t(`tabs.${tab.id}Short`)}</span>
+                      <span className="z-10 hidden whitespace-nowrap lg:inline">{t(`tabs.${tab.id}`)}</span>
                       {isActive && (
                         <motion.span
                           layoutId="settings-active-indicator"
@@ -1030,8 +1090,8 @@ export default function SettingsPage() {
                     {activeTab === "profile" && (
                       <div className="flex flex-col gap-6">
                         <SectionHeader
-                          title="Profile"
-                          description="Update your display name and photo — this is what other community members see when they interact with you in groups, messages, and posts."
+                          title={t("profile.title")}
+                          description={t("profile.description")}
                           icon={UserRound}
                         />
                         <Separator />
@@ -1070,7 +1130,7 @@ export default function SettingsPage() {
                               className="w-full cursor-pointer sm:ml-auto sm:w-auto"
                               onClick={() => setIsAvatarDialogOpen(true)}
                             >
-                              Change photo
+                              {t("profile.changePhoto")}
                             </Button>
                           </div>
 
@@ -1080,7 +1140,7 @@ export default function SettingsPage() {
                                 htmlFor="name"
                                 className="text-sm text-muted-foreground"
                               >
-                                Full name
+                                {t("profile.fullName")}
                               </Label>
                               <Input
                                 id="name"
@@ -1100,7 +1160,7 @@ export default function SettingsPage() {
                                 htmlFor="email"
                                 className="text-sm text-muted-foreground"
                               >
-                                Email
+                                {t("profile.email")}
                               </Label>
                               <Input
                                 id="email"
@@ -1112,7 +1172,7 @@ export default function SettingsPage() {
                                 className="h-12 cursor-not-allowed bg-muted/20 opacity-60"
                               />
                               <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                                To change your email, please contact support.
+                                {t("profile.emailHint")}
                               </p>
                             </div>
                           </div>
@@ -1123,7 +1183,7 @@ export default function SettingsPage() {
                                 htmlFor="phone"
                                 className="text-sm text-muted-foreground"
                               >
-                                Phone number
+                                {t("profile.phone")}
                               </Label>
                               <PhoneInput
                                 id="phone"
@@ -1143,7 +1203,7 @@ export default function SettingsPage() {
                                     })
                                   }
                                 }}
-                                placeholder="Enter your phone number"
+                                placeholder={t("profile.phonePlaceholder")}
                                 className="h-12 w-full"
                                 aria-invalid={!!errors.phone}
                               />
@@ -1158,7 +1218,7 @@ export default function SettingsPage() {
                                 htmlFor="country"
                                 className="text-sm text-muted-foreground"
                               >
-                                Country
+                                {t("profile.country")}
                               </Label>
                               <CountryDropdown
                                 defaultValue={resolveCountryAlpha3(
@@ -1170,7 +1230,7 @@ export default function SettingsPage() {
                                   })
                                 }
                                 className="h-12 w-full"
-                                placeholder="Select your country"
+                                placeholder={t("profile.countryPlaceholder")}
                               />
                               {errors.country && (
                                 <p className="max-w-5xl text-xs sm:text-sm text-destructive">
@@ -1183,7 +1243,7 @@ export default function SettingsPage() {
                           <div className="grid gap-2 sm:grid-cols-3">
                             <div className="space-y-2">
                               <Label className="text-sm text-muted-foreground">
-                                Sex
+                                {t("profile.sex")}
                               </Label>
                               <Select
                                 value={watch("sex")}
@@ -1197,11 +1257,11 @@ export default function SettingsPage() {
                                   className="h-12 w-full data-[size=default]:h-12"
                                   aria-invalid={!!errors.sex}
                                 >
-                                  <SelectValue placeholder="Select" />
+                                  <SelectValue placeholder={t("profile.selectOption")} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="male">Male</SelectItem>
-                                  <SelectItem value="female">Female</SelectItem>
+                                  <SelectItem value="male">{t("profile.male")}</SelectItem>
+                                  <SelectItem value="female">{t("profile.female")}</SelectItem>
                                 </SelectContent>
                               </Select>
                               {errors.sex && (
@@ -1212,7 +1272,7 @@ export default function SettingsPage() {
                             </div>
                             <div className="space-y-2">
                               <Label className="text-sm text-muted-foreground">
-                                Age range
+                                {t("profile.ageRange")}
                               </Label>
                               <Select
                                 value={watch("ageRange")}
@@ -1228,7 +1288,7 @@ export default function SettingsPage() {
                                   className="h-12 w-full data-[size=default]:h-12"
                                   aria-invalid={!!errors.ageRange}
                                 >
-                                  <SelectValue placeholder="Select age range" />
+                                  <SelectValue placeholder={t("profile.ageRangePlaceholder")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {AGE_RANGES.map((r) => (
@@ -1249,7 +1309,7 @@ export default function SettingsPage() {
                                 htmlFor="timezone"
                                 className="text-sm text-muted-foreground"
                               >
-                                Timezone
+                                {t("profile.timezone")}
                               </Label>
                               <Select
                                 value={watch("timezone") ?? ""}
@@ -1265,7 +1325,7 @@ export default function SettingsPage() {
                                   className="h-12 w-full data-[size=default]:h-12"
                                   aria-invalid={!!errors.timezone}
                                 >
-                                  <SelectValue placeholder="Select your time zone" />
+                                  <SelectValue placeholder={t("profile.timezonePlaceholder")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {TIMEZONE_OPTIONS.map((tz) => (
@@ -1276,7 +1336,7 @@ export default function SettingsPage() {
                                 </SelectContent>
                               </Select>
                               <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                                Used for slot reminders and the calendar.
+                                {t("profile.timezoneHint")}
                               </p>
                               {errors.timezone && (
                                 <p className="max-w-5xl text-xs sm:text-sm text-destructive">
@@ -1292,7 +1352,7 @@ export default function SettingsPage() {
                               disabled={isSubmitting}
                               className="cursor-pointer"
                             >
-                              {isSubmitting ? "Saving..." : "Save changes"}
+                              {isSubmitting ? t("profile.saving") : t("profile.save")}
                             </Button>
                           </div>
                         </form>
@@ -1302,22 +1362,22 @@ export default function SettingsPage() {
                     {activeTab === "notifications" && (
                       <div className="flex flex-col gap-6">
                         <SectionHeader
-                          title="Notifications"
-                          description="Choose how and when TGAW reaches you — pick between email alerts and browser push notifications for new messages, prayer updates, and important community broadcasts."
+                          title={t("notifications.title")}
+                          description={t("notifications.description")}
                           icon={Bell}
                         />
                         <Separator />
                         <div className="flex flex-col gap-5">
                           <div>
                             <h6 className={cn("mb-3", sectionLabelClass)}>
-                              Email
+                              {t("notifications.email")}
                             </h6>
                             <div className="flex flex-col gap-5">
                               <ToggleRow
                                 id="email-new-message"
                                 icon={Mail}
-                                title="New messages"
-                                description="Email me when someone sends me a message"
+                                title={t("notifications.newMessages")}
+                                description={t("notifications.newMessagesEmail")}
                                 checked={notifPrefs.emailNewMessage}
                                 onCheckedChange={(v) =>
                                   setNotifPrefs((p) => ({
@@ -1329,8 +1389,8 @@ export default function SettingsPage() {
                               <ToggleRow
                                 id="email-prayer-update"
                                 icon={Heart}
-                                title="Prayer updates"
-                                description="Email me when a prayer request I follow is updated"
+                                title={t("notifications.prayerUpdates")}
+                                description={t("notifications.prayerUpdatesEmail")}
                                 checked={notifPrefs.emailPrayerUpdate}
                                 onCheckedChange={(v) =>
                                   setNotifPrefs((p) => ({
@@ -1342,8 +1402,8 @@ export default function SettingsPage() {
                               <ToggleRow
                                 id="email-broadcast"
                                 icon={CircleUserRound}
-                                title="Broadcasts"
-                                description="Receive important updates from the TGAW team"
+                                title={t("notifications.broadcasts")}
+                                description={t("notifications.broadcastsDesc")}
                                 checked={notifPrefs.emailBroadcast}
                                 onCheckedChange={(v) =>
                                   setNotifPrefs((p) => ({
@@ -1358,14 +1418,14 @@ export default function SettingsPage() {
                           <Separator />
                           <div>
                             <h6 className={cn("mb-3", sectionLabelClass)}>
-                              Browser push
+                              {t("notifications.browserPush")}
                             </h6>
                             <div className="flex flex-col gap-5">
                               <ToggleRow
                                 id="push-new-message"
                                 icon={Smartphone}
-                                title="New messages"
-                                description="Notify me instantly when a message arrives"
+                                title={t("notifications.newMessages")}
+                                description={t("notifications.pushNewMessagesDesc")}
                                 checked={notifPrefs.pushNewMessage}
                                 onCheckedChange={(v) =>
                                   setNotifPrefs((p) => ({
@@ -1377,8 +1437,8 @@ export default function SettingsPage() {
                               <ToggleRow
                                 id="push-prayer-update"
                                 icon={Heart}
-                                title="Prayer updates"
-                                description="Notify me when a followed prayer request changes"
+                                title={t("notifications.prayerUpdates")}
+                                description={t("notifications.pushPrayerDesc")}
                                 checked={notifPrefs.pushPrayerUpdate}
                                 onCheckedChange={(v) =>
                                   setNotifPrefs((p) => ({
@@ -1396,7 +1456,7 @@ export default function SettingsPage() {
                             disabled={isPendingNotifs}
                             onClick={handleSaveNotifPrefs}
                           >
-                            {isPendingNotifs ? "Saving..." : "Save preferences"}
+                            {isPendingNotifs ? t("notifications.saving") : t("notifications.save")}
                           </Button>
                         </div>
                       </div>
@@ -1405,14 +1465,14 @@ export default function SettingsPage() {
                     {activeTab === "appearance" && (
                       <div className="flex flex-col gap-6">
                         <SectionHeader
-                          title="Appearance"
-                          description="Switch between light, dark, or system-default theme to match your preference or device settings."
+                          title={t("appearance.title")}
+                          description={t("appearance.description")}
                           icon={Palette}
                         />
                         <Separator />
                         <div className="space-y-2">
                           <Label className="text-sm text-muted-foreground">
-                            Theme
+                            {t("appearance.theme")}
                           </Label>
                           <div className="grid grid-cols-3 gap-2">
                             {themeOptions.map((option) => {
@@ -1446,14 +1506,14 @@ export default function SettingsPage() {
                                       aria-hidden="true"
                                     />
                                     <span className="text-sm font-medium">
-                                      {option.label}
+                                      {t(option.labelKey)}
                                     </span>
                                     {option.id === "system" && (
                                       <Badge
                                         variant="secondary"
                                         className="h-4 px-1.5 text-[10px]"
                                       >
-                                        Auto
+                                        {t("appearance.auto")}
                                       </Badge>
                                     )}
                                   </div>
@@ -1462,14 +1522,16 @@ export default function SettingsPage() {
                             })}
                           </div>
                         </div>
+                        <Separator />
+                        <LanguageSection />
                       </div>
                     )}
 
                     {activeTab === "security" && (
                       <div className="flex flex-col gap-6">
                         <SectionHeader
-                          title="Security"
-                          description="Change your password, enable two-factor authentication for extra protection, and manage the devices currently signed into your account."
+                          title={t("security.title")}
+                          description={t("security.description")}
                           icon={ShieldCheck}
                         />
                         <Separator />
@@ -1482,11 +1544,10 @@ export default function SettingsPage() {
                             </span>
                             <div className="space-y-0.5">
                               <h6 className="text-sm font-medium">
-                                Two-factor authentication
+                                {t("security.tfa")}
                               </h6>
                               <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                                Add an extra layer of security with an
-                                authenticator app.
+                                {t("security.tfaDesc")}
                               </p>
                             </div>
                           </div>
@@ -1497,7 +1558,7 @@ export default function SettingsPage() {
                               }
                               className="shrink-0"
                             >
-                              {twoFactorEnabled ? "Active" : "Off"}
+                              {twoFactorEnabled ? t("security.active") : t("security.off")}
                             </Badge>
                             {twoFactorEnabled ? (
                               <div className="flex gap-2">
@@ -1506,7 +1567,7 @@ export default function SettingsPage() {
                                   size="sm"
                                   onClick={handleRegenerateBackupCodes}
                                 >
-                                  Codes
+                                  {t("security.codes")}
                                 </Button>
                                 <Button
                                   variant="destructive"
@@ -1516,7 +1577,7 @@ export default function SettingsPage() {
                                     setIsDisableModalOpen(true)
                                   }}
                                 >
-                                  Disable
+                                  {t("security.disable")}
                                 </Button>
                               </div>
                             ) : (
@@ -1530,7 +1591,7 @@ export default function SettingsPage() {
                                   setIs2FAModalOpen(true)
                                 }}
                               >
-                                Enable
+                                {t("security.enable")}
                               </Button>
                             )}
                           </div>
@@ -1547,7 +1608,7 @@ export default function SettingsPage() {
                                 htmlFor="current-password"
                                 className="text-sm text-muted-foreground"
                               >
-                                Current password
+                                {t("security.currentPassword")}
                               </Label>
                               <Input
                                 id="current-password"
@@ -1569,7 +1630,7 @@ export default function SettingsPage() {
                                   htmlFor="new-password"
                                   className="text-sm text-muted-foreground"
                                 >
-                                  New password
+                                  {t("security.newPassword")}
                                 </Label>
                                 <Input
                                   id="new-password"
@@ -1590,7 +1651,7 @@ export default function SettingsPage() {
                                   htmlFor="confirm-password"
                                   className="text-sm text-muted-foreground"
                                 >
-                                  Confirm new password
+                                  {t("security.confirmPassword")}
                                 </Label>
                                 <Input
                                   id="confirm-password"
@@ -1615,8 +1676,8 @@ export default function SettingsPage() {
                                 className="cursor-pointer"
                               >
                                 {isSubmittingPw
-                                  ? "Updating..."
-                                  : "Update password"}
+                                  ? t("security.updating")
+                                  : t("security.updatePassword")}
                               </Button>
                             </div>
                           </form>
@@ -1624,9 +1685,7 @@ export default function SettingsPage() {
                           <div className="flex flex-col gap-5">
                             <div className="rounded-xl border border-dashed border-muted-foreground/25 bg-muted/30 p-2 sm:p-4">
                               <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                                You signed in with an OAuth provider and
-                                don&apos;t have a password yet. Set one so you
-                                can also log in with email and password.
+                                {t("security.setPasswordHint")}
                               </p>
                             </div>
                             <div className="grid gap-5 sm:grid-cols-2">
@@ -1635,7 +1694,7 @@ export default function SettingsPage() {
                                   htmlFor="set-new-password"
                                   className="text-sm text-muted-foreground"
                                 >
-                                  New password
+                                  {t("security.newPassword")}
                                 </Label>
                                 <Input
                                   id="set-new-password"
@@ -1653,7 +1712,7 @@ export default function SettingsPage() {
                                   htmlFor="set-confirm-password"
                                   className="text-sm text-muted-foreground"
                                 >
-                                  Confirm new password
+                                  {t("security.confirmPassword")}
                                 </Label>
                                 <Input
                                   id="set-confirm-password"
@@ -1676,8 +1735,8 @@ export default function SettingsPage() {
                                 onClick={handleSetPassword}
                               >
                                 {isSettingPassword
-                                  ? "Setting..."
-                                  : "Set New Password"}
+                                  ? t("security.setting")
+                                  : t("security.setPassword")}
                               </Button>
                             </div>
                           </div>
@@ -1689,9 +1748,9 @@ export default function SettingsPage() {
                         <div className="space-y-4">
                           <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div className="space-y-0.5">
-                              <h4 className="text-sm">Active Sessions</h4>
+                              <h4 className="text-sm">{t("security.sessions")}</h4>
                               <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                                Devices currently logged into TGAW.
+                                {t("security.sessionsDesc")}
                               </p>
                             </div>
                             {userSessions.length > 1 && (
@@ -1702,19 +1761,16 @@ export default function SettingsPage() {
                                     size="sm"
                                     className="w-full text-xs sm:w-auto"
                                   >
-                                    Log out other devices
+                                    {t("security.logoutOthers")}
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>
-                                      Are you absolutely sure?
+                                        {t("security.logoutTitle")}
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      This will terminate all other active
-                                      sessions except for your current browser
-                                      session. You will need to log back in on
-                                      those devices.
+                                    {t("security.logoutDesc")}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
@@ -1726,7 +1782,7 @@ export default function SettingsPage() {
                                         "cursor-pointer",
                                       )}
                                     >
-                                      Cancel
+                                      {t("security.cancel")}
                                     </AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={handleRevokeOtherSessions}
@@ -1737,7 +1793,7 @@ export default function SettingsPage() {
                                         "cursor-pointer",
                                       )}
                                     >
-                                      Confirm
+                                      {t("security.confirm")}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -1753,12 +1809,13 @@ export default function SettingsPage() {
                               </div>
                             ) : userSessions.length === 0 ? (
                               <p className="max-w-5xl py-2 sm:py-4 text-xs sm:text-sm text-muted-foreground">
-                                No active sessions found.
+                                {t("security.noSessions")}
                               </p>
                             ) : (
                               userSessions.map((sessionItem) => {
                                 const { device, browser } = parseUA(
-                                  sessionItem.userAgent ?? undefined
+                                  sessionItem.userAgent ?? undefined,
+                                  t
                                 )
                                 const isCurrent =
                                   sessionItem.id === currentSessionId
@@ -1778,15 +1835,15 @@ export default function SettingsPage() {
                                           </span>
                                           {isCurrent && (
                                             <Badge className="h-4 border-none bg-primary/10 px-1 py-0 text-xs text-primary">
-                                              Current
+                                              {t("security.current")}
                                             </Badge>
                                           )}
                                         </div>
                                         <p className="max-w-5xl text-xs sm:text-sm break-all text-muted-foreground">
                                           IP:{" "}
                                           {sessionItem.ipAddress ||
-                                            "Unknown IP"}{" "}
-                                          • Active:{" "}
+                                            t("security.unknownIp")}{" "}
+                                          • {t("security.activeLabel")}:{" "}
                                           {new Date(
                                             sessionItem.createdAt
                                           ).toLocaleDateString()}
@@ -1801,17 +1858,16 @@ export default function SettingsPage() {
                                             size="sm"
                                             className="h-7 shrink-0 text-xs"
                                           >
-                                            Revoke
+                                            {t("security.revoke")}
                                           </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
                                           <AlertDialogHeader>
                                             <AlertDialogTitle>
-                                              Terminate this session?
+                                              {t("security.terminateTitle")}
                                             </AlertDialogTitle>
                                             <AlertDialogDescription>
-                                              This will instantly log this
-                                              device out of your TGAW account.
+                                              {t("security.terminateDesc")}
                                             </AlertDialogDescription>
                                           </AlertDialogHeader>
                                           <AlertDialogFooter>
@@ -1823,7 +1879,7 @@ export default function SettingsPage() {
                                                 "cursor-pointer",
                                               )}
                                             >
-                                              Cancel
+                                              {t("security.cancel")}
                                             </AlertDialogCancel>
                                             <AlertDialogAction
                                               onClick={() =>
@@ -1838,7 +1894,7 @@ export default function SettingsPage() {
                                                 "cursor-pointer",
                                               )}
                                             >
-                                              Terminate
+                                              {t("security.terminate")}
                                             </AlertDialogAction>
                                           </AlertDialogFooter>
                                         </AlertDialogContent>
@@ -1856,8 +1912,8 @@ export default function SettingsPage() {
                     {activeTab === "account" && (
                       <div className="flex flex-col gap-6">
                         <SectionHeader
-                          title="Account"
-                          description="Export your data, manage your calendar feed, or permanently delete your account and all associated information."
+                          title={t("account.title")}
+                          description={t("account.description")}
                           icon={CircleUserRound}
                         />
                         <Separator />
@@ -1873,11 +1929,10 @@ export default function SettingsPage() {
                               </span>
                               <div className="space-y-0.5">
                                 <h6 className="text-sm font-medium">
-                                  iCal calendar feed
+                                  {t("account.ical")}
                                 </h6>
                                 <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                                  Regenerate your private feed token to log out
-                                  all calendar apps.
+                                  {t("account.icalDesc")}
                                 </p>
                               </div>
                             </div>
@@ -1886,10 +1941,10 @@ export default function SettingsPage() {
                               size="sm"
                               className="w-full cursor-pointer sm:w-auto"
                               onClick={() =>
-                                toast.success("Calendar token regenerated")
+                                toast.success(t("toast.calendarRegenerated"))
                               }
                             >
-                              Regenerate
+                              {t("account.regenerate")}
                             </Button>
                           </div>
 
@@ -1904,11 +1959,10 @@ export default function SettingsPage() {
                               </span>
                               <div className="space-y-0.5">
                                 <h6 className="text-sm font-medium">
-                                  Download your data
+                                  {t("account.export")}
                                 </h6>
                                 <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                                  Get a full copy of your posts, messages,
-                                  bookmarks, and calendar bookings.
+                                  {t("account.exportDesc")}
                                 </p>
                               </div>
                             </div>
@@ -1921,7 +1975,7 @@ export default function SettingsPage() {
                                 disabled={isExporting}
                               >
                                 <Send className="mr-1 size-3.5" />
-                                {isExporting ? "Sending..." : "Email copy"}
+                                {isExporting ? t("account.sending") : t("account.emailCopy")}
                               </Button>
                               <Button
                                 variant="outline"
@@ -1931,7 +1985,7 @@ export default function SettingsPage() {
                               >
                                 <a href="/api/v1/account/export" download>
                                   <Download className="mr-1 size-3.5" />
-                                  Download JSON
+                                  {t("account.downloadJson")}
                                 </a>
                               </Button>
                             </div>
@@ -1948,10 +2002,10 @@ export default function SettingsPage() {
                               </span>
                               <div className="space-y-0.5">
                                 <h6 className="text-sm font-medium">
-                                  Sign out
+                                  {t("account.signOut")}
                                 </h6>
                                 <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                                  Sign out of TGAW on this browser session.
+                                  {t("account.signOutDesc")}
                                 </p>
                               </div>
                             </div>
@@ -1961,7 +2015,7 @@ export default function SettingsPage() {
                               className="mt-4 cursor-pointer"
                               onClick={handleSignOut}
                             >
-                              Sign out
+                              {t("account.signOut")}
                             </Button>
                           </div>
 
@@ -1976,11 +2030,10 @@ export default function SettingsPage() {
                               </span>
                               <div className="space-y-0.5">
                                 <h6 className="text-sm font-medium text-destructive">
-                                  Delete account
+                                  {t("account.delete")}
                                 </h6>
                                 <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                                  Permanently remove your account and all
-                                  associated data from TGAW.
+                                  {t("account.deleteDesc")}
                                 </p>
                               </div>
                             </div>
@@ -1992,19 +2045,16 @@ export default function SettingsPage() {
                                   size="sm"
                                   className="mt-4 cursor-pointer"
                                 >
-                                  Delete account
+                                  {t("account.deleteButton")}
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent className="sm:max-w-md">
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="text-destructive">
-                                    Are you absolutely sure?
+                                    {t("account.deleteTitle")}
                                   </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    This action is completely irreversible. This
-                                    will permanently delete your profile, posts,
-                                    comments, likes, private chat history, and
-                                    bookings.
+                                    {t("account.deleteDescLong")}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
 
@@ -2012,13 +2062,13 @@ export default function SettingsPage() {
                                   {hasPassword && (
                                     <div className="space-y-2">
                                       <Label htmlFor="delete-confirm-password">
-                                        Confirm your password
+                                        {t("account.confirmPassword")}
                                       </Label>
                                       <Input
                                         id="delete-confirm-password"
                                         type="password"
                                         value={deletePassword}
-                                        placeholder="Enter current password"
+                                        placeholder={t("account.passwordPlaceholder")}
                                         className="h-12"
                                         onChange={(e) =>
                                           setDeleteAccountPassword(
@@ -2030,23 +2080,22 @@ export default function SettingsPage() {
                                   )}
                                   {!hasPassword && (
                                     <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                                      You signed in with OAuth, so no password
-                                      is required for deletion.
+                                      {t("account.oauthNote")}
                                     </p>
                                   )}
 
                                   <div className="space-y-2">
                                     <Label htmlFor="delete-typed-confirm">
-                                      Type{" "}
+                                      {t("account.typeDeletePrefix")}{" "}
                                       <span className="font-bold text-foreground">
                                         DELETE
                                       </span>{" "}
-                                      to confirm
+                                      {t("account.typeDeleteSuffix")}
                                     </Label>
                                     <Input
                                       id="delete-typed-confirm"
                                       value={deleteConfirmation}
-                                      placeholder="Type DELETE"
+                                      placeholder={t("account.deletePlaceholder")}
                                       className="h-12"
                                       onChange={(e) =>
                                         setDeleteConfirmation(e.target.value)
@@ -2066,7 +2115,7 @@ export default function SettingsPage() {
                                       "cursor-pointer",
                                     )}
                                   >
-                                    Cancel
+                                    {t("account.cancel")}
                                   </AlertDialogCancel>
                                   <Button
                                     variant="destructive"
@@ -2078,8 +2127,8 @@ export default function SettingsPage() {
                                     onClick={handleDeleteAccount}
                                   >
                                     {isDeleting
-                                      ? "Deleting..."
-                                      : "Permanently Delete Account"}
+                                      ? t("account.deleting")
+                                      : t("account.deleteFinal")}
                                   </Button>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
@@ -2100,25 +2149,24 @@ export default function SettingsPage() {
       <Dialog open={is2FAModalOpen} onOpenChange={setIs2FAModalOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Enable Two-Factor Authentication</DialogTitle>
+            <DialogTitle>{t("tfa.enableTitle")}</DialogTitle>
             <DialogDescription>
-              Secure your TGAW account with TOTP codes.
+              {t("tfa.enableDesc")}
             </DialogDescription>
           </DialogHeader>
 
           {twoFactorStep === "auth" && (
             <div className="space-y-4 py-2">
               <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                Please enter your current account password to begin two-factor
-                setup.
+                {t("tfa.authHint")}
               </p>
               <div className="space-y-1.5">
-                <Label htmlFor="two-factor-auth-pw">Current Password</Label>
+                <Label htmlFor="two-factor-auth-pw">{t("tfa.currentPassword")}</Label>
                 <Input
                   id="two-factor-auth-pw"
                   type="password"
                   value={twoFactorPassword}
-                  placeholder="Enter current password"
+                  placeholder={t("tfa.passwordPlaceholder")}
                   className="h-12"
                   onChange={(e) => setTwoFactorPassword(e.target.value)}
                 />
@@ -2128,13 +2176,13 @@ export default function SettingsPage() {
                   variant="outline"
                   onClick={() => setIs2FAModalOpen(false)}
                 >
-                  Cancel
+                  {t("tfa.cancel")}
                 </Button>
                 <Button
                   disabled={is2FALoading || !twoFactorPassword}
                   onClick={handleStart2FAEnable}
                 >
-                  {is2FALoading ? "Generating..." : "Next"}
+                  {is2FALoading ? t("tfa.generating") : t("tfa.next")}
                 </Button>
               </DialogFooter>
             </div>
@@ -2148,7 +2196,7 @@ export default function SettingsPage() {
                   <div className="shrink-0 rounded-2xl border bg-white p-2 sm:p-3 shadow-sm">
                     <Image
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(totpURI)}`}
-                      alt="Two Factor QR Code"
+                      alt={t("tfa.qrAlt")}
                       width={150}
                       height={150}
                       unoptimized
@@ -2158,11 +2206,10 @@ export default function SettingsPage() {
                 )}
                 <div className="space-y-2 text-xs text-muted-foreground">
                   <p className="max-w-5xl text-xs sm:text-sm font-semibold text-foreground">
-                    Scan this QR Code
+                    {t("tfa.scanTitle")}
                   </p>
                   <p className="max-w-5xl text-xs sm:text-sm">
-                    Open your authenticator app (Google Authenticator, Microsoft
-                    Authenticator, 1Password, etc.) and scan this code.
+                    {t("tfa.scanDesc")}
                   </p>
                   {totpSecret && (
                     <div className="flex items-center justify-between gap-2 rounded-lg border bg-muted p-2 font-mono">
@@ -2174,7 +2221,7 @@ export default function SettingsPage() {
                         size="icon-xs"
                         onClick={() => {
                           navigator.clipboard.writeText(totpSecret)
-                          toast.success("Secret copied")
+                          toast.success(t("toast.secretCopied"))
                         }}
                       >
                         <Copy className="size-3" />
@@ -2188,12 +2235,12 @@ export default function SettingsPage() {
 
               <div className="space-y-2 text-left">
                 <Label htmlFor="two-factor-code-input">
-                  Enter the 6-digit confirmation code
+                  {t("tfa.codeLabel")}
                 </Label>
                 <Input
                   id="two-factor-code-input"
                   value={twoFactorCode}
-                  placeholder="e.g. 123456"
+                  placeholder={t("tfa.codePlaceholder")}
                   maxLength={6}
                   className="h-12"
                   onChange={(e) => setTwoFactorCode(e.target.value)}
@@ -2205,13 +2252,13 @@ export default function SettingsPage() {
                   variant="outline"
                   onClick={() => setTwoFactorStep("auth")}
                 >
-                  Back
+                  {t("tfa.back")}
                 </Button>
                 <Button
                   disabled={is2FALoading || twoFactorCode.length < 6}
                   onClick={handleVerify2FACode}
                 >
-                  {is2FALoading ? "Verifying..." : "Verify & Activate"}
+                  {is2FALoading ? t("tfa.verifying") : t("tfa.verify")}
                 </Button>
               </DialogFooter>
             </div>
@@ -2222,13 +2269,11 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-500">
                 <Check className="size-5 shrink-0" />
                 <p className="max-w-5xl text-xs sm:text-sm font-semibold">
-                  Two-Factor Authentication Enabled!
+                  {t("tfa.enabledTitle")}
                 </p>
               </div>
               <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                Save these recovery backup codes in a safe place. You can use
-                them to log in if you lose access to your authenticator app.
-                They will not be displayed again.
+                {t("tfa.enabledDesc")}
               </p>
 
               <div className="grid grid-cols-2 gap-2 rounded-xl border bg-muted/40 p-2 font-mono text-xs sm:p-3.5">
@@ -2252,11 +2297,11 @@ export default function SettingsPage() {
                   onClick={() => {
                     navigator.clipboard.writeText(backupCodes.join("\n"))
                     setCopiedBackup(true)
-                    toast.success("Backup codes copied")
+                    toast.success(t("toast.codesCopied"))
                   }}
                 >
                   <Copy className="mr-1 size-3.5" />
-                  {copiedBackup ? "Copied" : "Copy Codes"}
+                  {copiedBackup ? t("tfa.copied") : t("tfa.copyCodes")}
                 </Button>
               </div>
 
@@ -2269,7 +2314,7 @@ export default function SettingsPage() {
                     setTwoFactorCode("")
                   }}
                 >
-                  I have saved my backup codes
+                  {t("tfa.saved")}
                 </Button>
               </DialogFooter>
             </div>
@@ -2282,21 +2327,21 @@ export default function SettingsPage() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-destructive">
-              Disable Two-Factor Authentication
+              {t("tfa.disableTitle")}
             </DialogTitle>
             <DialogDescription>
-              Are you sure? This reduces your account security.
+              {t("tfa.disableDesc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="disable-two-factor-pw">Current Password</Label>
+              <Label htmlFor="disable-two-factor-pw">{t("tfa.currentPassword")}</Label>
               <Input
                 id="disable-two-factor-pw"
                 type="password"
                 value={twoFactorPassword}
-                placeholder="Enter password to confirm"
+                placeholder={t("tfa.disablePasswordPlaceholder")}
                 className="h-12"
                 onChange={(e) => setTwoFactorPassword(e.target.value)}
               />
@@ -2306,14 +2351,14 @@ export default function SettingsPage() {
                 variant="outline"
                 onClick={() => setIsDisableModalOpen(false)}
               >
-                Cancel
+                {t("tfa.cancel")}
               </Button>
               <Button
                 variant="destructive"
                 disabled={is2FALoading || !twoFactorPassword}
                 onClick={handleDisable2FA}
               >
-                {is2FALoading ? "Disabling..." : "Disable 2FA"}
+                {is2FALoading ? t("tfa.disabling") : t("tfa.disableCta")}
               </Button>
             </DialogFooter>
           </div>
@@ -2324,22 +2369,21 @@ export default function SettingsPage() {
       <Dialog open={isRegenModalOpen} onOpenChange={setIsRegenModalOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Regenerate Backup Codes</DialogTitle>
+            <DialogTitle>{t("tfa.regenTitle")}</DialogTitle>
             <DialogDescription>
-              Generate a fresh set of recovery codes. Your old codes will stop
-              working.
+              {t("tfa.regenDesc")}
             </DialogDescription>
           </DialogHeader>
 
           {regenStep === "auth" ? (
             <div className="space-y-4 py-2">
               <div className="space-y-1.5">
-                <Label htmlFor="regen-backup-pw">Current Password</Label>
+                <Label htmlFor="regen-backup-pw">{t("tfa.currentPassword")}</Label>
                 <Input
                   id="regen-backup-pw"
                   type="password"
                   value={regenPassword}
-                  placeholder="Enter password to confirm"
+                  placeholder={t("tfa.disablePasswordPlaceholder")}
                   className="h-12"
                   onChange={(e) => setRegenPassword(e.target.value)}
                 />
@@ -2349,13 +2393,13 @@ export default function SettingsPage() {
                   variant="outline"
                   onClick={() => setIsRegenModalOpen(false)}
                 >
-                  Cancel
+                  {t("tfa.cancel")}
                 </Button>
                 <Button
                   disabled={isRegenerating || !regenPassword}
                   onClick={handleConfirmRegenerate}
                 >
-                  {isRegenerating ? "Generating..." : "Generate Codes"}
+                  {isRegenerating ? t("tfa.generatingCodes") : t("tfa.generate")}
                 </Button>
               </DialogFooter>
             </div>
@@ -2364,12 +2408,11 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-500">
                 <Check className="size-5 shrink-0" />
                 <p className="max-w-5xl text-xs sm:text-sm font-semibold">
-                  Backup codes regenerated!
+                  {t("tfa.regenDone")}
                 </p>
               </div>
               <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
-                Save these recovery backup codes in a safe place. They will not
-                be displayed again.
+                {t("tfa.regenDoneDesc")}
               </p>
               <div className="grid grid-cols-2 gap-2 rounded-xl border bg-muted/40 p-2 font-mono text-xs sm:p-3.5">
                 {backupCodes.map((code, idx) => (
@@ -2406,7 +2449,7 @@ export default function SettingsPage() {
                     setRegenPassword("")
                   }}
                 >
-                  Done
+                  {t("tfa.done")}
                 </Button>
               </DialogFooter>
             </div>
@@ -2422,7 +2465,7 @@ export default function SettingsPage() {
         initials={initials}
         onAvatarUpdated={(newUrl) => {
           setAvatarUrl(newUrl)
-          refetchSession?.()
+          refetchSession?.({ query: { disableCookieCache: true } })
         }}
       />
     </div>

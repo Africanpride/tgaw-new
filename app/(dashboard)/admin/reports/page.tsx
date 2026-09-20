@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useTranslation } from "react-i18next"
 import {
   Table,
   TableBody,
@@ -25,6 +26,7 @@ interface Report {
 }
 
 export default function ModerationQueuePage() {
+  const { t } = useTranslation("admin")
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -55,27 +57,27 @@ export default function ModerationQueuePage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-2">
         <Shield className="size-6" />
-        <h2 className="text-2xl">Moderation Queue</h2>
+        <h2 className="text-2xl">{t("reports.title")}</h2>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Open Reports</CardTitle>
+          <CardTitle>{t("reports.openReports")}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground">Loading...</p>
+            <p className="text-sm text-muted-foreground">{t("reports.loading")}</p>
           ) : reports.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No open reports.</p>
+            <p className="text-sm text-muted-foreground">{t("reports.empty")}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Reason</TableHead>
-                  <TableHead>Reporter</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t("reports.col.type")}</TableHead>
+                  <TableHead>{t("reports.col.reason")}</TableHead>
+                  <TableHead>{t("reports.col.reporter")}</TableHead>
+                  <TableHead>{t("reports.col.date")}</TableHead>
+                  <TableHead>{t("reports.col.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -102,7 +104,7 @@ export default function ModerationQueuePage() {
                           onClick={() => dismissReport(report.id)}
                         >
                           <CheckCircle className="mr-1 size-4" />
-                          Dismiss
+                          {t("reports.dismiss")}
                         </Button>
                         <Button
                           variant="ghost"
@@ -110,7 +112,7 @@ export default function ModerationQueuePage() {
                           className="cursor-pointer text-destructive"
                         >
                           <XCircle className="mr-1 size-4" />
-                          Hide
+                          {t("reports.hide")}
                         </Button>
                       </div>
                     </TableCell>

@@ -5,9 +5,11 @@ import { Settings2 } from "lucide-react"
 import { motion, AnimatePresence, useReducedMotion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { useConsent } from "./ConsentProvider"
+import { useConsentTranslation } from "@/lib/consent/translations"
 
 export function CookieSettingsButton() {
   const { hasConsented, showBanner, openCustomize, openBanner } = useConsent()
+  const { t } = useConsentTranslation()
   const shouldReduceMotion = useReducedMotion()
 
   // Only show after a choice has been made and banner is not visible
@@ -27,12 +29,12 @@ export function CookieSettingsButton() {
             variant="secondary"
             size="sm"
             onClick={openCustomize}
-            aria-label="Open cookie settings"
+            aria-label={t("manageCookies")}
             className="cursor-pointer rounded-full shadow-md ring-1 ring-foreground/10"
           >
             <Settings2 aria-hidden="true" className="size-3.5" />
-            <span className="hidden sm:inline">Cookies</span>
-            <span className="sm:hidden">Cookies</span>
+            <span className="hidden sm:inline">{t("manageCookies")}</span>
+            <span className="sm:hidden">{t("manageCookies")}</span>
           </Button>
           {/* small secondary trigger for re-opening banner — a11y discoverability */}
           <button
@@ -41,7 +43,7 @@ export function CookieSettingsButton() {
             aria-hidden="true"
             tabIndex={-1}
           >
-            open banner
+            {t("bannerTitle")}
           </button>
         </motion.div>
       )}

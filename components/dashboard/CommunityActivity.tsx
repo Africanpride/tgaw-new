@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { EmptyState } from "@/components/EmptyState"
+import { useTranslation } from "react-i18next"
 import { listRowClass } from "@/components/list-row"
 import { cn } from "@/lib/utils"
 
@@ -38,6 +39,7 @@ const FILTERS = ["all", "praise", "prayer", "member"] as const
 type Filter = typeof FILTERS[number]
 
 export function CommunityActivity() {
+  const { t } = useTranslation("dashboard")
   const [items, setItems] = useState<ActivityItem[] | null>(null)
   const [filter, setFilter] = useState<Filter>("all")
   const [isLive, setIsLive] = useState(false)
@@ -72,8 +74,8 @@ export function CommunityActivity() {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2">
           <Activity className="size-5" aria-hidden="true" />
-          Community Activity
-          {isLive && <span className="ml-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400"><span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />Live</span>}
+          {t("communityActivity.title")}
+          {isLive && <span className="ml-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400"><span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />{t("communityActivity.badgeLive")}</span>}
         </CardTitle>
         <div className="mt-3 flex items-center gap-1.5">
           {FILTERS.map((f) => (
@@ -136,8 +138,8 @@ export function CommunityActivity() {
           <div className="p-2 sm:p-3">
             <EmptyState
               icon={Activity}
-              title="Quiet watch"
-              description={filter === "all" ? "No recent activity — be first to share a testimony or prayer." : `No ${filter} activity recently.`}
+              title={t("communityActivity.emptyTitle")}
+              description={filter === "all" ? t("communityActivity.emptyAll") : t("communityActivity.emptyFilter", { filter })}
               className="py-2 sm:py-10"
             />
           </div>

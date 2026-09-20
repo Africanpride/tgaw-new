@@ -1,0 +1,20 @@
+{
+  "notFound.title": "Página não encontrada",
+  "notFound.description": "A vigília que você procura não existe ou foi movida.",
+  "notFound.home": "Voltar ao início",
+  "notFound.dashboard": "Painel",
+  "error.title": "Algo deu errado",
+  "error.fallback": "Ocorreu um erro inesperado. Sua sessão está segura — tente novamente.",
+  "error.retry": "Tentar novamente",
+  "error.dashboard": "Painel",
+  "unauthorized.title": "Acesso negado",
+  "unauthorized.description": "A função da sua conta não tem permissão para visualizar esta página.",
+  "unauthorized.return": "Voltar ao painel",
+  "banned.title": "Conta suspensa",
+  "banned.reason": "Motivo",
+  "banned.expires": "Expira em",
+  "banned.permanent": "Suspensão permanente",
+  "banned.support": "Contatar suporte",
+  "banned.home": "Voltar ao início",
+  "banned.defaultReason": "Sua conta foi suspensa por um administrador."
+}

@@ -5,6 +5,7 @@ import {
   BookOpen,
   Church,
   Flame,
+  Globe,
   Heart,
   LogIn,
   Menu,
@@ -15,14 +16,17 @@ import {
   Users,
   X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import FooterSectionTwo from "@/components/blocks/footer/footer-section-two";
 import { CountUp } from "@/components/landing/count-up";
 import { IconTile } from "@/components/IconTile";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageDialog } from "@/components/i18n/LanguageDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,77 +50,61 @@ import {
 } from "@/lib/motion";
 import { signOut, useSession } from "@/lib/auth-client";
 
-const STATS = [
-  { icon: Users, label: "Active Believers", value: 50, suffix: "K+" },
-  { icon: Church, label: "Prayer Sessions", value: 1.2, suffix: "M", decimals: 1 },
-  { icon: BookOpen, label: "Books Covered", value: 66, suffix: "" },
-  { icon: Heart, label: "Member Satisfaction", value: 98, suffix: "%" },
+const STATS: { icon: LucideIcon; key: string; value: number; suffix: string; decimals?: number }[] = [
+  { icon: Users, key: "stats.activeMembers", value: 50, suffix: "K+" },
+  { icon: Church, key: "stats.prayerSessions", value: 1.2, suffix: "M", decimals: 1 },
+  { icon: BookOpen, key: "stats.booksCovered", value: 66, suffix: "" },
+  { icon: Heart, key: "stats.satisfaction", value: 98, suffix: "%" },
 ];
 
 const FEATURES = [
   {
     icon: Flame,
-    title: "Daily Devotion",
-    description:
-      "Slot-based Bible reading, prayer, and worship you can actually commit to — with live Zoom links and reminders.",
+    titleKey: "features.devotion.title",
+    descriptionKey: "features.devotion.description",
   },
   {
     icon: MessagesSquare,
-    title: "Real-Time Fellowship",
-    description:
-      "Group prayer circles, Bible study chats, and instant messages with believers worldwide.",
+    titleKey: "features.fellowship.title",
+    descriptionKey: "features.fellowship.description",
   },
   {
     icon: BookOpen,
-    title: "Verse of the Day",
-    description:
-      "A fresh scripture every morning, shareable in one tap — start your day anchored in the Word.",
+    titleKey: "features.verse.title",
+    descriptionKey: "features.verse.description",
   },
   {
     icon: Users,
-    title: "Community Stories",
-    description:
-      "Testimonies, praise reports, and prayer requests that keep the whole altar watch together.",
+    titleKey: "features.community.title",
+    descriptionKey: "features.community.description",
   },
   {
     icon: Church,
-    title: "Calendar of Watch",
-    description:
-      "Your devotional schedule on one shared calendar — sync it to Google, Apple, or Outlook.",
+    titleKey: "features.calendar.title",
+    descriptionKey: "features.calendar.description",
   },
   {
     icon: Sparkles,
-    title: "Guided Structure",
-    description:
-      "Bible reading plans and progress streaks keep your habit alive day after day.",
+    titleKey: "features.guided.title",
+    descriptionKey: "features.guided.description",
   },
-];
+] as const;
 
 const TESTIMONIALS = [
-  {
-    name: "Sarah R.",
-    role: "Prayer Coordinator",
-    text: "The daily prayer slots changed my mornings. I've never kept a devotional habit this consistently.",
-  },
-  {
-    name: "David K.",
-    role: "Bible Study Lead",
-    text: "Having a fixed reading slot with brothers and sisters on Zoom makes the Word come alive.",
-  },
-  {
-    name: "Grace A.",
-    role: "Worship Team",
-    text: "Beautiful, simple, and deeply reverent. This is what community devotion should feel like.",
-  },
-];
+  { nameKey: "testimonials.t1.name", roleKey: "testimonials.t1.role", textKey: "testimonials.t1.text" },
+  { nameKey: "testimonials.t2.name", roleKey: "testimonials.t2.role", textKey: "testimonials.t2.text" },
+  { nameKey: "testimonials.t3.name", roleKey: "testimonials.t3.role", textKey: "testimonials.t3.text" },
+] as const;
 
 const NAV_ITEMS = [
-  { label: "Features", href: "#features" },
-  { label: "Community", href: "#community" },
-  { label: "Testimonials", href: "#testimonials" },
-];
+  { key: "nav.features", href: "#features" },
+  { key: "nav.community", href: "#community" },
+  { key: "nav.testimonials", href: "#testimonials" },
+] as const;
 
 export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
+  const t = useTranslations("landing");
+  const tc = useTranslations("common");
   const { data: session } = useSession();
   const router = useRouter();
   const isLoggedIn = !!session?.user;
@@ -155,7 +143,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
             {NAV_ITEMS.map((item) => (
               <Link key={item.href} href={item.href} className="cursor-pointer">
                 <Button variant="ghost" className="cursor-pointer font-medium">
-                  {item.label}
+                  {tc(item.key)}
                 </Button>
               </Link>
             ))}
@@ -163,12 +151,13 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
 
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
+            <LanguageDialog />
             {isLoggedIn ? (
               <>
                 <Link href="/overview" className="cursor-pointer">
                   <Button variant="ghost" className="cursor-pointer gap-2">
                     <ArrowRight className="size-4" aria-hidden="true" />
-                    Dashboard
+                    {tc("nav.dashboard")}
                   </Button>
                 </Link>
                 <Button
@@ -179,7 +168,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
                     router.push("/");
                   }}
                 >
-                  Sign Out
+                  {tc("nav.signOut")}
                 </Button>
               </>
             ) : (
@@ -187,13 +176,13 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
                 <Link href="/login" className="cursor-pointer">
                   <Button variant="ghost" className="cursor-pointer gap-2">
                     <LogIn className="size-4" aria-hidden="true" />
-                    Sign In
+                    {tc("nav.signIn")}
                   </Button>
                 </Link>
                 <Link href="/signup" className="cursor-pointer">
                   <Button className="cursor-pointer gap-2">
                     <UserPlus className="size-4" aria-hidden="true" />
-                    Get Started
+                    {tc("nav.getStarted")}
                   </Button>
                 </Link>
               </>
@@ -203,12 +192,13 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
           {/* Mobile menu */}
           <div className="flex items-center gap-2 md:hidden">
             <ThemeToggle />
+            <LanguageDialog />
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Open menu"
+                  aria-label={tc("nav.openMenu")}
                   className="cursor-pointer"
                 >
                   {mobileOpen ? (
@@ -220,7 +210,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
               </SheetTrigger>
               <SheetContent side="right" className="w-72">
                 <SheetHeader>
-                  <SheetTitle className="text-left">Menu</SheetTitle>
+                  <SheetTitle className="text-left">{tc("nav.menu")}</SheetTitle>
                 </SheetHeader>
                 <div className="mt-4 flex flex-col gap-1">
                   {NAV_ITEMS.map((item) => (
@@ -231,16 +221,17 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
                       className="cursor-pointer"
                     >
                       <Button variant="ghost" className="w-full cursor-pointer justify-start">
-                        {item.label}
+                        {tc(item.key)}
                       </Button>
                     </Link>
                   ))}
                   <div className="my-2 h-px bg-border" />
+                  <LanguageDialog label={tc("nav.language")} />
                   {isLoggedIn ? (
                     <Link href="/overview" onClick={() => setMobileOpen(false)} className="cursor-pointer">
                       <Button className="w-full cursor-pointer gap-2">
                         <ArrowRight className="size-4" aria-hidden="true" />
-                        Go to Dashboard
+                        {tc("nav.goToDashboard")}
                       </Button>
                     </Link>
                   ) : (
@@ -248,13 +239,13 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
                       <Link href="/signup" onClick={() => setMobileOpen(false)} className="cursor-pointer">
                         <Button className="w-full cursor-pointer gap-2">
                           <UserPlus className="size-4" aria-hidden="true" />
-                          Get Started Free
+                          {tc("nav.getStartedFree")}
                         </Button>
                       </Link>
                       <Link href="/login" onClick={() => setMobileOpen(false)} className="cursor-pointer">
                         <Button variant="outline" className="w-full cursor-pointer gap-2">
                           <LogIn className="size-4" aria-hidden="true" />
-                          Sign In
+                          {tc("nav.signIn")}
                         </Button>
                       </Link>
                     </>
@@ -283,25 +274,26 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
             <motion.div variants={staggerItem}>
               <Badge variant="secondary" className="gap-1.5">
                 <Sparkles className="size-3.5" aria-hidden="true" />
-                Your Daily Faith Companion
+                {t("hero.badge")}
               </Badge>
             </motion.div>
             <motion.h1
               variants={staggerItem}
               className="text-5xl leading-[1.05] tracking-tight sm:text-7xl"
             >
-              The Global{" "}
-              <span className="bg-linear-to-r from-primary via-fuchsia-500 to-red-500 bg-clip-text text-transparent">
-                Altar
-              </span>{" "}
-              Watch
+              {t.rich("hero.title", {
+                gradient: (chunks) => (
+                  <span className="bg-linear-to-r from-primary via-fuchsia-500 to-red-500 bg-clip-text text-transparent">
+                    {chunks}
+                  </span>
+                ),
+              })}
             </motion.h1>
             <motion.p
               variants={staggerItem}
               className="max-w-2xl text-lg text-muted-foreground"
             >
-              A modern Christian community platform for daily devotion, prayer,
-              Bible reading, and fellowship with believers worldwide.
+              {t("hero.subtitle")}
             </motion.p>
             <motion.div
               variants={staggerItem}
@@ -311,7 +303,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
                 <Link href="/overview" className="cursor-pointer">
                   <Button size="lg" className="cursor-pointer gap-2">
                     <ArrowRight className="size-4" aria-hidden="true" />
-                    Go to Dashboard
+                    {tc("nav.goToDashboard")}
                   </Button>
                 </Link>
               ) : (
@@ -319,7 +311,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
                   <Link href="/signup" className="cursor-pointer">
                     <Button size="lg" className="cursor-pointer gap-2">
                       <UserPlus className="size-4" aria-hidden="true" />
-                      Get Started Free
+                      {tc("nav.getStartedFree")}
                     </Button>
                   </Link>
                   <Link href="/login" className="cursor-pointer">
@@ -329,7 +321,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
                       className="cursor-pointer gap-2"
                     >
                       <LogIn className="size-4" aria-hidden="true" />
-                      Sign In
+                      {tc("nav.signIn")}
                     </Button>
                   </Link>
                 </>
@@ -348,7 +340,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
             className="mx-auto grid max-w-5xl gap-2 sm:grid-cols-2 lg:grid-cols-4"
           >
             {STATS.map((stat) => (
-              <motion.div key={stat.label} variants={staggerItem}>
+              <motion.div key={stat.key} variants={staggerItem}>
                 <Card className="h-full">
                   <CardContent className="flex flex-col items-center gap-2 pt-2 text-center sm:pt-6">
                     <stat.icon
@@ -361,7 +353,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
                       decimals={stat.decimals}
                       className="text-3xl font-bold tabular-nums"
                     />
-                    <p className="text-sm text-muted-foreground">{stat.label}</p>
+                    <p className="text-sm text-muted-foreground">{t(stat.key)}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -378,11 +370,10 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
             viewport={{ once: true, margin: "-80px" }}
             className="mx-auto mb-12 max-w-2xl text-center"
           >
-            <Badge variant="secondary">Everything for the Watch</Badge>
-            <h2 className="mt-4 text-4xl sm:text-5xl">One faithful habit, every day</h2>
+            <Badge variant="secondary">{t("features.badge")}</Badge>
+            <h2 className="mt-4 text-4xl sm:text-5xl">{t("features.title")}</h2>
             <p className="mt-3 text-lg text-muted-foreground">
-              Everything you need to keep a consistent devotional life, together
-              with believers around the world.
+              {t("features.subtitle")}
             </p>
           </motion.div>
 
@@ -394,15 +385,15 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
             className="mx-auto grid max-w-5xl gap-2 sm:grid-cols-2 lg:grid-cols-3"
           >
             {FEATURES.map((feature) => (
-              <motion.div key={feature.title} variants={staggerItem} className="h-full">
+              <motion.div key={feature.titleKey} variants={staggerItem} className="h-full">
                 <Card className="h-full transition-colors hover:border-primary/40 hover:shadow-sm">
                   <CardHeader>
                     <IconTile icon={feature.icon} size="md" className="mb-2 inline-flex" />
-                    <CardTitle>{feature.title}</CardTitle>
+                    <CardTitle>{t(feature.titleKey)}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <CardDescription className="text-sm leading-relaxed">
-                      {feature.description}
+                      {t(feature.descriptionKey)}
                     </CardDescription>
                   </CardContent>
                 </Card>
@@ -430,15 +421,14 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
             viewport={{ once: true, margin: "-80px" }}
             className="mx-auto flex max-w-4xl flex-col items-center gap-4 text-center"
           >
-            <Badge variant="secondary">Grow Together</Badge>
-            <h2 className="text-3xl sm:text-4xl">Never watch alone</h2>
+            <Badge variant="secondary">{t("community.badge")}</Badge>
+            <h2 className="text-3xl sm:text-4xl">{t("community.title")}</h2>
             <p className="max-w-xl text-lg text-muted-foreground">
-              Join prayer circles, share testimonies, and encourage believers —
-              every day, from anywhere.
+              {t("community.subtitle")}
             </p>
             <Link href="/feed" className="cursor-pointer">
               <Button size="lg" className="cursor-pointer gap-2">
-                Explore the Community
+                {t("community.cta")}
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Button>
             </Link>
@@ -457,8 +447,8 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
             viewport={{ once: true, margin: "-80px" }}
             className="mx-auto mb-12 max-w-2xl text-center"
           >
-            <Badge variant="secondary">Loved by the Watch</Badge>
-            <h2 className="mt-4 text-4xl sm:text-5xl">Stories from the altar</h2>
+            <Badge variant="secondary">{t("testimonials.badge")}</Badge>
+            <h2 className="mt-4 text-4xl sm:text-5xl">{t("testimonials.title")}</h2>
           </motion.div>
 
           <motion.div
@@ -468,17 +458,17 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
             viewport={{ once: true, margin: "-60px" }}
             className="mx-auto grid max-w-5xl gap-2 md:grid-cols-3"
           >
-            {TESTIMONIALS.map((t) => (
-              <motion.div key={t.name} variants={staggerItem} className="h-full">
+            {TESTIMONIALS.map((item) => (
+              <motion.div key={item.nameKey} variants={staggerItem} className="h-full">
                 <Card className="h-full">
                   <CardContent className="flex h-full flex-col gap-4 p-2 sm:p-6">
                     <p className="text-3xl leading-none text-primary">“</p>
                     <p className="flex-1 leading-relaxed text-foreground/90">
-                      {t.text}
+                      {t(item.textKey)}
                     </p>
                     <div>
-                      <p className="font-medium">{t.name}</p>
-                      <p className="text-sm text-muted-foreground">{t.role}</p>
+                      <p className="font-medium">{t(item.nameKey)}</p>
+                      <p className="text-sm text-muted-foreground">{t(item.roleKey)}</p>
                     </div>
                   </CardContent>
                 </Card>

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Copy, Video } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { IconTile } from "@/components/IconTile"
 
@@ -19,12 +20,13 @@ export function MeetingLinkCard({
   label,
   hostName,
 }: MeetingLinkCardProps) {
+  const { t } = useTranslation("booking");
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(url)
-      toast.success("Link copied to clipboard")
+      toast.success(t("meeting.toastCopied"))
     } catch {
-      toast.error("Could not copy the link")
+      toast.error(t("meeting.toastCopyFailed"))
     }
   }
 
@@ -35,26 +37,26 @@ export function MeetingLinkCard({
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <IconTile icon={Video} size="sm" />
-          <span className="flex-1 truncate">{label || "Meeting Link"}</span>
+          <span className="flex-1 truncate">{label || t("meeting.fallbackLabel")}</span>
           {isLive && (
             <Badge variant="default" className="shrink-0 gap-1">
               <span className="relative flex size-1.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
                 <span className="relative inline-flex size-1.5 rounded-full bg-emerald-400" />
               </span>
-              Live
+              {t("meeting.live")}
             </Badge>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {isLive && (
-          <p className="text-xs text-muted-foreground">Hosted by {hostName}</p>
+          <p className="text-xs text-muted-foreground">{t("meeting.hostedBy", { hostName })}</p>
         )}
         <div className="flex gap-2">
           <Button className="flex-1 cursor-pointer" asChild>
             <a href={url} target="_blank" rel="noreferrer">
-              Join Meeting
+              {t("meeting.joinMeeting")}
             </a>
           </Button>
 
@@ -63,7 +65,7 @@ export function MeetingLinkCard({
             size="icon"
             className="cursor-pointer"
             onClick={handleCopy}
-            aria-label="Copy link"
+            aria-label={t("meeting.copyLink")}
           >
             <Copy className="size-4" aria-hidden="true" />
           </Button>

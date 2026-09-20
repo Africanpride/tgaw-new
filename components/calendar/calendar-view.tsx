@@ -23,6 +23,7 @@ import {
 import { motion, useReducedMotion } from "motion/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -267,6 +268,8 @@ export function CalendarView({
 	canManage?: boolean;
 	className?: string;
 }) {
+	const { t } = useTranslation("calendar");
+	const { t: tc } = useTranslation("common");
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
@@ -384,7 +387,7 @@ export function CalendarView({
 								onClick={() => setCreateDialogOpen(true)}
 							>
 								<Plus className="size-4" aria-hidden="true" />
-								Add New Event
+								{t("action.addEvent", "Add New Event")}
 							</Button>
 						)}
 						</div>
@@ -409,7 +412,7 @@ export function CalendarView({
 							<div className="space-y-4">
 								<Collapsible defaultOpen className="group/collapsible">
 									<CollapsibleTrigger className="flex w-full cursor-pointer items-center justify-between rounded-md p-2 hover:bg-accent hover:text-accent-foreground">
-										<span className="text-sm font-medium">Calendars</span>
+										<span className="text-sm font-medium">{t("sidebar.calendars", "Calendars")}</span>
 										<Check
 											className="size-4 text-muted-foreground"
 											aria-hidden="true"
@@ -462,7 +465,9 @@ export function CalendarView({
 										)}
 										aria-hidden="true"
 									/>
-																	<span className="truncate">{item.label}</span>
+																	<span className="truncate">
+																		{t(`type.${item.id}`, t(`filter.${item.id.toLowerCase()}`, item.label))}
+																	</span>
 																</button>
 															</div>
 														</div>
@@ -510,7 +515,7 @@ export function CalendarView({
 									&gt;
 								</Button>
 								<Button variant="outline" size="sm" onClick={goToToday}>
-									Today
+									{tc("time.today", "Today")}
 								</Button>
 							</div>
 							<h1 className="text-2xl">
@@ -525,7 +530,7 @@ export function CalendarView({
 								/>
 								<Input
 									className="w-64 pl-10"
-									placeholder="Search events..."
+									placeholder={t("search.placeholder", "Search events...")}
 									value={query}
 									onChange={(e) => setQuery(e.target.value)}
 								/>

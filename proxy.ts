@@ -1,6 +1,17 @@
 import { type NextRequest, NextResponse } from "next/server";
+import createIntlMiddleware from "next-intl/middleware";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
+import { routing } from "@/i18n/routing";
+
+const intlMiddleware = createIntlMiddleware(routing);
+
+// Strip a leading /{locale} prefix so locale-prefixed public URLs reuse the
+// same auth/onboarding guards as their unprefixed (default-locale) forms.
+const LOCALE_PREFIX_RE = /^\/(en|fr|es|pt)(?=\/|$)/;
+function stripLocalePrefix(path: string): string {
+	return path.replace(LOCALE_PREFIX_RE, "") || "/";
+}
 
 const SUPERADMIN_ONLY_PATHS = ["/admin/users"];
 const ADMIN_PORTAL_PATHS = ["/admin"];
@@ -85,11 +96,16 @@ function withConsentHeaders(res: NextResponse, req: NextRequest): NextResponse {
 
 export async function proxy(req: NextRequest) {
 	const path = req.nextUrl.pathname;
+	const barePath = stripLocalePrefix(path);
 	const isApi = path.startsWith("/api/")
 	const isProtected = PROTECTED_PATHS.some((p) => path.startsWith(p)) || path.startsWith("/api/v1/slots/");
-	const isAuthPage = AUTH_PAGES.some((p) => path.startsWith(p));
-	const isOnboardingPath = path.startsWith(ONBOARDING_PATH);
-	const isBannedPath = path.startsWith(BANNED_PATH);
+	const isAuthPage = AUTH_PAGES.some((p) => barePath.startsWith(p));
+	const isOnboardingPath = barePath.startsWith(ONBOARDING_PATH);
+	const isBannedPath = barePath.startsWith(BANNED_PATH);
+	const isStaticAsset =
+		path.startsWith("/_next") ||
+		path.startsWith("/images/") ||
+		/\/[^/]+\.[a-z0-9]+$/i.test(path);
 
 	// Rate-limit auth endpoints (Vercel or self-hosted) — 429 with Retry-After
 	if (path.startsWith("/api/auth/")) {
@@ -144,7 +160,13 @@ export async function proxy(req: NextRequest) {
 		return withConsentHeaders(NextResponse.redirect(new URL("/overview", req.url)), req);
 	}
 
-	if (!isProtected && !isOnboardingPath) return withConsentHeaders(NextResponse.next(), req);
+	if (!isProtected && !isOnboardingPath) {
+		// Public pages (landing, auth, legal): delegate locale detection,
+		// prefix routing, and cookie setting to next-intl. Dashboard (protected),
+		// onboarding, and API routes use cookie-based locale instead — no URL prefix.
+		if (!isApi && !isStaticAsset) return withConsentHeaders(intlMiddleware(req), req);
+		return withConsentHeaders(NextResponse.next(), req);
+	}
 
 	if (!session) {
 		if (isApi) return withConsentHeaders(NextResponse.json({ success: false, error: "Unauthorised" }, { status: 401 }), req)

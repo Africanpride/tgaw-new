@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useTranslation } from "react-i18next"
 import { IconTile } from "@/components/IconTile"
 import { convertUtcTimeToLocal, isCurrentSlot } from "./slotTime"
 import { slotAccent } from "./slotAccent"
@@ -240,6 +241,7 @@ function ChannelSection({
 }
 
 export function OverviewLiveGrid({ upcoming = 2 }: { upcoming?: number }) {
+  const { t } = useTranslation("dashboard")
   const [data, setData] = React.useState<Record<BookableType, Slot[]> | null>(
     null
   )
@@ -312,7 +314,7 @@ export function OverviewLiveGrid({ upcoming = 2 }: { upcoming?: number }) {
       <Card className="border-[0.5px] border-border/60">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Clock className="size-4" /> Live Now & Up Next
+            <Clock className="size-4" /> {t("liveGrid.title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-2 sm:grid-cols-3">
@@ -332,7 +334,7 @@ export function OverviewLiveGrid({ upcoming = 2 }: { upcoming?: number }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Clock className="size-4" />
-            Live Now & Up Next
+            {t("liveGrid.title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-2 py-2 text-center sm:py-8">
@@ -353,10 +355,10 @@ export function OverviewLiveGrid({ upcoming = 2 }: { upcoming?: number }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Clock className="size-4" aria-hidden="true" />
-          Live Now & Up Next
+          {t("liveGrid.title")}
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Live now and coming up next — all times in your local time.
+          {t("liveGrid.subtitle")}
         </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-8">

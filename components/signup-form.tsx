@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -12,10 +13,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-export function SignupForm({
+export async function SignupForm({
 	className,
 	...props
 }: React.ComponentProps<"div">) {
+	const t = await getTranslations("auth");
 	return (
 		<div className={cn("flex flex-col gap-6", className)} {...props}>
 			<Card className="overflow-hidden p-0">
@@ -23,13 +25,13 @@ export function SignupForm({
 					<form className="p-6 md:p-8">
 						<FieldGroup>
 							<div className="flex flex-col items-center gap-2 text-center">
-								<h1 className="text-2xl">Create your TGAW account</h1>
+								<h1 className="text-2xl">{t("signup.title")}</h1>
 								<p className="text-sm text-balance text-muted-foreground">
-									Enter your email below to create your account
+									{t("signup.subtitle")}
 								</p>
 							</div>
 							<Field>
-								<FieldLabel htmlFor="email">Email</FieldLabel>
+								<FieldLabel htmlFor="email">{t("signup.email")}</FieldLabel>
 								<Input
 									id="email"
 									type="email"
@@ -37,32 +39,31 @@ export function SignupForm({
 									required
 								/>
 								<FieldDescription>
-									We&apos;ll use this to contact you. We will not share your
-									email with anyone else.
+									{t("signup.emailHint")}
 								</FieldDescription>
 							</Field>
 							<Field>
 								<Field className="grid grid-cols-2 gap-2">
 									<Field>
-										<FieldLabel htmlFor="password">Password</FieldLabel>
+										<FieldLabel htmlFor="password">{t("signup.password")}</FieldLabel>
 										<Input id="password" type="password" required />
 									</Field>
 									<Field>
 										<FieldLabel htmlFor="confirm-password">
-											Confirm Password
+											{t("signup.confirmPassword")}
 										</FieldLabel>
 										<Input id="confirm-password" type="password" required />
 									</Field>
 								</Field>
 								<FieldDescription>
-									Must be at least 8 characters long.
+									{t("signup.passwordHint")}
 								</FieldDescription>
 							</Field>
 							<Field>
-								<Button type="submit">Create Account</Button>
+								<Button type="submit">{t("signup.submit")}</Button>
 							</Field>
 							<FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-								Or continue with
+								{t("signup.orContinueWith")}
 							</FieldSeparator>
 							<Field className="grid grid-cols-3 gap-2">
 								<Button variant="outline" type="button">
@@ -76,7 +77,7 @@ export function SignupForm({
 											fill="currentColor"
 										/>
 									</svg>
-									<span className="sr-only">Sign up with Apple</span>
+									<span className="sr-only">{t("signup.social.apple")}</span>
 								</Button>
 								<Button variant="outline" type="button">
 									<svg
@@ -89,7 +90,7 @@ export function SignupForm({
 											fill="currentColor"
 										/>
 									</svg>
-									<span className="sr-only">Sign up with Google</span>
+									<span className="sr-only">{t("signup.social.google")}</span>
 								</Button>
 								<Button variant="outline" type="button">
 									<svg
@@ -102,13 +103,13 @@ export function SignupForm({
 											fill="currentColor"
 										/>
 									</svg>
-									<span className="sr-only">Sign up with Meta</span>
+									<span className="sr-only">{t("signup.social.meta")}</span>
 								</Button>
 							</Field>
 							<FieldDescription className="text-center">
-								Already have an account?{" "}
+								{t("signup.hasAccount")}{" "}
 								<Link href="/auth/login" className="cursor-pointer">
-									Sign in
+									{t("signup.signIn")}
 								</Link>
 							</FieldDescription>
 						</FieldGroup>
@@ -116,7 +117,7 @@ export function SignupForm({
 					<div className="relative hidden bg-muted md:block">
 						<Image
 							src="/images/christ_the_redeemer.jpg"
-							alt="Christ The Redeemer"
+							alt={t("signup.imageAlt")}
 							fill
 							priority
 							sizes="(min-width: 768px) 50vw, 100vw"
@@ -126,15 +127,18 @@ export function SignupForm({
 				</CardContent>
 			</Card>
 			<FieldDescription className="px-2 text-center sm:px-6">
-				By clicking continue, you agree to our{" "}
-				<Link href="/terms" className="cursor-pointer">
-					Terms of Service
-				</Link>{" "}
-				and{" "}
-				<Link href="/privacy" className="cursor-pointer">
-					Privacy Policy
-				</Link>
-				.
+				{t.rich("signup.terms", {
+					terms: (chunks) => (
+						<Link href="/terms" className="cursor-pointer">
+							{chunks}
+						</Link>
+					),
+					privacy: (chunks) => (
+						<Link href="/privacy" className="cursor-pointer">
+							{chunks}
+						</Link>
+					),
+				})}
 			</FieldDescription>
 		</div>
 	);

@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import type * as React from "react"
+import { useTranslation } from "react-i18next"
 import { NavMain } from "@/components/nav-main"
 import {
   Sidebar,
@@ -34,65 +35,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-const navData = [
-  {
-    title: "Overview",
-    url: "/overview",
-    icon: <Home />,
-  },
-  {
-    title: "My Calendar",
-    url: "/calendar",
-    icon: <Calendar />,
-  },
-  {
-    title: "Bible Reading",
-    url: "/bible",
-    icon: <Book />,
-  },
-  {
-    title: "Prayer",
-    url: "/prayer",
-    icon: <Church />,
-  },
-  {
-    title: "Praise & Worship",
-    url: "/worship",
-    icon: <Music />,
-  },
-  {
-    title: "Slot Booking",
-    url: "/booking",
-    icon: <CalendarCheck />,
-  },
-  {
-    title: "Community",
-    url: "#",
-    icon: <MessageCircle />,
-    items: [
-      {
-        title: "Feed",
-        url: "/feed",
-        icon: <PenTool className="size-4" />,
-      },
-      {
-        title: "Messages",
-        url: "/messages",
-        icon: <MessageSquare className="size-4" />,
-      },
-      {
-        title: "Groups",
-        url: "/groups",
-        icon: <Users className="size-4" />,
-      },
-    ],
-  },
-]
-
 export function AppSidebar({
   role,
   ...props
 }: React.ComponentProps<typeof Sidebar> & { role?: string }) {
+  const { t } = useTranslation("dashboard")
   const userRole = role || "member"
   const isSuperadmin = userRole === "superadmin"
   const isLeader = userRole === "leader" || isSuperadmin
@@ -101,16 +48,76 @@ export function AppSidebar({
 
   const { setOpen, isMobile } = useSidebar()
 
-  const roleNavItems = []
+  const navData = [
+    {
+      title: t("sidebar.overview"),
+      url: "/overview",
+      icon: <Home />,
+    },
+    {
+      title: t("sidebar.calendar"),
+      url: "/calendar",
+      icon: <Calendar />,
+    },
+    {
+      title: t("sidebar.bible"),
+      url: "/bible",
+      icon: <Book />,
+    },
+    {
+      title: t("sidebar.prayer"),
+      url: "/prayer",
+      icon: <Church />,
+    },
+    {
+      title: t("sidebar.worship"),
+      url: "/worship",
+      icon: <Music />,
+    },
+    {
+      title: t("sidebar.booking"),
+      url: "/booking",
+      icon: <CalendarCheck />,
+    },
+    {
+      title: t("sidebar.community"),
+      url: "#",
+      icon: <MessageCircle />,
+      items: [
+        {
+          title: t("sidebar.feed"),
+          url: "/feed",
+          icon: <PenTool className="size-4" />,
+        },
+        {
+          title: t("sidebar.messages"),
+          url: "/messages",
+          icon: <MessageSquare className="size-4" />,
+        },
+        {
+          title: t("sidebar.groups"),
+          url: "/groups",
+          icon: <Users className="size-4" />,
+        },
+      ],
+    },
+  ]
+
+  const roleNavItems: {
+    title: string
+    url: string
+    icon: React.ReactNode
+    items: { title: string; url: string; icon: React.ReactNode }[]
+  }[] = []
 
   if (isCoordinator) {
     roleNavItems.push({
-      title: "Coordinator",
+      title: t("sidebar.coordinator"),
       url: "#",
       icon: <Users />,
       items: [
         {
-          title: "Timezone Dashboard",
+          title: t("sidebar.coordinatorDashboard"),
           url: "/coordinator",
           icon: <Users className="size-4" />,
         },
@@ -120,12 +127,12 @@ export function AppSidebar({
 
   if (isBoard) {
     roleNavItems.push({
-      title: "Board",
+      title: t("sidebar.board"),
       url: "#",
       icon: <Gavel />,
       items: [
         {
-          title: "Org Dashboard",
+          title: t("sidebar.orgDashboard"),
           url: "/board",
           icon: <Gavel className="size-4" />,
         },
@@ -136,25 +143,25 @@ export function AppSidebar({
   if (isLeader) {
     const adminSubItems = [
       {
-        title: "Admin Portal",
+        title: t("sidebar.admin"),
         url: "/admin",
         icon: <Shield className="size-4" />,
       },
       {
-        title: "Activity logs",
+        title: t("sidebar.activityLogs"),
         url: "/admin/activity-logs",
         icon: <ScrollText className="size-4" />,
       },
     ]
     if (isSuperadmin) {
       adminSubItems.push({
-        title: "User Management",
+        title: t("sidebar.users"),
         url: "/admin/users",
         icon: <UserCog className="size-4" />,
       })
     }
     roleNavItems.push({
-      title: "Admin",
+      title: t("sidebar.adminSection"),
       url: "#",
       icon: <Shield />,
       items: adminSubItems,
@@ -195,10 +202,10 @@ export function AppSidebar({
                   className="cursor-pointer"
                 />
               }
-              tooltip="Help"
+              tooltip={t("sidebar.helpTooltip")}
             >
               <CircleQuestionMarkIcon />
-              <span>Help & Support</span>
+              <span>{t("sidebar.help")}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -213,10 +220,10 @@ export function AppSidebar({
                   className="cursor-pointer"
                 />
               }
-              tooltip="Documentation"
+              tooltip={t("sidebar.documentation")}
             >
               <BookAIcon />
-              <span>Documentation</span>
+              <span>{t("sidebar.documentation")}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

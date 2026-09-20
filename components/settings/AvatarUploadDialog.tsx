@@ -2,6 +2,7 @@
 
 import { Camera, Loader2, Trash2, Upload, X } from "lucide-react";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export function AvatarUploadDialog({
 	initials = "U",
 	onAvatarUpdated,
 }: AvatarUploadDialogProps) {
+	const { t } = useTranslation("settings");
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
@@ -47,13 +49,13 @@ export function AvatarUploadDialog({
 
 	const handleFileSelect = (file: File) => {
 		if (!file.type.startsWith("image/")) {
-			toast.error("Please select a valid image file (PNG, JPG, WEBP).");
+			toast.error(t("avatar.toastInvalidType", "Please select a valid image file (PNG, JPG, WEBP)."));
 			return;
 		}
 
 		// 1MB limit
 		if (file.size > MAX_AVATAR_BYTES) {
-			toast.error("Image file size must be less than 1MB.");
+			toast.error(t("avatar.toastTooLarge", "Image file size must be less than 1MB."));
 			return;
 		}
 
@@ -105,15 +107,15 @@ export function AvatarUploadDialog({
 			const res = await removeProfileImage();
 
 			if (!res.success) {
-				throw new Error(res.error || "Failed to remove photo");
+				throw new Error(res.error || t("avatar.toastRemoveFailed", "Failed to remove photo"));
 			}
 
 			handleClearSelection();
 			onAvatarUpdated?.(null);
-			toast.success("Profile photo removed.");
+			toast.success(t("avatar.toastRemoved", "Profile photo removed."));
 			onOpenChange(false);
 		} catch (err) {
-			const msg = err instanceof Error ? err.message : "Failed to remove photo";
+			const msg = err instanceof Error ? err.message : t("avatar.toastRemoveFailed", "Failed to remove photo");
 			toast.error(msg);
 		} finally {
 			setIsUploading(false);
@@ -122,12 +124,12 @@ export function AvatarUploadDialog({
 
 	const handleUploadAndSave = async () => {
 		if (!selectedFile) {
-			toast.error("Please choose a photo to upload.");
+			toast.error(t("avatar.toastChooseFirst", "Please choose a photo to upload."));
 			return;
 		}
 
 		setIsUploading(true);
-		const toastId = toast.loading("Uploading your photo...");
+		const toastId = toast.loading(t("avatar.toastUploading", "Uploading your photo..."));
 
 		try {
 			// 1. Get signed upload signature from backend
@@ -140,7 +142,7 @@ export function AvatarUploadDialog({
 			const signData = await signRes.json();
 			if (!signRes.ok || !signData.success || !signData.data) {
 				throw new Error(
-					signData.error || "Failed to generate upload signature",
+					signData.error || t("avatar.toastSignatureFailed", "Failed to generate upload signature"),
 				);
 			}
 
@@ -149,7 +151,7 @@ export function AvatarUploadDialog({
 
 			if (!cloudName || !apiKey) {
 				throw new Error(
-					"Photo upload is temporarily unavailable. Please try again.",
+					t("avatar.toastUnavailable", "Photo upload is temporarily unavailable. Please try again."),
 				);
 			}
 
@@ -174,8 +176,8 @@ export function AvatarUploadDialog({
 			if (!uploadRes.ok || !uploadResult.secure_url) {
 				const raw = uploadResult.error?.message || "";
 				const message = raw.includes("Invalid Signature")
-					? "Upload failed — please refresh the page and try again."
-					: raw || "Failed to upload your photo.";
+					? t("avatar.toastInvalidSig", "Upload failed — please refresh the page and try again.")
+					: raw || t("avatar.toastUploadFailed", "Failed to upload your photo.");
 				throw new Error(message);
 			}
 
@@ -185,16 +187,16 @@ export function AvatarUploadDialog({
 			const updateRes = await updateProfileImage({ imageUrl: secureUrl });
 
 			if (!updateRes.success) {
-				throw new Error(updateRes.error || "Failed to update profile photo");
+				throw new Error(updateRes.error || t("avatar.toastUpdateFailed", "Failed to update profile photo"));
 			}
 
-			toast.success("Profile photo updated successfully!", { id: toastId });
+			toast.success(t("avatar.toastSuccess", "Profile photo updated successfully!"), { id: toastId });
 			onAvatarUpdated?.(secureUrl);
 			handleClearSelection();
 			onOpenChange(false);
 		} catch (err) {
 			const msg =
-				err instanceof Error ? err.message : "Failed to upload profile photo";
+				err instanceof Error ? err.message : t("avatar.toastUploadFailed", "Failed to upload profile photo");
 			toast.error(msg, { id: toastId });
 		} finally {
 			setIsUploading(false);
@@ -214,10 +216,10 @@ export function AvatarUploadDialog({
 			<DialogContent className="gap-0 overflow-hidden rounded-xl p-0 sm:max-w-md">
 				<DialogHeader className="border-b px-2 py-2 sm:px-6 sm:py-4">
 					<DialogTitle className="text-lg font-semibold text-foreground">
-						Update Profile Photo
+						{t("avatar.dialogTitle", "Update Profile Photo")}
 					</DialogTitle>
 					<DialogDescription className="text-xs text-muted-foreground">
-						Upload a clear photo to help community members recognize you.
+						{t("avatar.dialogDescription", "Upload a clear photo to help community members recognize you.")}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -256,16 +258,16 @@ export function AvatarUploadDialog({
 									disabled={isUploading}
 								>
 									<X className="size-3" />
-									<span className="sr-only">Clear selection</span>
+									<span className="sr-only">{t("avatar.clearSelection", "Clear selection")}</span>
 								</Button>
 							)}
 						</div>
 
 						<p className="text-center font-medium text-foreground text-sm">
-							{selectedFile ? selectedFile.name : "Drag & drop an image here"}
+							{selectedFile ? selectedFile.name : t("avatar.dropzonePrompt", "Drag & drop an image here")}
 						</p>
 						<p className="mt-0.5 text-center text-muted-foreground text-xs">
-							Supports PNG, JPG, or WEBP (Max 1MB)
+							{t("avatar.dropzoneHint", "Supports PNG, JPG, or WEBP (Max 1MB)")}
 						</p>
 
 						<input
@@ -286,7 +288,7 @@ export function AvatarUploadDialog({
 							disabled={isUploading}
 						>
 							<Camera className="size-3.5" />
-							{selectedFile ? "Choose different file" : "Browse computer"}
+							{selectedFile ? t("avatar.chooseDifferent", "Choose different file") : t("avatar.browseComputer", "Browse computer")}
 						</Button>
 					</div>
 				</div>
@@ -307,7 +309,7 @@ export function AvatarUploadDialog({
 								) : (
 									<Trash2 className="mr-1.5 size-3.5" />
 								)}
-								Remove photo
+								{t("avatar.removePhoto", "Remove photo")}
 							</Button>
 						)}
 					</div>
@@ -323,7 +325,7 @@ export function AvatarUploadDialog({
 							}}
 							disabled={isUploading}
 						>
-							Cancel
+							{t("avatar.cancel", "Cancel")}
 						</Button>
 
 						<Button
@@ -336,12 +338,12 @@ export function AvatarUploadDialog({
 							{isUploading ? (
 								<>
 									<Loader2 className="size-3.5 animate-spin" />
-									Uploading...
+									{t("avatar.uploading", "Uploading...")}
 								</>
 							) : (
 								<>
 									<Upload className="size-3.5" />
-									Save Photo
+									{t("avatar.savePhoto", "Save Photo")}
 								</>
 							)}
 						</Button>

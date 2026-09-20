@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/card"
 import { email as supportEmail } from "@/config/site"
 import { sectionLabelClass } from "@/components/eyebrow"
+import { cookies } from "next/headers"
+import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, isLocale } from "@/i18n/config"
+import { getServerTranslation } from "@/lib/notifications/locale"
 import { auth } from "@/lib/auth"
 
 export default async function BannedPage({
@@ -21,6 +24,19 @@ export default async function BannedPage({
 }) {
   const sp = await searchParams
   const session = await auth.api.getSession({ headers: await headers() })
+
+  const cookieLocale = (await cookies()).get(LOCALE_COOKIE_NAME)?.value
+  const locale = isLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE
+  const t = (key: string) => getServerTranslation(locale, "errors", key)
+
+  const [tTitle, tReason, tExpires, tSupport, tHome, tDefaultReason] = await Promise.all([
+    t("banned.title"),
+    t("banned.reason"),
+    t("banned.expires"),
+    t("banned.support"),
+    t("banned.home"),
+    t("banned.defaultReason"),
+  ])
 
   const user = session?.user as
     | {
@@ -34,7 +50,7 @@ export default async function BannedPage({
   const banReason =
     sp.reason ??
     user?.banReason ??
-    "Your account has been banned by an administrator."
+    tDefaultReason
 
   let banExpiresText: string | null = null
   if (user?.banExpires) {
@@ -56,7 +72,7 @@ export default async function BannedPage({
         </div>
         <CardHeader className="pt-8">
           <CardTitle className="text-2xl">
-            Account suspended
+            {tTitle}
           </CardTitle>
           <CardDescription className="mx-auto max-w-sm text-balance">
             Hi {user?.name?.split(" ")[0] ?? "there"}, your access to TGAW has
@@ -71,23 +87,19 @@ export default async function BannedPage({
                 aria-hidden="true"
               />
               <span className={sectionLabelClass}>
-                Reason
+                {tReason}
               </span>
             </div>
             <p className="mt-1.5 text-sm text-foreground">{banReason}</p>
             {banExpiresText && (
               <p className="mt-3 text-xs text-muted-foreground">
-                Ban expires on{" "}
+                {tExpires}{" "}
                 <span className="font-medium text-foreground">
                   {banExpiresText}
                 </span>
               </p>
             )}
           </div>
-          {/* <p className="text-sm text-muted-foreground">
-						If you believe this is a mistake, please contact our support
-						team and we&apos;ll review your account as soon as possible.
-					</p> */}
         </CardContent>
         <CardFooter className="flex flex-col gap-2 pb-8">
           <Button variant="outline" className="w-full gap-2" asChild>
@@ -99,7 +111,7 @@ export default async function BannedPage({
               )}`}
             >
               <Mail className="size-4" aria-hidden="true" />
-              Contact support
+              {tSupport}
             </a>
           </Button>
           <p className="text-xs text-muted-foreground">
@@ -107,7 +119,7 @@ export default async function BannedPage({
               href="/"
               className="cursor-pointer text-primary hover:underline"
             >
-              Back to home
+              {tHome}
             </Link>
           </p>
         </CardFooter>

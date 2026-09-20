@@ -1,9 +1,11 @@
 import { Shield, Users, CalendarCheck, TrendingUp } from "lucide-react"
-import { headers } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
 import { EmptyState } from "@/components/EmptyState"
+import { getServerTranslation } from "@/lib/notifications/locale"
+import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME } from "@/i18n/config"
 
 function toDateKey(d: Date) {
   return d.toISOString().split("T")[0]
@@ -27,11 +29,51 @@ export default async function BoardDashboardPage() {
   const engagement =
     totalSlots > 0 ? Math.round((bookedSlots / totalSlots) * 100) : 0
 
+  const cookieStore = await cookies()
+  const locale = cookieStore.get(LOCALE_COOKIE_NAME)?.value ?? DEFAULT_LOCALE
+  const L = (key: string) => getServerTranslation(locale, "admin", key)
+  const [
+    pageTitle,
+    activeMembers,
+    activeMembersDesc,
+    bookingsTodayLabel,
+    bookingsTodayDesc,
+    engagementLabel,
+    engagementDesc,
+    totalBookingsLabel,
+    totalBookingsDesc,
+    overviewTitle,
+    overviewDesc,
+    upcomingFilled,
+    ofTotal,
+    emptyTitle,
+    emptyDesc,
+  ] = await Promise.all([
+    L("board.title"),
+    L("board.activeMembers"),
+    L("board.activeMembersDesc"),
+    L("board.bookingsToday"),
+    L("board.bookingsTodayDesc"),
+    L("board.engagement"),
+    L("board.engagementDesc"),
+    L("board.totalBookings"),
+    L("board.totalBookingsDesc"),
+    L("board.overviewTitle"),
+    L("board.overviewDesc"),
+    L("board.upcomingFilled"),
+    L("board.ofTotal"),
+    L("board.emptyTitle"),
+    L("board.emptyDesc"),
+  ])
+  const ofTotalText = ofTotal
+    .replace("{{booked}}", String(bookedSlots))
+    .replace("{{total}}", String(totalSlots))
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-2">
         <Shield className="size-6 text-primary" aria-hidden="true" />
-        <h2 className="text-2xl tracking-tight">Board Dashboard</h2>
+        <h2 className="text-2xl tracking-tight">{pageTitle}</h2>
       </div>
 
       <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
@@ -39,12 +81,12 @@ export default async function BoardDashboardPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <Users className="size-4 text-muted-foreground" aria-hidden="true" />
-              Active Members
+              {activeMembers}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold tabular-nums">{memberCount}</p>
-            <p className="mt-1 text-sm text-muted-foreground">in the community</p>
+            <p className="mt-1 text-sm text-muted-foreground">{activeMembersDesc}</p>
           </CardContent>
         </Card>
 
@@ -52,12 +94,12 @@ export default async function BoardDashboardPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <CalendarCheck className="size-4 text-muted-foreground" aria-hidden="true" />
-              Bookings Today
+              {bookingsTodayLabel}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold tabular-nums">{todayBookings}</p>
-            <p className="mt-1 text-sm text-muted-foreground">confirmed today</p>
+            <p className="mt-1 text-sm text-muted-foreground">{bookingsTodayDesc}</p>
           </CardContent>
         </Card>
 
@@ -65,13 +107,13 @@ export default async function BoardDashboardPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <TrendingUp className="size-4 text-muted-foreground" aria-hidden="true" />
-              Slot Engagement
+              {engagementLabel}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold tabular-nums">{engagement}%</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              of upcoming slots filled
+              {engagementDesc}
             </p>
           </CardContent>
         </Card>
@@ -80,30 +122,29 @@ export default async function BoardDashboardPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <CalendarCheck className="size-4 text-muted-foreground" aria-hidden="true" />
-              Total Bookings
+              {totalBookingsLabel}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold tabular-nums">{totalBookings}</p>
-            <p className="mt-1 text-sm text-muted-foreground">all-time confirmed</p>
+            <p className="mt-1 text-sm text-muted-foreground">{totalBookingsDesc}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Org-Wide Overview</CardTitle>
+          <CardTitle>{overviewTitle}</CardTitle>
           <CardDescription>
-            High-level engagement across all global timezones. Leaders manage
-            slots, links, and moderation; this view keeps the board informed.
+            {overviewDesc}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
-              <span className="text-sm text-muted-foreground">Upcoming slots filled</span>
+              <span className="text-sm text-muted-foreground">{upcomingFilled}</span>
               <span className="text-sm font-medium tabular-nums">
-                {bookedSlots} of {totalSlots}
+                {ofTotalText}
               </span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -115,8 +156,8 @@ export default async function BoardDashboardPage() {
             {bookedSlots === 0 && (
               <EmptyState
                 icon={CalendarCheck}
-                title="No upcoming bookings yet"
-                description="Once members start booking devotional slots, engagement will appear here."
+                title={emptyTitle}
+                description={emptyDesc}
                 className="py-2 sm:py-10"
               />
             )}

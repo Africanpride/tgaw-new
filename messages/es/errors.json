@@ -1,0 +1,20 @@
+{
+  "notFound.title": "Página no encontrada",
+  "notFound.description": "La vigilia que buscas no existe o fue movida.",
+  "notFound.home": "Volver al inicio",
+  "notFound.dashboard": "Panel",
+  "error.title": "Algo salió mal",
+  "error.fallback": "Ocurrió un error inesperado. Tu sesión está a salvo — inténtalo de nuevo.",
+  "error.retry": "Intentar de nuevo",
+  "error.dashboard": "Panel",
+  "unauthorized.title": "Acceso denegado",
+  "unauthorized.description": "El rol de tu cuenta no tiene permiso para ver esta página.",
+  "unauthorized.return": "Volver al panel",
+  "banned.title": "Cuenta suspendida",
+  "banned.reason": "Motivo",
+  "banned.expires": "Expira el",
+  "banned.permanent": "Suspensión permanente",
+  "banned.support": "Contactar con soporte",
+  "banned.home": "Volver al inicio",
+  "banned.defaultReason": "Tu cuenta ha sido suspendida por un administrador."
+}

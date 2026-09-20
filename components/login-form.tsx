@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -12,10 +13,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-export function LoginForm({
+export async function LoginForm({
 	className,
 	...props
 }: React.ComponentProps<"div">) {
+	const t = await getTranslations("auth");
 	return (
 		<div className={cn("flex flex-col gap-6", className)} {...props}>
 			<Card className="overflow-hidden p-0">
@@ -23,13 +25,13 @@ export function LoginForm({
 					<form className="p-6 md:p-8">
 						<FieldGroup>
 							<div className="flex flex-col items-center gap-2 text-center">
-								<h1 className="text-2xl">Welcome back</h1>
+								<h1 className="text-2xl">{t("login.title")}</h1>
 								<p className="text-balance text-muted-foreground">
-									Login to your TGAW Inc account
+									{t("login.subtitle")}
 								</p>
 							</div>
 							<Field>
-								<FieldLabel htmlFor="email">Email</FieldLabel>
+								<FieldLabel htmlFor="email">{t("login.email")}</FieldLabel>
 								<Input
 									id="email"
 									type="email"
@@ -39,21 +41,21 @@ export function LoginForm({
 							</Field>
 							<Field>
 								<div className="flex items-center">
-									<FieldLabel htmlFor="password">Password</FieldLabel>
+									<FieldLabel htmlFor="password">{t("login.password")}</FieldLabel>
 									<Link
 										href="/auth/password-reset"
 										className="ml-auto text-sm underline-offset-2 hover:underline cursor-pointer"
 									>
-										Forgot your password?
+										{t("login.forgotPassword")}
 									</Link>
 								</div>
 								<Input id="password" type="password" required />
 							</Field>
 							<Field>
-								<Button type="submit">Login</Button>
+								<Button type="submit">{t("login.submit")}</Button>
 							</Field>
 							<FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-								Or continue with
+								{t("login.orContinueWith")}
 							</FieldSeparator>
 							<Field className="grid grid-cols-3 gap-2">
 								<Button variant="outline" type="button">
@@ -67,7 +69,7 @@ export function LoginForm({
 											fill="currentColor"
 										/>
 									</svg>
-									<span className="sr-only">Login with Apple</span>
+									<span className="sr-only">{t("login.social.apple")}</span>
 								</Button>
 								<Button variant="outline" type="button">
 									<svg
@@ -80,7 +82,7 @@ export function LoginForm({
 											fill="currentColor"
 										/>
 									</svg>
-									<span className="sr-only">Login with Google</span>
+									<span className="sr-only">{t("login.social.google")}</span>
 								</Button>
 								<Button variant="outline" type="button">
 									<svg
@@ -93,13 +95,13 @@ export function LoginForm({
 											fill="currentColor"
 										/>
 									</svg>
-									<span className="sr-only">Login with Meta</span>
+									<span className="sr-only">{t("login.social.meta")}</span>
 								</Button>
 							</Field>
 							<FieldDescription className="text-center">
-								Don&apos;t have an account?{" "}
+								{t("login.noAccount")}{" "}
 								<Link href="/auth/signup" className="cursor-pointer">
-									Sign up
+									{t("login.signUp")}
 								</Link>
 							</FieldDescription>
 						</FieldGroup>
@@ -107,7 +109,7 @@ export function LoginForm({
 					<div className="relative hidden bg-muted md:block">
 						<Image
 							src="/images/christ_the_redeemer.jpg"
-							alt="Christ The Redeemer"
+							alt={t("login.imageAlt")}
 							fill
 							priority
 							sizes="(min-width: 768px) 50vw, 100vw"
@@ -117,15 +119,18 @@ export function LoginForm({
 				</CardContent>
 			</Card>
 			<FieldDescription className="px-2 text-center sm:px-6">
-				By clicking continue, you agree to our{" "}
-				<Link href="/terms" className="cursor-pointer">
-					Terms of Service
-				</Link>{" "}
-				and{" "}
-				<Link href="/privacy" className="cursor-pointer">
-					Privacy Policy
-				</Link>
-				.
+				{t.rich("login.terms", {
+					terms: (chunks) => (
+						<Link href="/terms" className="cursor-pointer">
+							{chunks}
+						</Link>
+					),
+					privacy: (chunks) => (
+						<Link href="/privacy" className="cursor-pointer">
+							{chunks}
+						</Link>
+					),
+				})}
 			</FieldDescription>
 		</div>
 	);

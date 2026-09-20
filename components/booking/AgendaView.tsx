@@ -1,3 +1,5 @@
+"use client"
+
 import type { BookableType } from "@/lib/services/slotService"
 import { CalendarCheck2, Video } from "lucide-react"
 import Link from "next/link"
@@ -7,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { listRowClass } from "@/components/list-row"
 import { eyebrowClass } from "@/components/eyebrow"
 import { convertUtcTimeToLocal } from "./slotTime"
+import { useTranslation } from "react-i18next"
 
 export interface AgendaEvent {
   id: string
@@ -76,26 +79,25 @@ function Avatar({ initials, name }: { initials: string; name?: string }) {
 }
 
 export function AgendaView({ days, summary }: AgendaViewProps) {
+  const { t } = useTranslation("booking")
   const hasEvents = summary.eventCount > 0
   const todayDay = days.find((d) => d.key === "today")
   const nextDay = days.find((d) => d.key === "next")
   const eyebrowDate = todayDay?.dateLabel ?? nextDay?.dateLabel
 
   const heading = !hasEvents
-    ? "Your agenda"
+    ? t("agenda.headingYourAgenda")
     : todayDay && nextDay
-      ? "Today and tomorrow"
-      : nextDay
-        ? nextDay.label
-        : "Today"
+      ? t("agenda.headingTodayAndTomorrow")
+      : t("agenda.headingToday")
 
   if (!hasEvents) {
     return (
       <EmptyState
         icon={CalendarCheck2}
-        title="No sessions booked yet"
-        description="Claim a devotional slot and keep your watch alive."
-        actionLabel="Book a Slot"
+        title={t("agenda.emptyTitle")}
+        description={t("agenda.emptyDescription")}
+        actionLabel={t("agenda.emptyAction")}
         actionHref="/booking"
         className="h-full"
       />

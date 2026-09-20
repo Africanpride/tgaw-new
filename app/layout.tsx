@@ -3,7 +3,7 @@
 
 import type { Metadata } from "next"
 import { Bebas_Neue, Geist, Geist_Mono } from "next/font/google"
-import { headers } from "next/headers"
+import { cookies, headers } from "next/headers"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -11,9 +11,13 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
 import { ConsentProvider } from "@/components/consent/ConsentProvider"
 import { CookieConsent } from "@/components/consent"
+import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, isLocale } from "@/i18n/config"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  ),
   title: "The Global Altar Watch",
   description: "8 Gates of Society — Isaiah 19 Highway",
   manifest: "/manifest.json",
@@ -70,9 +74,19 @@ export default async function RootLayout({
     // ignore — client fallback will handle
   }
 
+  // locale-aware <html lang>: dashboard + public pages share this root
+  // layout ([locale]/layout.tsx only provides translations, no <html>).
+  let lang = DEFAULT_LOCALE
+  try {
+    const cookieLocale = (await cookies()).get(LOCALE_COOKIE_NAME)?.value
+    if (isLocale(cookieLocale)) lang = cookieLocale
+  } catch {
+    // ignore — default locale stands
+  }
+
   return (
     <html
-      lang="en"
+      lang={lang}
       suppressHydrationWarning
       className={cn(
         "antialiased",
