@@ -1,8 +1,10 @@
 {
   "title": "Slot Booking",
   "type.bible": "Bible Reading",
+  "type.bibleShort": "Bible",
   "type.prayer": "Prayer",
   "type.worship": "Praise & Worship",
+  "type.worshipShort": "Worship",
   "selected_one": "{{count}} slot selected",
   "selected_other": "{{count}} slots selected",
   "action.bookSelected": "Book Selected",

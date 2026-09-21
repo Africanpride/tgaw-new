@@ -1,8 +1,10 @@
 {
   "title": "Reserva de horários",
   "type.bible": "Leitura bíblica",
+  "type.bibleShort": "Bíblia",
   "type.prayer": "Oração",
   "type.worship": "Louvor & Adoração",
+  "type.worshipShort": "Louvor",
   "selected_one": "{{count}} horário selecionado",
   "selected_other": "{{count}} horários selecionados",
   "action.bookSelected": "Reservar seleção",

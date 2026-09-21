@@ -1,8 +1,10 @@
 {
   "title": "Reserva de turnos",
   "type.bible": "Lectura bíblica",
+  "type.bibleShort": "Biblia",
   "type.prayer": "Oración",
   "type.worship": "Alabanza y Adoración",
+  "type.worshipShort": "Alabanza",
   "selected_one": "{{count}} turno seleccionado",
   "selected_other": "{{count}} turnos seleccionados",
   "action.bookSelected": "Reservar selección",

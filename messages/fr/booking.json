@@ -1,8 +1,10 @@
 {
   "title": "Réservation de créneau",
   "type.bible": "Lecture biblique",
+  "type.bibleShort": "Bible",
   "type.prayer": "Prière",
   "type.worship": "Louange & Adoration",
+  "type.worshipShort": "Louange",
   "selected_one": "{{count}} créneau sélectionné",
   "selected_other": "{{count}} créneaux sélectionnés",
   "action.bookSelected": "Réserver la sélection",
