@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db/prisma"
 import { EmptyState } from "@/components/EmptyState"
 import { getServerTranslation } from "@/lib/notifications/locale"
 import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME } from "@/i18n/config"
+import { BoardExecutiveStats } from "@/components/board/BoardExecutiveStats"
 
 function toDateKey(d: Date) {
   return d.toISOString().split("T")[0]
@@ -70,13 +71,46 @@ export default async function BoardDashboardPage() {
     .replace("{{total}}", String(totalSlots))
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <Shield className="size-6 text-primary" aria-hidden="true" />
         <h2 className="text-2xl tracking-tight">{pageTitle}</h2>
       </div>
 
-      <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
+      <BoardExecutiveStats />
+      <Card className="hidden">
+        <CardHeader>
+          <CardTitle>{overviewTitle}</CardTitle>
+          <CardDescription>
+            {overviewDesc}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-sm text-muted-foreground">{upcomingFilled}</span>
+              <span className="text-sm font-medium tabular-nums">
+                {ofTotalText}
+              </span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{ width: `${engagement}%` }}
+              />
+            </div>
+            {bookedSlots === 0 && (
+              <EmptyState
+                icon={CalendarCheck}
+                title={emptyTitle}
+                description={emptyDesc}
+                className="py-2 sm:py-10"
+              />
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
@@ -132,38 +166,6 @@ export default async function BoardDashboardPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{overviewTitle}</CardTitle>
-          <CardDescription>
-            {overviewDesc}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-sm text-muted-foreground">{upcomingFilled}</span>
-              <span className="text-sm font-medium tabular-nums">
-                {ofTotalText}
-              </span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-primary transition-all"
-                style={{ width: `${engagement}%` }}
-              />
-            </div>
-            {bookedSlots === 0 && (
-              <EmptyState
-                icon={CalendarCheck}
-                title={emptyTitle}
-                description={emptyDesc}
-                className="py-2 sm:py-10"
-              />
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     )
   }
 
-  const { name, phone, country, sex, ageRange, timezone } = validation.data
+  const { name, username, phone, country, sex, ageRange, timezone } = validation.data
 
   const userId = session.user.id!
 
@@ -38,6 +38,19 @@ export async function POST(req: Request) {
     body: { name },
     headers: await headers(),
   })
+
+  // Persist username
+  if (username) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { username, onboardingComplete: true },
+    })
+  } else {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { onboardingComplete: true },
+    })
+  }
 
   return NextResponse.json({ success: true })
 }

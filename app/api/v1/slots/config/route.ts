@@ -8,7 +8,7 @@ import { updateBookingConfigSchema } from "@/lib/schemas/slotSchema";
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
   const role = session?.user?.role as string;
-  if (!session?.user || (role !== "leader" && role !== "superadmin")) {
+  if (!session?.user || !["leader", "superadmin", "coordinator"].includes(role)) {
     return NextResponse.json({ success: false, error: "Unauthorised" }, { status: 401 });
   }
 
@@ -23,7 +23,7 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
   const role = session?.user?.role as string;
-  if (!session?.user || (role !== "leader" && role !== "superadmin")) {
+  if (!session?.user || !["leader", "superadmin", "coordinator"].includes(role)) {
     return NextResponse.json({ success: false, error: "Unauthorised" }, { status: 401 });
   }
 

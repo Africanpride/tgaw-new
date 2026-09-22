@@ -5,6 +5,14 @@ export const nameStepSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
 })
 
+export const usernameStepSchema = z.object({
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(30, "Username must be 30 characters or less")
+    .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores allowed"),
+})
+
 export const contactStepSchema = z.object({
 	phone: phoneSchema,
 	country: z.string().min(1, "Select a country"),
@@ -23,6 +31,7 @@ export const timezoneStepSchema = z.object({
 })
 
 export const onboardingSchema = nameStepSchema
+  .merge(usernameStepSchema)
   .merge(contactStepSchema)
   .merge(aboutStepSchema)
   .merge(timezoneStepSchema)
@@ -31,6 +40,7 @@ export type OnboardingValues = z.infer<typeof onboardingSchema>
 
 export const ONBOARDING_STEPS = [
   { id: "name", label: "Your Name", schema: nameStepSchema },
+  { id: "username", label: "Username", schema: usernameStepSchema },
   { id: "contact", label: "Contact", schema: contactStepSchema },
   { id: "about", label: "About You", schema: aboutStepSchema },
   { id: "timezone", label: "Time Zone", schema: timezoneStepSchema },

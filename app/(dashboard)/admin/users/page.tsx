@@ -103,7 +103,7 @@ interface User {
 
 const EMPTY_USERS: User[] = []
 
-type ActionTarget = "ban" | "delete" | "unban" | "role" | null
+type ActionTarget = "ban" | "delete" | "unban" | "role" | "edit-timezones" | null
 
 const roleColor: Record<string, string> = {
   superadmin: "bg-red-500/15 text-red-700 dark:text-red-400",
@@ -154,43 +154,43 @@ function RolePicker({
 }) {
   const { t } = useTranslation("admin")
   return (
-    <div className="space-y-2">
-      {ROLE_KEYS.map(
-        (role) => {
-          const active = value === role
-          return (
-            <button
-              key={role}
-              type="button"
-              onClick={() => onChange(role)}
-              aria-pressed={active}
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      {ROLE_KEYS.map((role, idx) => {
+        const active = value === role
+        const isLastOdd = idx === ROLE_KEYS.length - 1 && ROLE_KEYS.length % 2 !== 0
+        return (
+          <button
+            key={role}
+            type="button"
+            onClick={() => onChange(role)}
+            aria-pressed={active}
+            className={cn(
+              "flex w-full cursor-pointer items-start gap-3 rounded-lg border p-2 text-left transition-all sm:p-3",
+              isLastOdd && "sm:col-span-2",
+              active
+                ? "border-primary bg-primary/5 ring-1 ring-primary"
+                : "border-border hover:bg-muted/50"
+            )}
+          >
+            <span
               className={cn(
-                "flex w-full cursor-pointer items-start gap-3 rounded-lg border p-2 text-left transition-all sm:p-3",
-                active
-                  ? "border-primary bg-primary/5 ring-1 ring-primary"
-                  : "border-border hover:bg-muted/50"
+                "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border",
+                active ? "border-primary" : "border-muted-foreground/40"
               )}
             >
-              <span
-                className={cn(
-                  "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border",
-                  active ? "border-primary" : "border-muted-foreground/40"
-                )}
-              >
-                {active && (
-                  <span className="size-2 rounded-full bg-primary" />
-                )}
+              {active && (
+                <span className="size-2 rounded-full bg-primary" />
+              )}
+            </span>
+            <span>
+              <span className="block text-sm font-medium">{t(`role.${role}`, { ns: "common" })}</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                {t(`users.roleDesc.${role}`)}
               </span>
-              <span>
-                <span className="block text-sm font-medium">{t(`role.${role}`, { ns: "common" })}</span>
-                <span className="mt-0.5 block text-xs text-muted-foreground">
-                  {t(`users.roleDesc.${role}`)}
-                </span>
-              </span>
-            </button>
-          )
-        }
-      )}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -402,6 +402,30 @@ export default function UserManagementPage() {
             >
               {t("users.changeRole")}
             </Button>
+            {user.role === "coordinator" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 cursor-pointer"
+                disabled={isSelf}
+                onClick={() => {
+                  setTargetUser(user)
+                  setActionTarget("edit-timezones")
+                  setTzFilter("")
+                  // Load existing assignments
+                  fetch(`/api/v1/admin/coordinator-assignments?userId=${user.id}`)
+                    .then((r) => r.json())
+                    .then((data) => {
+                      if (data.success) {
+                        setCoordinatorTimezones((data.data as { timezone: string }[]).map((r) => r.timezone))
+                      }
+                    })
+                    .catch(() => setCoordinatorTimezones([]))
+                }}
+              >
+                {t("users.editTimezones")}
+              </Button>
+            )}
             {user.banned ? (
               <Button
                 variant="outline"
@@ -914,6 +938,28 @@ export default function UserManagementPage() {
                           >
                             {t("users.changeRole")}
                           </Button>
+                          {user.role === "coordinator" && (
+                            <Button
+                              variant="outline"
+                              className="w-full cursor-pointer"
+                              disabled={isSelf}
+                              onClick={() => {
+                                setTargetUser(user)
+                                setActionTarget("edit-timezones")
+                                setTzFilter("")
+                                fetch(`/api/v1/admin/coordinator-assignments?userId=${user.id}`)
+                                  .then((r) => r.json())
+                                  .then((data) => {
+                                    if (data.success) {
+                                      setCoordinatorTimezones((data.data as { timezone: string }[]).map((r) => r.timezone))
+                                    }
+                                  })
+                                  .catch(() => setCoordinatorTimezones([]))
+                              }}
+                            >
+                              {t("users.editTimezones")}
+                            </Button>
+                          )}
                           <div className="flex gap-2">
                             {user.banned ? (
                               <Button
@@ -1190,8 +1236,8 @@ export default function UserManagementPage() {
           }
         }}
       >
-        <DialogContent className="pt-2 sm:max-w-2xl sm:pt-6">
-          <DialogHeader>
+        <DialogContent className="flex max-h-[calc(100dvh-2rem)] sm:max-h-[85vh] flex-col gap-0 p-0 sm:max-w-2xl overflow-hidden">
+          <DialogHeader className="shrink-0 p-4 pb-3 sm:p-6 sm:pb-4 border-b pr-10">
             <DialogTitle>
               {roleStep === 1
                 ? t("users.role.changeTitle", { name: targetUser?.name })
@@ -1202,92 +1248,71 @@ export default function UserManagementPage() {
                 ? t("users.role.stepOneDesc")
                 : t("users.role.stepTwoDesc")}
             </DialogDescription>
+            <div className="pt-2 sm:pt-3">
+              <RoleStepIndicator step={roleStep} />
+            </div>
           </DialogHeader>
 
-          <div className="border-b pb-2 sm:pb-3">
-            <RoleStepIndicator step={roleStep} />
-          </div>
-
-          {roleStep === 1 ? (
-            <>
-              <RolePicker
-                value={selectedRole}
-                onChange={setSelectedRole}
-              />
-              {selectedRole === "coordinator" && (
-                <div className="space-y-3 rounded-lg border p-2 sm:p-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">{t("users.role.timezones")}</Label>
-                    <span className="text-xs text-muted-foreground">{t("users.role.selectedCount", { count: coordinatorTimezones.length })}</span>
-                  </div>
-                  {coordinatorTimezones.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {coordinatorTimezones.map((tz) => (
-                        <Badge key={tz} variant="secondary" className="gap-1 pr-1 text-xs">
-                          {tz}
-                          <button
-                            type="button"
-                            aria-label={t("users.role.removeTz", { tz })}
-                            onClick={() => setCoordinatorTimezones((prev) => prev.filter((x) => x !== tz))}
-                            className="ml-1 cursor-pointer rounded-full p-0.5 hover:bg-muted"
-                          >
-                            <span aria-hidden="true">×</span>
-                          </button>
-                        </Badge>
-                      ))}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 min-h-0">
+            {roleStep === 1 ? (
+              <>
+                <RolePicker
+                  value={selectedRole}
+                  onChange={setSelectedRole}
+                />
+                {selectedRole === "coordinator" && (
+                  <div className="space-y-3 rounded-lg border p-2 sm:p-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">{t("users.role.timezones")}</Label>
+                      <span className="text-xs text-muted-foreground">{t("users.role.selectedCount", { count: coordinatorTimezones.length })}</span>
                     </div>
-                  )}
-                  <Input
-                    placeholder={t("users.role.filterTimezones")}
-                    value={tzFilter}
-                    onChange={(e) => setTzFilter(e.target.value)}
-                    className="h-8"
-                  />
-                  <div className="max-h-40 overflow-auto rounded-xl border">
-                    {(allTimezones.filter((tz) => tz.toLowerCase().includes(tzFilter.toLowerCase())).slice(0, 80)).map((tz) => {
-                      const active = coordinatorTimezones.includes(tz)
-                      return (
-                        <label key={tz} className="flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted/50">
-                          <Checkbox
-                            checked={active}
-                            onCheckedChange={(checked) => {
-                              setCoordinatorTimezones((prev) => checked ? [...prev, tz] : prev.filter((x) => x !== tz))
-                            }}
-                          />
-                          <span className="truncate">{tz}</span>
-                        </label>
-                      )
-                    })}
-                    {allTimezones.filter((tz) => tz.toLowerCase().includes(tzFilter.toLowerCase())).length === 0 && (
-                      <p className="p-2 text-sm text-muted-foreground sm:p-3">{t("users.role.noMatches")}</p>
+                    {coordinatorTimezones.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+                        {coordinatorTimezones.map((tz) => (
+                          <Badge key={tz} variant="secondary" className="gap-1 pr-1 text-xs">
+                            {tz}
+                            <button
+                              type="button"
+                              aria-label={t("users.role.removeTz", { tz })}
+                              onClick={() => setCoordinatorTimezones((prev) => prev.filter((x) => x !== tz))}
+                              className="ml-1 cursor-pointer rounded-full p-0.5 hover:bg-muted"
+                            >
+                              <span aria-hidden="true">×</span>
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
                     )}
+                    <Input
+                      placeholder={t("users.role.filterTimezones")}
+                      value={tzFilter}
+                      onChange={(e) => setTzFilter(e.target.value)}
+                      className="h-8"
+                    />
+                    <div className="max-h-36 overflow-auto rounded-xl border">
+                      {(allTimezones.filter((tz) => tz.toLowerCase().includes(tzFilter.toLowerCase())).slice(0, 80)).map((tz) => {
+                        const active = coordinatorTimezones.includes(tz)
+                        return (
+                          <label key={tz} className="flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted/50">
+                            <Checkbox
+                              checked={active}
+                              onCheckedChange={(checked) => {
+                                setCoordinatorTimezones((prev) => checked ? [...prev, tz] : prev.filter((x) => x !== tz))
+                              }}
+                            />
+                            <span className="truncate">{tz}</span>
+                          </label>
+                        )
+                      })}
+                      {allTimezones.filter((tz) => tz.toLowerCase().includes(tzFilter.toLowerCase())).length === 0 && (
+                        <p className="p-2 text-sm text-muted-foreground sm:p-3">{t("users.role.noMatches")}</p>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t("users.role.tzHint")}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">{t("users.role.tzHint")}</p>
-                </div>
-              )}
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  disabled={isActing}
-                  onClick={() => {
-                    setTargetUser(null)
-                    setActionTarget(null)
-                    setRoleStep(1)
-                    setSelectedRole("")
-                  }}
-                >
-                  {t("users.cancel")}
-                </Button>
-                <Button
-                  disabled={!selectedRole || selectedRole === targetUser?.role}
-                  onClick={() => setRoleStep(2)}
-                >
-                  {t("users.role.continue")}
-                </Button>
-              </DialogFooter>
-            </>
-          ) : (
-            <>
+                )}
+              </>
+            ) : (
               <div className="space-y-3">
                 <div className="flex items-center justify-between rounded-lg border p-2 sm:p-3">
                   <span className="text-sm text-muted-foreground">
@@ -1307,7 +1332,7 @@ export default function UserManagementPage() {
                     {coordinatorTimezones.length === 0 ? (
                       <p className="mt-1 text-sm text-destructive">{t("users.role.noTimezone")}</p>
                     ) : (
-                      <div className="mt-2 flex flex-wrap gap-1.5">
+                      <div className="mt-2 flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                         {coordinatorTimezones.map((tz) => (
                           <Badge key={tz} variant="secondary" className="text-xs">{tz}</Badge>
                         ))}
@@ -1321,7 +1346,33 @@ export default function UserManagementPage() {
                   </p>
                 )}
               </div>
-              <DialogFooter>
+            )}
+          </div>
+
+          <DialogFooter className="shrink-0 m-0 rounded-t-none border-t bg-muted/50 p-4 sm:flex-row sm:justify-end">
+            {roleStep === 1 ? (
+              <>
+                <Button
+                  variant="outline"
+                  disabled={isActing}
+                  onClick={() => {
+                    setTargetUser(null)
+                    setActionTarget(null)
+                    setRoleStep(1)
+                    setSelectedRole("")
+                  }}
+                >
+                  {t("users.cancel")}
+                </Button>
+                <Button
+                  disabled={!selectedRole || selectedRole === targetUser?.role}
+                  onClick={() => setRoleStep(2)}
+                >
+                  {t("users.role.continue")}
+                </Button>
+              </>
+            ) : (
+              <>
                 <Button
                   variant="outline"
                   disabled={isActing}
@@ -1338,9 +1389,124 @@ export default function UserManagementPage() {
                   <Check className="mr-2 size-4" aria-hidden="true" />
                   {isActing ? t("users.role.saving") : t("users.role.save")}
                 </Button>
-              </DialogFooter>
-            </>
-          )}
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit coordinator timezones dialog */}
+      <Dialog
+        open={actionTarget === "edit-timezones" && !!targetUser}
+        onOpenChange={(open) => {
+          if (!open && !isActing) {
+            setTargetUser(null)
+            setActionTarget(null)
+            setCoordinatorTimezones([])
+            setTzFilter("")
+          }
+        }}
+      >
+        <DialogContent className="flex max-h-[calc(100dvh-2rem)] sm:max-h-[85vh] flex-col gap-0 p-0 sm:max-w-lg overflow-hidden">
+          <DialogHeader className="shrink-0 p-4 pb-3 sm:p-6 sm:pb-4 border-b pr-10">
+            <DialogTitle>{t("users.editTimezonesTitle", { name: targetUser?.name })}</DialogTitle>
+            <DialogDescription>{t("users.editTimezonesDesc")}</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 min-h-0">
+            <div className="space-y-3 rounded-lg border p-2 sm:p-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">{t("users.role.timezones")}</Label>
+                <span className="text-xs text-muted-foreground">{t("users.role.selectedCount", { count: coordinatorTimezones.length })}</span>
+              </div>
+              {coordinatorTimezones.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+                  {coordinatorTimezones.map((tz) => (
+                    <Badge key={tz} variant="secondary" className="gap-1 pr-1 text-xs">
+                      {tz}
+                      <button
+                        type="button"
+                        aria-label={t("users.role.removeTz", { tz })}
+                        onClick={() => setCoordinatorTimezones((prev) => prev.filter((x) => x !== tz))}
+                        className="ml-1 cursor-pointer rounded-full p-0.5 hover:bg-muted"
+                      >
+                        <span aria-hidden="true">×</span>
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <Input
+                placeholder={t("users.role.filterTimezones")}
+                value={tzFilter}
+                onChange={(e) => setTzFilter(e.target.value)}
+                className="h-8"
+              />
+              <div className="max-h-36 overflow-auto rounded-xl border">
+                {(allTimezones.filter((tz) => tz.toLowerCase().includes(tzFilter.toLowerCase())).slice(0, 80)).map((tz) => {
+                  const active = coordinatorTimezones.includes(tz)
+                  return (
+                    <label key={tz} className="flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted/50">
+                      <Checkbox
+                        checked={active}
+                        onCheckedChange={(checked) => {
+                          setCoordinatorTimezones((prev) => checked ? [...prev, tz] : prev.filter((x) => x !== tz))
+                        }}
+                      />
+                      <span className="truncate">{tz}</span>
+                    </label>
+                  )
+                })}
+                {allTimezones.filter((tz) => tz.toLowerCase().includes(tzFilter.toLowerCase())).length === 0 && (
+                  <p className="p-2 text-sm text-muted-foreground sm:p-3">{t("users.role.noMatches")}</p>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">{t("users.role.tzHint")}</p>
+            </div>
+          </div>
+
+          <DialogFooter className="shrink-0 m-0 rounded-t-none border-t bg-muted/50 p-4 sm:flex-row sm:justify-end">
+            <Button
+              variant="outline"
+              disabled={isActing}
+              onClick={() => {
+                setTargetUser(null)
+                setActionTarget(null)
+                setCoordinatorTimezones([])
+                setTzFilter("")
+              }}
+            >
+              {t("users.cancel")}
+            </Button>
+            <Button
+              disabled={isActing || coordinatorTimezones.length === 0}
+              onClick={async () => {
+                if (!targetUser) return
+                setIsActing(true)
+                try {
+                  const res = await fetch("/api/v1/admin/coordinator-assignments", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: targetUser.id, timezones: coordinatorTimezones }),
+                  })
+                  const data = await res.json()
+                  if (!data.success) throw new Error(data.error || t("users.toast.tzFailed"))
+                  toast.success(t("users.toast.tzUpdated"))
+                  setTargetUser(null)
+                  setActionTarget(null)
+                  setCoordinatorTimezones([])
+                  setTzFilter("")
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : t("users.toast.tzFailed"))
+                } finally {
+                  setIsActing(false)
+                }
+              }}
+            >
+              <Check className="mr-2 size-4" aria-hidden="true" />
+              {isActing ? t("users.role.saving") : t("users.role.save")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

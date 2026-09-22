@@ -83,7 +83,7 @@ Roles, in ascending order of access:
   `leader` + `superadmin`.
 - A coordinator-only route for their timezone-scoped dashboard: `coordinator`
   - `superadmin`.
-- A board-only route for the org-wide dashboard: `board` +
+- A board-only route for the organization-wide dashboard: `board` +
   `superadmin`.
 - `leader`'s ban/unban and any moderation actions should be implemented as
   custom app-level routes that check role directly — NOT routed through

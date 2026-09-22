@@ -69,7 +69,7 @@ export default async function CalendarPage(props: {
 	});
 	const userTimezone = profile?.timezone ?? "UTC";
 
-	// Fetch the user's booked slots and visible events (user's own events + org-wide Special Events).
+	// Fetch the user's booked slots and visible events (user's own events + organization-wide Special Events).
 	const [slots, events] = await Promise.all([
 		prisma.slot.findMany({
 			where: {

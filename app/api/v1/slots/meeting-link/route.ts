@@ -9,7 +9,7 @@ import { EventType } from "@prisma/client";
 export async function PUT(req: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
   const role = session?.user?.role as string;
-  if (!session?.user || (role !== "leader" && role !== "superadmin")) {
+  if (!session?.user || !["leader", "superadmin", "coordinator"].includes(role)) {
     return NextResponse.json({ success: false, error: "Unauthorised" }, { status: 401 });
   }
 
@@ -33,7 +33,7 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
   const role = session?.user?.role as string;
-  if (!session?.user || (role !== "leader" && role !== "superadmin")) {
+  if (!session?.user || !["leader", "superadmin", "coordinator"].includes(role)) {
     return NextResponse.json({ success: false, error: "Unauthorised" }, { status: 401 });
   }
 

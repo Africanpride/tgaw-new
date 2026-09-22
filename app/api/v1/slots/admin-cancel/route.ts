@@ -9,7 +9,7 @@ import { extractNextRequestContext, logAudit } from "@/lib/services/auditService
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
   const role = session?.user?.role as string;
-  if (!session?.user || (role !== "leader" && role !== "superadmin")) {
+  if (!session?.user || !["leader", "superadmin", "coordinator"].includes(role)) {
     return NextResponse.json({ success: false, error: "Unauthorised" }, { status: 401 });
   }
 

@@ -295,6 +295,14 @@ const options = {
               ip: reqCtx.ip,
               userAgent: reqCtx.userAgent,
             });
+
+            // Cascade clean up related user records to prevent orphaned profiles
+            const { prisma } = await import("@/lib/db/prisma");
+            await Promise.allSettled([
+              prisma.userProfile.deleteMany({ where: { userId: u.id } }),
+              prisma.coordinatorAssignment.deleteMany({ where: { userId: u.id } }),
+              prisma.slot.updateMany({ where: { bookedBy: u.id }, data: { bookedBy: null } }),
+            ]);
           } catch {}
         },
       },

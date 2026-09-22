@@ -244,7 +244,7 @@ export default async function OverviewPage() {
     getBookingConfig(),
   ])
 
-  // Upcoming / in-progress org-wide Special Events for the meeting banner.
+  // Upcoming / in-progress organization-wide Special Events for the meeting banner.
   const now = new Date()
   const specialCandidates = (
     await prisma.event.findMany({

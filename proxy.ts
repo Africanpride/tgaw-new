@@ -194,8 +194,8 @@ export async function proxy(req: NextRequest) {
 	if (path.startsWith("/api/v1/slots/book") || path.startsWith("/api/v1/slots/cancel") || path === "/api/v1/slots") {
 		// All authenticated users can list/book/cancel
 	} else if (path.startsWith("/api/v1/slots/assign") || path.startsWith("/api/v1/slots/admin-cancel") || path.startsWith("/api/v1/slots/config") || path.startsWith("/api/v1/slots/meeting-link") || path.startsWith("/api/v1/slots/generate")) {
-		// Only leader and superadmin
-		if (role !== "leader" && role !== "superadmin") {
+		// leader, superadmin, and coordinator
+		if (role !== "leader" && role !== "superadmin" && role !== "coordinator") {
 			return withConsentHeaders(isApi ? NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/unauthorized", req.url)), req);
 		}
 	}

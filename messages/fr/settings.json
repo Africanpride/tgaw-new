@@ -35,6 +35,7 @@
   "profile.ageRangePlaceholder": "Sélectionnez une tranche d'âge",
   "profile.timezone": "Fuseau horaire",
   "profile.timezonePlaceholder": "Sélectionnez votre fuseau horaire",
+  "profile.timezoneNoResults": "Aucun fuseau horaire correspondant.",
   "profile.timezoneHint": "Utilisé pour les rappels de créneaux et le calendrier.",
   "profile.save": "Enregistrer",
   "profile.fallbackName": "Utilisateur",
