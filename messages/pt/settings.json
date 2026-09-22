@@ -35,6 +35,7 @@
   "profile.ageRangePlaceholder": "Selecione uma faixa etária",
   "profile.timezone": "Fuso horário",
   "profile.timezonePlaceholder": "Selecione seu fuso horário",
+  "profile.timezoneNoResults": "Nenhum fuso horário correspondente.",
   "profile.timezoneHint": "Usado para lembretes de horários e o calendário.",
   "profile.save": "Salvar alterações",
   "profile.fallbackName": "Usuário",

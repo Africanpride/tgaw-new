@@ -41,38 +41,45 @@ The application is built with a **decoupled REST API architecture** (`/api/v1/*`
 ## Features
 
 ### 🙏 Devotional & Booking System
+
 - **Slot Booking** — Daily 30-minute slots for Bible reading, Prayer, and Praise & Worship with configurable limits per user per day
 - **Meeting Links** — Admin-managed Zoom/MS Teams links attached to each slot type per day
 - **Booking Calendar** — Interactive mini calendar for browsing and booking available slots
 - **Slot Timeline** — Visual timeline view of booked/available slots per day
 
 ### 💬 Real-Time Communication
+
 - **Direct Messages** — 1-on-1 conversations between community members
 - **Group Chat** — Real-time messaging within groups via Socket.IO
 - **Conversations** — Unified inbox with read receipts and attachment support
 - **Admin Broadcasts** — System-wide announcements from leadership
 
 ### 📝 Content & Social
+
 - **Rich Post Types** — Text, media, links, polls, Bible verses, quotes, sermons, gospel tracts, articles, prayer requests/answers, testimonials, and praise reports
 - **Social Graph** — Follow/unfollow users, like posts and comments
 - **Moderation** — Content reporting and moderation queue for leadership
 - **Polls** — Community polls with real-time vote tallying
 
 ### 📅 Calendar & Events
+
 - **Event Scheduling** — Create and manage Bible, Prayer, and Praise & Worship events
 - **Interactive Calendar** — Full calendar view with day/week/month navigation
 - **iCal Feed** — Per-user iCal export for external calendar integration
 
 ### 🔔 Notifications
+
 - **Email** — SMTP-based email notifications via Nodemailer
 - **Web Push** — VAPID-based push notifications with service worker support
 - **Multi-Channel Dispatch** — Configurable notification routing per event type
 
 ### 👥 Groups & Community
+
 - **Group Management** — Create public/private groups with member roles (member, moderator, owner)
 - **Group Conversations** — Dedicated chat channels per group
 
 ### 🛡️ Administration
+
 - **User Management** — Superadmin user/role management panel
 - **Coordinator Dashboard** — Timezone-scoped view for coordinators
 - **Board Dashboard** — Organization-wide insights for board members
@@ -83,23 +90,23 @@ The application is built with a **decoupled REST API architecture** (`/api/v1/*`
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Framework** | [Next.js 16](https://nextjs.org/) (App Router) |
-| **Language** | TypeScript (`strict: true`) |
+| Layer             | Technology                                                    |
+| ----------------- | ------------------------------------------------------------- |
+| **Framework**     | [Next.js 16](https://nextjs.org/) (App Router)                |
+| **Language**      | TypeScript (`strict: true`)                                   |
 | **UI Components** | [shadcn/ui](https://ui.shadcn.com/) (Radix UI + Lucide Icons) |
-| **Styling** | Tailwind CSS v4 with HSL semantic tokens |
-| **Animation** | [Motion](https://motion.dev/) (motion/react) |
-| **Database** | MongoDB Atlas |
-| **ORM** | [Prisma](https://www.prisma.io/) (MongoDB connector) |
-| **Validation** | [Zod v4](https://zod.dev/) |
-| **Auth** | [Better Auth](https://www.better-auth.com/) with admin plugin |
-| **Forms** | React Hook Form + `@hookform/resolvers/zod` |
-| **Real-time** | Socket.IO (custom Node HTTP server) |
-| **Media** | Cloudinary (signed uploads) |
-| **Email** | Nodemailer (SMTP) |
-| **Push** | Web Push (VAPID) |
-| **Runtime** | Node.js with tsx |
+| **Styling**       | Tailwind CSS v4 with HSL semantic tokens                      |
+| **Animation**     | [Motion](https://motion.dev/) (motion/react)                  |
+| **Database**      | MongoDB Atlas                                                 |
+| **ORM**           | [Prisma](https://www.prisma.io/) (MongoDB connector)          |
+| **Validation**    | [Zod v4](https://zod.dev/)                                    |
+| **Auth**          | [Better Auth](https://www.better-auth.com/) with admin plugin |
+| **Forms**         | React Hook Form + `@hookform/resolvers/zod`                   |
+| **Real-time**     | Socket.IO (custom Node HTTP server)                           |
+| **Media**         | Cloudinary (signed uploads)                                   |
+| **Email**         | Nodemailer (SMTP)                                             |
+| **Push**          | Web Push (VAPID)                                              |
+| **Runtime**       | Node.js with tsx                                              |
 
 ---
 
@@ -129,18 +136,18 @@ cp .env.example .env
 
 Key variables to configure:
 
-| Variable | Purpose |
-|---|---|
-| `DATABASE_URL` | MongoDB Atlas connection string |
-| `BETTER_AUTH_SECRET` | Auth secret — generate with `openssl rand -base64 32` |
-| `BETTER_AUTH_URL` | App URL (e.g. `http://localhost:3000`) |
-| `SUPERADMIN_EMAILS` | Comma-separated emails auto-assigned superadmin on signup |
-| `MICROSOFT_CLIENT_ID/SECRET` | Microsoft OAuth provider |
-| `GOOGLE_CLIENT_ID/SECRET` | Google OAuth provider |
-| `SMTP_HOST/PORT/USER/PASS` | Email notification transport |
-| `CLOUDINARY_*` | Media storage credentials |
-| `VAPID_*` | Web Push VAPID keys |
-| `CRON_SECRET` | Protects `POST /api/v1/slots/generate` |
+| Variable                     | Purpose                                                   |
+| ---------------------------- | --------------------------------------------------------- |
+| `DATABASE_URL`               | MongoDB Atlas connection string                           |
+| `BETTER_AUTH_SECRET`         | Auth secret — generate with `openssl rand -base64 32`     |
+| `BETTER_AUTH_URL`            | App URL (e.g. `http://localhost:3000`)                    |
+| `SUPERADMIN_EMAILS`          | Comma-separated emails auto-assigned superadmin on signup |
+| `MICROSOFT_CLIENT_ID/SECRET` | Microsoft OAuth provider                                  |
+| `GOOGLE_CLIENT_ID/SECRET`    | Google OAuth provider                                     |
+| `SMTP_HOST/PORT/USER/PASS`   | Email notification transport                              |
+| `CLOUDINARY_*`               | Media storage credentials                                 |
+| `VAPID_*`                    | Web Push VAPID keys                                       |
+| `CRON_SECRET`                | Protects `POST /api/v1/slots/generate`                    |
 
 ### 3. Generate Prisma Client
 
@@ -186,7 +193,7 @@ tgaw-new/
 │   │   ├── settings/            # Account settings
 │   │   ├── admin/               # Admin portal (leader + superadmin)
 │   │   ├── coordinator/         # Timezone-scoped coordinator dashboard
-│   │   ├── board/               # Org-wide board dashboard
+│   │   ├── board/               # organization-wide board dashboard
 │   │   └── unauthorized/        # 403 access denied page
 │   ├── (onboarding)/            # Post-signup profile setup
 │   ├── (public)/                # Public-facing pages
@@ -266,45 +273,45 @@ All API endpoints live under `/api/v1/` and follow a standardized response forma
 
 ### Endpoints
 
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| **Slots & Booking** ||||
-| `GET` | `/api/v1/slots` | List slots (filterable by date, type) | ✅ |
-| `POST` | `/api/v1/slots/book` | Book an available slot | ✅ |
-| `POST` | `/api/v1/slots/cancel` | Cancel your booking | ✅ |
-| `POST` | `/api/v1/slots/generate` | Generate slots for a date range | 🔑 Leader |
-| `POST` | `/api/v1/slots/assign` | Assign a slot to a user | 🔑 Leader |
-| `POST` | `/api/v1/slots/admin-cancel` | Admin cancel a booking | 🔑 Leader |
-| `GET/PUT` | `/api/v1/slots/config` | Get/update booking configuration | 🔑 Leader |
-| `GET/POST/DELETE` | `/api/v1/slots/meeting-link` | Manage meeting links | 🔑 Leader |
-| **Events** ||||
-| `GET` | `/api/v1/events` | List events (filter by date & type) | ✅ |
-| `POST` | `/api/v1/events` | Create an event | ✅ |
-| `GET/PUT/DELETE` | `/api/v1/events/[id]` | Single event CRUD | ✅ |
-| **Posts** ||||
-| `GET` | `/api/v1/posts` | Feed (paginated) | ✅ |
-| `POST` | `/api/v1/posts` | Create a post | ✅ |
-| `GET/DELETE/PATCH` | `/api/v1/posts/[id]` | Single post operations | ✅ |
-| `POST/GET` | `/api/v1/posts/[id]/comments` | Comments on a post | ✅ |
-| `POST/DELETE` | `/api/v1/posts/[id]/likes` | Like/unlike a post | ✅ |
-| **Messages** ||||
-| `GET` | `/api/v1/messages` | List conversations | ✅ |
-| `POST` | `/api/v1/messages` | Send a message | ✅ |
-| `PATCH` | `/api/v1/messages/[id]` | Mark read/unread | ✅ |
-| **Groups** ||||
-| `GET` | `/api/v1/groups` | List groups | ✅ |
-| `POST` | `/api/v1/groups` | Create a group | ✅ |
-| `GET/POST/DELETE` | `/api/v1/groups/[id]/members` | Group membership | ✅ |
-| **Reports** ||||
-| `GET` | `/api/v1/reports` | Open moderation queue | 🔑 Leader |
-| `POST` | `/api/v1/reports` | File a content report | ✅ |
-| **Uploads** ||||
-| `POST` | `/api/v1/uploads/sign` | Get signed Cloudinary upload params | ✅ |
-| **Calendar** ||||
-| `GET` | `/api/v1/calendar/ical` | Per-user iCal feed | 🔑 Token |
-| **Admin** ||||
-| `GET/POST` | `/api/v1/admin/*` | Admin operations | 🔑 Leader |
-| `GET/PATCH` | `/api/v1/users/*` | User management | 🔑 Superadmin |
+| Method              | Endpoint                      | Description                           | Auth          |
+| ------------------- | ----------------------------- | ------------------------------------- | ------------- |
+| **Slots & Booking** |                               |                                       |               |
+| `GET`               | `/api/v1/slots`               | List slots (filterable by date, type) | ✅            |
+| `POST`              | `/api/v1/slots/book`          | Book an available slot                | ✅            |
+| `POST`              | `/api/v1/slots/cancel`        | Cancel your booking                   | ✅            |
+| `POST`              | `/api/v1/slots/generate`      | Generate slots for a date range       | 🔑 Leader     |
+| `POST`              | `/api/v1/slots/assign`        | Assign a slot to a user               | 🔑 Leader     |
+| `POST`              | `/api/v1/slots/admin-cancel`  | Admin cancel a booking                | 🔑 Leader     |
+| `GET/PUT`           | `/api/v1/slots/config`        | Get/update booking configuration      | 🔑 Leader     |
+| `GET/POST/DELETE`   | `/api/v1/slots/meeting-link`  | Manage meeting links                  | 🔑 Leader     |
+| **Events**          |                               |                                       |               |
+| `GET`               | `/api/v1/events`              | List events (filter by date & type)   | ✅            |
+| `POST`              | `/api/v1/events`              | Create an event                       | ✅            |
+| `GET/PUT/DELETE`    | `/api/v1/events/[id]`         | Single event CRUD                     | ✅            |
+| **Posts**           |                               |                                       |               |
+| `GET`               | `/api/v1/posts`               | Feed (paginated)                      | ✅            |
+| `POST`              | `/api/v1/posts`               | Create a post                         | ✅            |
+| `GET/DELETE/PATCH`  | `/api/v1/posts/[id]`          | Single post operations                | ✅            |
+| `POST/GET`          | `/api/v1/posts/[id]/comments` | Comments on a post                    | ✅            |
+| `POST/DELETE`       | `/api/v1/posts/[id]/likes`    | Like/unlike a post                    | ✅            |
+| **Messages**        |                               |                                       |               |
+| `GET`               | `/api/v1/messages`            | List conversations                    | ✅            |
+| `POST`              | `/api/v1/messages`            | Send a message                        | ✅            |
+| `PATCH`             | `/api/v1/messages/[id]`       | Mark read/unread                      | ✅            |
+| **Groups**          |                               |                                       |               |
+| `GET`               | `/api/v1/groups`              | List groups                           | ✅            |
+| `POST`              | `/api/v1/groups`              | Create a group                        | ✅            |
+| `GET/POST/DELETE`   | `/api/v1/groups/[id]/members` | Group membership                      | ✅            |
+| **Reports**         |                               |                                       |               |
+| `GET`               | `/api/v1/reports`             | Open moderation queue                 | 🔑 Leader     |
+| `POST`              | `/api/v1/reports`             | File a content report                 | ✅            |
+| **Uploads**         |                               |                                       |               |
+| `POST`              | `/api/v1/uploads/sign`        | Get signed Cloudinary upload params   | ✅            |
+| **Calendar**        |                               |                                       |               |
+| `GET`               | `/api/v1/calendar/ical`       | Per-user iCal feed                    | 🔑 Token      |
+| **Admin**           |                               |                                       |               |
+| `GET/POST`          | `/api/v1/admin/*`             | Admin operations                      | 🔑 Leader     |
+| `GET/PATCH`         | `/api/v1/users/*`             | User management                       | 🔑 Superadmin |
 
 > **Legend:** ✅ = any authenticated user · 🔑 = role-gated (see RBAC below)
 
@@ -314,15 +321,16 @@ All API endpoints live under `/api/v1/` and follow a standardized response forma
 
 TGAW enforces a **five-tier role system** via Better Auth with the admin plugin. Route protection is handled server-side in [`proxy.ts`](proxy.ts):
 
-| Role | Level | Access |
-|---|---|---|
-| `member` | Default | Feed, chat, groups, booking, devotion pages |
-| `coordinator` | +1 | Timezone-scoped coordinator dashboard (`/coordinator`) |
-| `board` | +2 | Organization-wide board dashboard (`/board`) |
-| `leader` | +3 | Admin portal, slot management, moderation (`/admin`) |
-| `superadmin` | +4 | Full access — user & role management (`/admin/users`) |
+| Role          | Level   | Access                                                 |
+| ------------- | ------- | ------------------------------------------------------ |
+| `member`      | Default | Feed, chat, groups, booking, devotion pages            |
+| `coordinator` | +1      | Timezone-scoped coordinator dashboard (`/coordinator`) |
+| `board`       | +2      | Organization-wide board dashboard (`/board`)           |
+| `leader`      | +3      | Admin portal, slot management, moderation (`/admin`)   |
+| `superadmin`  | +4      | Full access — user & role management (`/admin/users`)  |
 
 **Key behaviors:**
+
 - `superadmin` bypasses all RBAC checks
 - Banned users are redirected to `/banned` on every request
 - Users without a completed profile are redirected to `/onboarding`
@@ -332,15 +340,15 @@ TGAW enforces a **five-tier role system** via Better Auth with the admin plugin.
 
 ## Scripts
 
-| Command | Description |
-|---|---|
-| `bun run dev` | Start development server (Next.js + Socket.IO) |
-| `bun run build` | Production build |
-| `bun run start` | Start production server |
-| `bun run lint` | Run ESLint |
-| `bun run format` | Format code with Prettier |
-| `bun run typecheck` | Run TypeScript type checking |
-| `bun run set-superadmin` | Promote a user to superadmin role |
+| Command                  | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `bun run dev`            | Start development server (Next.js + Socket.IO) |
+| `bun run build`          | Production build                               |
+| `bun run start`          | Start production server                        |
+| `bun run lint`           | Run ESLint                                     |
+| `bun run format`         | Format code with Prettier                      |
+| `bun run typecheck`      | Run TypeScript type checking                   |
+| `bun run set-superadmin` | Promote a user to superadmin role              |
 
 ---
 
@@ -363,6 +371,7 @@ TGAW uses a **custom Node.js HTTP server** ([`server.ts`](server.ts)) that serve
 ```
 
 **Socket events:**
+
 - `conversation:join` — Join a conversation room
 - `conversation:leave` — Leave a conversation room
 - `message:send` → `message:new` — Real-time message broadcast
@@ -373,19 +382,19 @@ TGAW uses a **custom Node.js HTTP server** ([`server.ts`](server.ts)) that serve
 
 The Prisma schema defines **30+ models** organized across these domains:
 
-| Domain | Models |
-|---|---|
-| **Auth** | `User`, `Session`, `Account`, `Verification` |
-| **Profile** | `UserProfile` |
-| **Events** | `Event`, `EventBooking` |
-| **Slots** | `Slot`, `MeetingLink`, `BookingConfig` |
-| **Messaging** | `Conversation`, `Message` |
-| **Groups** | `Group`, `GroupMember` |
-| **Content** | `Post`, `Comment`, `Like`, `Poll`, `PollOption` |
-| **Social** | `Follow` |
-| **Notifications** | `Notification`, `PushSubscription` |
-| **Moderation** | `Report`, `Broadcast` |
-| **Admin** | `CoordinatorAssignment` |
+| Domain            | Models                                          |
+| ----------------- | ----------------------------------------------- |
+| **Auth**          | `User`, `Session`, `Account`, `Verification`    |
+| **Profile**       | `UserProfile`                                   |
+| **Events**        | `Event`, `EventBooking`                         |
+| **Slots**         | `Slot`, `MeetingLink`, `BookingConfig`          |
+| **Messaging**     | `Conversation`, `Message`                       |
+| **Groups**        | `Group`, `GroupMember`                          |
+| **Content**       | `Post`, `Comment`, `Like`, `Poll`, `PollOption` |
+| **Social**        | `Follow`                                        |
+| **Notifications** | `Notification`, `PushSubscription`              |
+| **Moderation**    | `Report`, `Broadcast`                           |
+| **Admin**         | `CoordinatorAssignment`                         |
 
 See the full schema: [`prisma/schema.prisma`](prisma/schema.prisma)
 

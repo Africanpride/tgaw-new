@@ -135,6 +135,7 @@ export function OnboardingFlow({
 
               <div className="mx-auto mt-10 grid w-full items-center md:px-16">
                 {step.id === "name" && <NameStep form={form} />}
+                {step.id === "username" && <UsernameStep form={form} />}
                 {step.id === "contact" && <ContactStep form={form} />}
                 {step.id === "about" && <AboutStep form={form} />}
                 {step.id === "timezone" && <TimezoneStep form={form} />}
@@ -274,6 +275,49 @@ function Stepper({ stepIndex }: { stepIndex: number }) {
 }
 
 // --- Step content ---
+
+function UsernameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
+  const { t } = useTranslation("onboarding")
+  const { register, formState, watch } = form
+  const usernameValue = watch("username") ?? ""
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-lg font-semibold">{t("username.title", "Choose a username")}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {t("username.subtitle", "This is your unique handle. Others can search for you by it.")}
+        </p>
+      </div>
+      <div className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="username">
+            {t("username.label", "Username")} <span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">@</span>
+            <Input
+              id="username"
+              placeholder={t("username.placeholder", "kwame_mensah")}
+              className="h-12 pl-7"
+              {...register("username")}
+            />
+          </div>
+          {formState.errors.username && (
+            <p className="text-sm text-destructive">
+              {formState.errors.username.message}
+            </p>
+          )}
+          {usernameValue && !formState.errors.username && (
+            <p className="text-xs text-muted-foreground">
+              Your handle will be <span className="font-medium text-foreground">@{usernameValue}</span>
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function NameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
   const { t } = useTranslation("onboarding")

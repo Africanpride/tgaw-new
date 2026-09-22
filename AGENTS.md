@@ -99,7 +99,7 @@ app/
 │   ├── coordinator/
 │   │   └── page.tsx           # Timezone-scoped Coordinator Dashboard
 │   ├── board/
-│   │   └── page.tsx           # Org-wide Board Dashboard
+│   │   └── page.tsx           # organization-wide Board Dashboard
 │   └── unauthorized/
 │       └── page.tsx           # 403 Access Denied page
 ├── api/
@@ -618,13 +618,13 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 > **AGENTS.md rule**: Global `middleware.ts` is **deprecated** in this project. All request interception and route protection lives in `proxy.ts`. Do not create or modify `middleware.ts`.
 > **Role system**: Five explicit roles must be enforced (ascending): `member` (default), `coordinator`, `board`, `leader`, and `superadmin`.
 >
-> | Role | Access |
-> |------|--------|
-> | `member` | Default. Feed, chat, groups, booking, devotion pages. |
-> | `coordinator` | + timezone-scoped coordinator dashboard (`/coordinator`) gated to their assigned timezones. |
-> | `board` | + org-wide read-oriented board dashboard (`/board`), messaging/broadcast to `leader`s. No slot, user, or external-link admin. |
-> | `leader` | + admin portal (`/admin`: slot admin, reports, moderation queue, external links, Watch-Leader assignment). |
-> | `superadmin` | Full system access. **Only** `superadmin` can promote/demote roles via User Management (`/admin/users`). |
+> | Role          | Access                                                                                                                                 |
+> | ------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+> | `member`      | Default. Feed, chat, groups, booking, devotion pages.                                                                                  |
+> | `coordinator` | + timezone-scoped coordinator dashboard (`/coordinator`) gated to their assigned timezones.                                            |
+> | `board`       | + organization-wide read-oriented board dashboard (`/board`), messaging/broadcast to `leader`s. No slot, user, or external-link admin. |
+> | `leader`      | + admin portal (`/admin`: slot admin, reports, moderation queue, external links, Watch-Leader assignment).                             |
+> | `superadmin`  | Full system access. **Only** `superadmin` can promote/demote roles via User Management (`/admin/users`).                               |
 >
 > `superadmin` passes every RBAC check; the role guard in `proxy.ts` short-circuits to `NextResponse.next()`.
 >
@@ -1301,7 +1301,7 @@ Use `bun` / `bunx` for all package and runtime commands.
 2. **Navigation**: use `router.push()`/`redirect()`/`<Link>`, never `window.location.href = "..."` (hard reloads lose state and flash the whole app).
 3. **Theme FOUC**: the theme provider applies `.dark`/`.light` in a `useEffect`; the root layout keeps a tiny inline `<script>` at the top of `<body>` (reads `localStorage` + `prefers-color-scheme`, sets the class pre-paint). Don't render a manual `<head>` — Next manages it.
 4. **No scratch pages**: never commit `app/test/**`, `/test/**`, or demo/stub pages. Delete them before committing.
-5. **Scratch artifacts**: gitignore `/.playwright-cli/` (console-*.log, page-*.yml) and `logs/` up front so Playwright/tooling runs never get committed.
+5. **Scratch artifacts**: gitignore `/.playwright-cli/` (console-_.log, page-_.yml) and `logs/` up front so Playwright/tooling runs never get committed.
 
 ---
 

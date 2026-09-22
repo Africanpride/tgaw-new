@@ -73,7 +73,7 @@ const EVENT_TYPES = [
   {
     id: "SPECIAL" as const,
     label: "Special Event",
-    description: "Org-wide gathering",
+    description: "organization-wide gathering",
     icon: CalendarDays,
     color: "text-violet-500",
     bg: "bg-violet-500/10",

@@ -71,9 +71,12 @@ export async function GET(
 
 	const res = NextResponse.json(messages);
 	// Translation files are immutable per deploy — cacheable at the edge.
+	// In development, skip caching so edits to /messages/ take effect immediately.
 	res.headers.set(
 		"Cache-Control",
-		"public, s-maxage=3600, stale-while-revalidate=86400",
+		process.env.NODE_ENV === "production"
+			? "public, s-maxage=3600, stale-while-revalidate=86400"
+			: "no-store",
 	);
 	return res;
 }

@@ -75,7 +75,20 @@ app.prepare().then(() => {
 		}
 	});
 
+	// Presence tracking: userId → Set of socketIds
+	const presenceMap = new Map<string, Set<string>>();
+	// Typing tracking: conversationId → Map<userId, timeout>
+	const typingMap = new Map<string, Map<string, NodeJS.Timeout>>();
+
 	io.on("connection", (socket) => {
+		const userId = (socket.data as { userId: string }).userId;
+
+		// Register presence
+		if (!presenceMap.has(userId)) presenceMap.set(userId, new Set());
+		presenceMap.get(userId)!.add(socket.id);
+		// Broadcast online status
+		socket.broadcast.emit("presence:state", { userId, online: true });
+
 		socket.on("conversation:join", (conversationId: string) => {
 			socket.join(conversationId);
 		});
@@ -88,9 +101,65 @@ app.prepare().then(() => {
 			io?.to(payload.conversationId).emit("message:new", payload);
 		});
 
-		// Track connected sockets for potential cleanup
+		socket.on("typing:start", (data: { conversationId: string; userId: string; name: string }) => {
+			socket.to(data.conversationId).emit("typing:start", data);
+			// Auto-stop after 5s
+			if (!typingMap.has(data.conversationId)) typingMap.set(data.conversationId, new Map());
+			const convTyping = typingMap.get(data.conversationId)!;
+			const existing = convTyping.get(data.userId);
+			if (existing) clearTimeout(existing);
+			convTyping.set(data.userId, setTimeout(() => {
+				socket.to(data.conversationId).emit("typing:stop", { conversationId: data.conversationId, userId: data.userId });
+				convTyping.delete(data.userId);
+			}, 5000));
+		});
+
+		socket.on("typing:stop", (data: { conversationId: string; userId: string }) => {
+			socket.to(data.conversationId).emit("typing:stop", data);
+			const convTyping = typingMap.get(data.conversationId);
+			if (convTyping) {
+				const t = convTyping.get(data.userId);
+				if (t) clearTimeout(t);
+				convTyping.delete(data.userId);
+			}
+		});
+
+		socket.on("message:edited", (data: { conversationId: string; [key: string]: unknown }) => {
+			socket.to(data.conversationId).emit("message:edited", data);
+		});
+
+		socket.on("message:deleted", (data: { conversationId: string; [key: string]: unknown }) => {
+			socket.to(data.conversationId).emit("message:deleted", data);
+		});
+
+		socket.on("message:reaction", (data: { conversationId: string; [key: string]: unknown }) => {
+			socket.to(data.conversationId).emit("message:reaction", data);
+		});
+
+		socket.on("message:read", (data: { conversationId: string; userId: string }) => {
+			socket.to(data.conversationId).emit("message:read", data);
+		});
+
 		socket.on("disconnect", () => {
-			// Socket disconnected, cleanup handled by Socket.IO
+			// Clean up presence
+			const sockets = presenceMap.get(userId);
+			if (sockets) {
+				sockets.delete(socket.id);
+				if (sockets.size === 0) {
+					presenceMap.delete(userId);
+					socket.broadcast.emit("presence:state", { userId, online: false });
+				}
+			}
+			// Clean up typing
+			for (const [convId, users] of typingMap) {
+				const t = users.get(userId);
+				if (t) {
+					clearTimeout(t);
+					users.delete(userId);
+					socket.to(convId).emit("typing:stop", { conversationId: convId, userId });
+				}
+				if (users.size === 0) typingMap.delete(convId);
+			}
 		});
 	});
 

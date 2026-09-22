@@ -5,8 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 
 export async function GET(req: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
-  const role = session?.user?.role as string;
-  if (!session?.user || (role !== "leader" && role !== "superadmin")) {
+  if (!session?.user) {
     return NextResponse.json(
       { success: false, error: "Unauthorised" },
       { status: 401 },
@@ -26,6 +25,7 @@ export async function GET(req: NextRequest) {
         OR: [
           { name: { contains: q, mode: "insensitive" } },
           { email: { contains: q, mode: "insensitive" } },
+          { username: { contains: q, mode: "insensitive" } },
         ],
       },
       select: {
@@ -33,6 +33,8 @@ export async function GET(req: NextRequest) {
         name: true,
         email: true,
         image: true,
+        initials: true,
+        username: true,
       },
       take: 20,
       orderBy: { name: "asc" },

@@ -35,6 +35,7 @@
   "profile.ageRangePlaceholder": "Select age range",
   "profile.timezone": "Timezone",
   "profile.timezonePlaceholder": "Select your time zone",
+  "profile.timezoneNoResults": "No matching time zone.",
   "profile.timezoneHint": "Used for slot reminders and the calendar.",
   "profile.save": "Save changes",
   "profile.fallbackName": "User",

@@ -35,6 +35,7 @@
   "profile.ageRangePlaceholder": "Selecciona un rango de edad",
   "profile.timezone": "Zona horaria",
   "profile.timezonePlaceholder": "Selecciona tu zona horaria",
+  "profile.timezoneNoResults": "Ninguna zona horaria coincide.",
   "profile.timezoneHint": "Se usa para recordatorios de turnos y el calendario.",
   "profile.save": "Guardar cambios",
   "profile.fallbackName": "Usuario",

@@ -48,6 +48,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
@@ -633,6 +645,8 @@ export default function SettingsPage() {
     timezone: string
   } | null>(null)
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false)
+  const [tzOpen, setTzOpen] = useState(false)
+  const [tzFilter, setTzFilter] = useState("")
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   const reduceMotion = useReducedMotion()
@@ -1311,30 +1325,64 @@ export default function SettingsPage() {
                               >
                                 {t("profile.timezone")}
                               </Label>
-                              <Select
-                                value={watch("timezone") ?? ""}
-                                onValueChange={(v) => {
-                                  if (v)
-                                    setValue("timezone", v, {
-                                      shouldValidate: true,
-                                    })
+                              <Popover
+                                open={tzOpen}
+                                onOpenChange={(open) => {
+                                  setTzOpen(open)
+                                  if (open) setTzFilter("")
                                 }}
                               >
-                                <SelectTrigger
-                                  id="timezone"
-                                  className="h-12 w-full data-[size=default]:h-12"
-                                  aria-invalid={!!errors.timezone}
-                                >
-                                  <SelectValue placeholder={t("profile.timezonePlaceholder")} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {TIMEZONE_OPTIONS.map((tz) => (
-                                    <SelectItem key={tz.value} value={tz.value}>
-                                      {tz.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    id="timezone"
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={tzOpen}
+                                    aria-invalid={!!errors.timezone}
+                                    className={cn(
+                                      "h-12 w-full justify-between text-left font-normal",
+                                      !watch("timezone") && "text-muted-foreground",
+                                    )}
+                                  >
+                                    {watch("timezone")
+                                      ? TIMEZONE_OPTIONS.find((tz) => tz.value === watch("timezone"))?.label ?? watch("timezone")
+                                      : t("profile.timezonePlaceholder")}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-(--radix-popover-trigger-width) p-0">
+                                  <Command>
+                                    <CommandInput
+                                      placeholder={t("profile.timezonePlaceholder")}
+                                      value={tzFilter}
+                                      onValueChange={setTzFilter}
+                                      className="h-9"
+                                    />
+                                    <CommandList>
+                                      <CommandEmpty>{t("profile.timezoneNoResults")}</CommandEmpty>
+                                      {TIMEZONE_OPTIONS.filter((tz) =>
+                                        tz.label.toLowerCase().includes(tzFilter.toLowerCase()),
+                                      ).map((tz) => (
+                                        <CommandItem
+                                          key={tz.value}
+                                          value={tz.value}
+                                          onSelect={(val) => {
+                                            setValue("timezone", val, { shouldValidate: true })
+                                            setTzOpen(false)
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 size-4",
+                                              watch("timezone") === tz.value ? "opacity-100" : "opacity-0",
+                                            )}
+                                          />
+                                          {tz.label}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                               <p className="max-w-5xl text-xs sm:text-sm text-muted-foreground">
                                 {t("profile.timezoneHint")}
                               </p>
