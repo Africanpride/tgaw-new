@@ -3,8 +3,30 @@ import createIntlMiddleware from "next-intl/middleware";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { routing } from "@/i18n/routing";
+import type { Locale } from "@/i18n/config";
 
 const intlMiddleware = createIntlMiddleware(routing);
+
+// --- Translation-config cache (per-process, refreshed every 60 s) ---
+let _configCache: { enabled: Locale[]; ts: number } | null = null;
+const CONFIG_TTL_MS = 60_000;
+
+async function getEnabledLocales(): Promise<Locale[]> {
+	const now = Date.now();
+	if (_configCache && now - _configCache.ts < CONFIG_TTL_MS) return _configCache.enabled;
+
+	try {
+		const row = await prisma.translationConfig.findFirst();
+		const enabled: Locale[] = ["en"];
+		if (row?.enableFr) enabled.push("fr");
+		if (row?.enableEs) enabled.push("es");
+		if (row?.enablePt) enabled.push("pt");
+		_configCache = { enabled, ts: now };
+		return enabled;
+	} catch {
+		return ["en", "fr", "es", "pt"];
+	}
+}
 
 // Strip a leading /{locale} prefix so locale-prefixed public URLs reuse the
 // same auth/onboarding guards as their unprefixed (default-locale) forms.
@@ -164,7 +186,20 @@ export async function proxy(req: NextRequest) {
 		// Public pages (landing, auth, legal): delegate locale detection,
 		// prefix routing, and cookie setting to next-intl. Dashboard (protected),
 		// onboarding, and API routes use cookie-based locale instead — no URL prefix.
-		if (!isApi && !isStaticAsset) return withConsentHeaders(intlMiddleware(req), req);
+		if (!isApi && !isStaticAsset) {
+			// If the URL carries a locale prefix for a disabled locale, redirect to the
+			// unprefixed (English) equivalent so visitors never land on unavailable content.
+			const prefixMatch = path.match(LOCALE_PREFIX_RE);
+			if (prefixMatch) {
+				const urlLocale = prefixMatch[1] as Locale;
+				const enabled = await getEnabledLocales();
+				if (!enabled.includes(urlLocale)) {
+					const bare = stripLocalePrefix(path);
+					return withConsentHeaders(NextResponse.redirect(new URL(bare, req.url), 302), req);
+				}
+			}
+			return withConsentHeaders(intlMiddleware(req), req);
+		}
 		return withConsentHeaders(NextResponse.next(), req);
 	}
 

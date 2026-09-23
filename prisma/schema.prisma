@@ -370,6 +370,16 @@ model BookingConfig {
   createdAt             DateTime  @default(now())
 }
 
+model TranslationConfig {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  enableFr  Boolean  @default(false)
+  enableEs  Boolean  @default(false)
+  enablePt  Boolean  @default(false)
+  updatedBy String                 // last superadmin who changed config
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
 enum AuditAction {
   USER_ROLE_CHANGE
   USER_BAN
@@ -400,6 +410,7 @@ enum AuditAction {
   AUTH_LOGIN_FAILURE
   AUTH_LOGOUT
   AUTH_PASSWORD_CHANGE
+  TRANSLATION_CONFIG_CHANGE
 }
 
 enum AuditTargetType {
@@ -416,6 +427,7 @@ enum AuditTargetType {
   GroupMember
   CoordinatorAssignment
   Auth
+  TranslationConfig
 }
 
 model AuditLog {

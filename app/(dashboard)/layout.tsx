@@ -8,6 +8,7 @@ import { PageTransition } from "@/components/dashboard/PageTransition";
 import { MobileDock } from "@/components/dashboard/MobileDock";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { PresenceProvider } from "@/components/presence/PresenceProvider";
+import { SocketProvider } from "@/providers/SocketProvider";
 import { I18nProvider } from "@/providers/I18nProvider";
 import { auth } from "@/lib/auth";
 
@@ -24,6 +25,7 @@ export default async function DashboardLayout({
 	return (
 		<I18nProvider>
 		<SidebarProvider defaultOpen={false}>
+			<SocketProvider>
 			<a href="#main-content" className="sr-only z-[100] focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground">
 				Skip to content
 			</a>
@@ -39,6 +41,7 @@ export default async function DashboardLayout({
 				</div>
 				<MobileDock />
 			</PresenceProvider>
+		</SocketProvider>
 		</SidebarProvider>
 		</I18nProvider>
 	);

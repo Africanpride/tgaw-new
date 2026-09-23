@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { editMessageSchema } from "@/lib/schemas/messageSchema";
+import { getIO } from "@/lib/socket/server";
 
 export async function PATCH(
 	req: NextRequest,
@@ -28,6 +29,32 @@ export async function PATCH(
 		data: { body: validation.data.body, editedAt: new Date() },
 	});
 
+	// Broadcast edit to other clients
+	const io = getIO();
+	if (io) {
+		const payload = {
+			conversationId: message.conversationId,
+			messageId: id,
+			body: validation.data.body,
+			editedAt: updated.editedAt?.toISOString() ?? new Date().toISOString(),
+		};
+		io.to(message.conversationId).emit("message:edited", payload);
+		prisma.conversation
+			.findUnique({
+				where: { id: message.conversationId },
+				select: { memberIds: true },
+			})
+			.then((conv) => {
+				if (conv?.memberIds) {
+					for (const mId of conv.memberIds) {
+						io.to(`user:${mId}`).emit("message:edited", payload);
+						io.to(mId).emit("message:edited", payload);
+					}
+				}
+			})
+			.catch(() => {});
+	}
+
 	return NextResponse.json({ success: true, data: updated });
 }
 
@@ -50,6 +77,30 @@ export async function DELETE(
 		where: { id },
 		data: { deletedAt: new Date(), body: "" },
 	});
+
+	// Broadcast deletion to other clients
+	const io = getIO();
+	if (io) {
+		const payload = {
+			conversationId: message.conversationId,
+			messageId: id,
+		};
+		io.to(message.conversationId).emit("message:deleted", payload);
+		prisma.conversation
+			.findUnique({
+				where: { id: message.conversationId },
+				select: { memberIds: true },
+			})
+			.then((conv) => {
+				if (conv?.memberIds) {
+					for (const mId of conv.memberIds) {
+						io.to(`user:${mId}`).emit("message:deleted", payload);
+						io.to(mId).emit("message:deleted", payload);
+					}
+				}
+			})
+			.catch(() => {});
+	}
 
 	return NextResponse.json({ success: true });
 }

@@ -243,5 +243,12 @@
   "logs.event.postHidden": "Post hidden",
   "logs.event.reportResolved": "Report resolved",
   "logs.event.groupCreated": "Group created: {{name}}",
-  "logs.event.configShort": "Config {{id}}"
+  "logs.event.configShort": "Config {{id}}",
+  "translations.title": "Translation Settings",
+  "translations.description": "Control which languages are available across the app. English is always on.",
+  "translations.enabled": "enabled",
+  "translations.disabled": "disabled",
+  "translations.saved": "Translation settings updated",
+  "translations.saveFailed": "Failed to update translation settings",
+  "translations.loadFailed": "Failed to load translation settings"
 }

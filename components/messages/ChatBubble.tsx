@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ReadReceipt } from "./ReadReceipt";
 import { MoreHorizontal, Reply, Pencil, Trash2 } from "lucide-react";
@@ -23,6 +22,7 @@ interface ChatBubbleProps {
 	onDelete: (messageId: string) => void;
 	onReact: (messageId: string, emoji: string) => void;
 	senderName?: string;
+	showSender?: boolean;
 }
 
 export function ChatBubble({
@@ -32,13 +32,13 @@ export function ChatBubble({
 	onEdit,
 	onDelete,
 	onReact,
+	senderName,
+	showSender,
 }: ChatBubbleProps) {
-	const [showActions, setShowActions] = useState(false);
-
 	if (message.deletedAt) {
 		return (
-			<div className={cn("flex", isMine ? "justify-end" : "justify-start")}>
-				<div className="max-w-[75%] rounded-2xl border border-dashed border-muted-foreground/20 px-4 py-2.5">
+			<div className={cn("group/message flex py-0.5", isMine ? "justify-end" : "justify-start")}>
+				<div className="max-w-[80%] lg:max-w-[60%] rounded-xl border border-dashed border-muted-foreground/20 px-3 py-2">
 					<p className="text-xs italic text-muted-foreground">This message was deleted</p>
 				</div>
 			</div>
@@ -56,16 +56,18 @@ export function ChatBubble({
 	}, {});
 
 	return (
-		<div
-			className={cn("group flex", isMine ? "justify-end" : "justify-start")}
-			onMouseEnter={() => setShowActions(true)}
-			onMouseLeave={() => setShowActions(false)}
-		>
-			<div className="relative max-w-[75%]">
+		<div className={cn("group/message flex py-0.5", isMine ? "justify-end" : "justify-start")}>
+			<div className={cn("relative max-w-[80%] lg:max-w-[60%]", isMine ? "order-1" : "order-1")}>
+				{showSender && senderName && (
+					<p className="mb-0.5 px-1 text-xs font-medium text-muted-foreground">
+						{senderName}
+					</p>
+				)}
+
 				{message.replyTo && (
 					<div
 						className={cn(
-							"mb-1 rounded-t-xl border-l-2 px-3 py-1.5 text-xs",
+							"rounded-t-xl border-l-2 px-3 py-1.5 text-xs",
 							isMine
 								? "border-l-primary-foreground/40 bg-primary/80 text-primary-foreground/70"
 								: "border-l-primary bg-muted/80 text-muted-foreground",
@@ -76,65 +78,28 @@ export function ChatBubble({
 				)}
 
 				<div
+					data-slot="bubble-content"
 					className={cn(
-						"relative rounded-2xl px-4 py-2.5 text-sm",
+						"relative rounded-xl px-3 py-2 text-sm leading-relaxed transition-shadow",
 						isMine
 							? "bg-primary text-primary-foreground rounded-br-md"
-							: "bg-muted border border-border/50 rounded-bl-md",
+							: "bg-muted border border-border/30 rounded-bl-md",
 						message.replyTo && "rounded-t-none",
+						"group-hover/message:shadow-sm",
 					)}
 				>
 					<p className="whitespace-pre-wrap break-words">{message.body}</p>
-
-					<div className={cn("mt-1 flex items-center gap-1.5", isMine ? "justify-end" : "justify-start")}>
-						{message.editedAt && (
-							<span className={cn("text-[10px]", isMine ? "text-primary-foreground/50" : "text-muted-foreground")}>
-								edited
-							</span>
-						)}
-						<span className={cn("text-[10px]", isMine ? "text-primary-foreground/50" : "text-muted-foreground")}>
-							{new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-						</span>
-						{isMine && <ReadReceipt status={receiptStatus} />}
-					</div>
 				</div>
 
-				{Object.keys(reactionGroups).length > 0 && (
-					<div className={cn("mt-1 flex flex-wrap gap-1", isMine ? "justify-end" : "justify-start")}>
-						{Object.entries(reactionGroups).map(([emoji, userIds]) => (
-							<button
-								key={emoji}
-								type="button"
-								onClick={() => onReact(message.id, emoji)}
-								className="flex cursor-pointer items-center gap-1 rounded-full border bg-background px-2 py-0.5 text-xs shadow-sm transition-colors hover:bg-muted"
-							>
-								<span>{emoji}</span>
-								<span className="text-muted-foreground">{userIds.length}</span>
-							</button>
-						))}
-					</div>
-				)}
-
-				{showActions && (
-					<div
-						className={cn(
-							"absolute -top-2 z-10 flex items-center gap-0.5 rounded-lg border bg-popover p-0.5 shadow-md",
-							isMine ? "right-0" : "left-0",
-						)}
-					>
-						{QUICK_REACTIONS.slice(0, 3).map((emoji) => (
-							<button
-								key={emoji}
-								type="button"
-								onClick={() => onReact(message.id, emoji)}
-								className="cursor-pointer rounded-md px-1.5 py-1 text-sm transition-colors hover:bg-muted"
-							>
-								{emoji}
-							</button>
-						))}
-
+				{/* Timestamp + read receipt + action button row */}
+				<div className={cn(
+					"mt-0.5 flex items-center gap-1.5",
+					isMine ? "justify-end" : "justify-start",
+				)}>
+					{/* Hover-only action button */}
+					<div className="opacity-0 transition-opacity group-hover/message:opacity-100">
 						<DropdownMenu>
-							<DropdownMenuTrigger className="cursor-pointer rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+							<DropdownMenuTrigger className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
 								<MoreHorizontal className="size-3.5" aria-hidden="true" />
 							</DropdownMenuTrigger>
 							<DropdownMenuContent side="top" align={isMine ? "end" : "start"} className="w-44">
@@ -173,6 +138,32 @@ export function ChatBubble({
 								)}
 							</DropdownMenuContent>
 						</DropdownMenu>
+					</div>
+
+					{message.editedAt && (
+						<span className={cn("text-[11px]", isMine ? "text-primary-foreground/50" : "text-muted-foreground")}>
+							edited
+						</span>
+					)}
+					<span className={cn("text-[11px]", isMine ? "text-primary-foreground/50" : "text-muted-foreground")}>
+						{new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+					</span>
+					{isMine && <ReadReceipt status={receiptStatus} />}
+				</div>
+
+				{Object.keys(reactionGroups).length > 0 && (
+					<div className={cn("mt-1 flex flex-wrap gap-1", isMine ? "justify-end" : "justify-start")}>
+						{Object.entries(reactionGroups).map(([emoji, userIds]) => (
+							<button
+								key={emoji}
+								type="button"
+								onClick={() => onReact(message.id, emoji)}
+								className="flex cursor-pointer items-center gap-1 rounded-full border border-border/30 bg-background px-2 py-0.5 text-xs shadow-sm transition-colors hover:bg-muted"
+							>
+								<span>{emoji}</span>
+								<span className="text-muted-foreground">{userIds.length}</span>
+							</button>
+						))}
 					</div>
 				)}
 			</div>

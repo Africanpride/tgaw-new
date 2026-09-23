@@ -8,6 +8,7 @@ import { Server, type Socket } from "socket.io";
 import { auth, mongoClient } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { dispatchNotification } from "@/lib/notifications/dispatch";
+import { setIO } from "@/lib/socket/server";
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
@@ -61,14 +62,21 @@ let io: InstanceType<typeof Server> | null = null;
 app.prepare().then(() => {
 	httpServer = createServer((req, res) => handle(req, res));
 	io = new Server(httpServer, { path: "/socket.io" });
+	setIO(io);
 
 	io.use(async (socket: Socket, next: (err?: Error) => void) => {
 		try {
-			const session = await auth.api.getSession({
-				headers: socket.handshake.headers as unknown as Headers,
-			});
+			// socket.handshake.headers is a plain object, not a Headers instance.
+			// Build a proper Headers so Better Auth can call .get("cookie").
+			const raw = socket.handshake.headers as Record<string, string | string[] | undefined>;
+			const h = new Headers();
+			for (const [key, value] of Object.entries(raw)) {
+				if (value === undefined) continue;
+				h.set(key, Array.isArray(value) ? value.join(", ") : value);
+			}
+			const session = await auth.api.getSession({ headers: h as unknown as Headers });
 			if (!session?.user) return next(new Error("Unauthorized"));
-		(socket.data as { userId: string }).userId = session.user.id;
+			(socket.data as { userId: string }).userId = session.user.id;
 			next();
 		} catch {
 			next(new Error("Unauthorized"));
@@ -82,6 +90,27 @@ app.prepare().then(() => {
 
 	io.on("connection", (socket) => {
 		const userId = (socket.data as { userId: string }).userId;
+		console.log(`[SOCKET] Client connected: userId=${userId} socketId=${socket.id}`);
+
+		// Automatically join user-specific room
+		socket.join(`user:${userId}`);
+		socket.join(userId);
+
+		// Auto-join all existing conversation rooms this user belongs to
+		prisma.conversation
+			.findMany({
+				where: { memberIds: { has: userId } },
+				select: { id: true },
+			})
+			.then((convs) => {
+				for (const c of convs) {
+					socket.join(c.id);
+				}
+				console.log(`[SOCKET] userId=${userId} auto-joined ${convs.length} conversation rooms`);
+			})
+			.catch((err) => {
+				console.error("[SOCKET] Failed to auto-join conversation rooms:", err);
+			});
 
 		// Register presence
 		if (!presenceMap.has(userId)) presenceMap.set(userId, new Set());
@@ -91,6 +120,8 @@ app.prepare().then(() => {
 
 		socket.on("conversation:join", (conversationId: string) => {
 			socket.join(conversationId);
+			const roomSockets = io?.sockets.adapter.rooms.get(conversationId);
+			console.log(`[SOCKET] userId=${userId} joined room ${conversationId} (total: ${roomSockets?.size ?? 0})`);
 		});
 
 		socket.on("conversation:leave", (conversationId: string) => {

@@ -25,6 +25,7 @@ import {
 	type Locale,
 } from "@/i18n/config";
 import { cn } from "@/lib/utils";
+import { useEnabledLocales } from "@/hooks/use-enabled-locales";
 
 const DIALOG_STRINGS: Record<Locale, { title: string; desc: string }> = {
 	en: {
@@ -83,6 +84,7 @@ export function LanguageDialog({
 	const pathname = usePathname() || "/";
 	const { t, i18n } = useTranslation("dashboard");
 	const [open, setOpen] = useState(false);
+	const { locales: enabledLocales } = useEnabledLocales();
 
 	const prefixMatch = pathname.match(/^\/(en|fr|es|pt)(?=\/|$)/);
 	const cookieMatch =
@@ -211,7 +213,7 @@ export function LanguageDialog({
 					</DialogDescription>
 				</DialogHeader>
 				<div className="flex flex-col gap-1 pt-1">
-					{LOCALES.map((loc) => {
+					{LOCALES.filter((loc) => enabledLocales.includes(loc)).map((loc) => {
 						const isActive = loc === current;
 						return (
 							<Button

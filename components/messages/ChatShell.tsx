@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ConversationList, type Conversation } from "./ConversationList";
 import { ChatPanel } from "./ChatPanel";
@@ -19,6 +19,11 @@ export function ChatShell() {
 	const [conversations, setConversations] = useState<Conversation[]>([]);
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const [loading, setLoading] = useState(true);
+
+	const activeIdRef = useRef<string | null>(null);
+	useEffect(() => {
+		activeIdRef.current = activeId;
+	});
 
 	const fetchConversations = useCallback(async () => {
 		try {
@@ -42,7 +47,8 @@ export function ChatShell() {
 	}, []);
 
 	useEffect(() => {
-		fetchConversations();
+		const id = requestAnimationFrame(() => fetchConversations());
+		return () => cancelAnimationFrame(id);
 	}, [fetchConversations]);
 
 	useEffect(() => {
@@ -59,7 +65,10 @@ export function ChatShell() {
 				const conv = { ...updated[idx] };
 				conv.messages = [{ id: msg.id, body: msg.body, senderId: msg.senderId, readBy: msg.readBy, createdAt: msg.createdAt }];
 				conv.updatedAt = msg.createdAt;
-				conv.hasUnread = msg.senderId !== myId;
+				const isFromMe = msg.senderId === myId;
+				const isCurrentActive = activeIdRef.current === msg.conversationId;
+				conv.hasUnread = !isFromMe && !isCurrentActive;
+				conv.unreadCount = isFromMe || isCurrentActive ? 0 : (conv.unreadCount || 0) + 1;
 				updated.splice(idx, 1);
 				return [conv, ...updated];
 			});
@@ -68,26 +77,34 @@ export function ChatShell() {
 		const handleRead = (data: { conversationId: string; userId: string }) => {
 			if (data.userId !== myId) return;
 			setConversations((prev) =>
-				prev.map((c) => (c.id === data.conversationId ? { ...c, hasUnread: false } : c)),
+				prev.map((c) => (c.id === data.conversationId ? { ...c, hasUnread: false, unreadCount: 0 } : c)),
 			);
+		};
+
+		const handleConversationNew = () => {
+			fetchConversations();
 		};
 
 		socket.on("message:new", handleMessageNew);
 		socket.on("message:read", handleRead);
+		socket.on("conversation:new", handleConversationNew);
+
 		return () => {
 			socket.off("message:new", handleMessageNew);
 			socket.off("message:read", handleRead);
+			socket.off("conversation:new", handleConversationNew);
 		};
 	}, [socket, myId, fetchConversations]);
 
 	const activeConversation = conversations.find((c) => c.id === activeId);
 
 	return (
-		<div className="flex h-[calc(100dvh-4rem)] w-full overflow-hidden rounded-xl border bg-background shadow-sm md:h-[calc(100dvh-6rem)]">
+		<div className="flex h-[calc(100dvh-4rem)] w-full overflow-hidden md:h-[calc(100dvh-6rem)]">
+			{/* Left column — Conversation list (hidden on mobile when chat is active) */}
 			<div
 				className={cn(
-					"w-full shrink-0 md:w-80 lg:w-96",
-					activeId ? "hidden md:block" : "block",
+					"max-w-[300px] shrink-0 border-e border-border/30 sm:max-w-[350px] w-full h-full lg:block",
+					activeId ? "hidden" : "block",
 				)}
 			>
 				<ConversationList
@@ -101,10 +118,11 @@ export function ChatShell() {
 				/>
 			</div>
 
+			{/* Center column — Chat panel */}
 			<div
 				className={cn(
-					"flex-1",
-					!activeId ? "hidden md:flex" : "flex",
+					"flex min-h-0 flex-1 flex-col",
+					!activeId ? "hidden lg:flex" : "flex",
 				)}
 			>
 				<ChatPanel

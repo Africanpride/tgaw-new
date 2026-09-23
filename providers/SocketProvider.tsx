@@ -34,17 +34,27 @@ function getSharedSocket(): Socket {
 }
 
 export function SocketProvider({ children }: { children: ReactNode }) {
-	const [connected, setConnected] = useState(false);
 	const [socket] = useState<Socket>(() => getSharedSocket());
+	const [connected, setConnected] = useState(() => socket?.connected ?? false);
 
 	useEffect(() => {
 		const s = socket;
+		if (!s) return;
+
+		// Sync connected state if socket connected between useState init and effect run
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: syncing external Socket.IO state
+		setConnected(s.connected);
 
 		const onConnect = () => setConnected(true);
 		const onDisconnect = () => setConnected(false);
+		const onConnectError = (err: Error) => {
+			console.warn("[SOCKET] Connection error:", err.message);
+			setConnected(false);
+		};
 
 		s.on("connect", onConnect);
 		s.on("disconnect", onDisconnect);
+		s.on("connect_error", onConnectError);
 
 		if (!s.connected) {
 			s.connect();
@@ -53,8 +63,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 		return () => {
 			s.off("connect", onConnect);
 			s.off("disconnect", onDisconnect);
-			s.disconnect();
-			sharedSocket = null;
+			s.off("connect_error", onConnectError);
 		};
 	}, [socket]);
 

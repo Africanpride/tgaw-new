@@ -65,6 +65,7 @@ import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import i18n from "@/i18n/client"
 import { LOCALES, LOCALE_NAMES, LOCALE_COOKIE_NAME, type Locale } from "@/i18n/config"
+import { useEnabledLocales } from "@/hooks/use-enabled-locales"
 import type { TFunction } from "i18next"
 import { resolveCountryAlpha3, resolveCountryAlpha2 } from "@/lib/countries"
 import { phoneSchema } from "@/lib/schemas/phoneSchema"
@@ -491,6 +492,7 @@ function PushSubscriptionManager() {
 function LanguageSection() {
   const router = useRouter()
   const { t } = useTranslation("settings")
+  const { locales: enabledLocales } = useEnabledLocales()
   const [locale, setLocale] = useState<string>(() => {
     if (typeof document !== "undefined") {
       const match = document.cookie.match(
@@ -547,7 +549,7 @@ function LanguageSection() {
         aria-label={t("language.title")}
         className="grid gap-2 sm:grid-cols-2"
       >
-        {LOCALES.map((loc) => (
+        {LOCALES.filter((loc) => enabledLocales.includes(loc)).map((loc) => (
           <Label
             key={loc}
             htmlFor={`lang-${loc}`}
