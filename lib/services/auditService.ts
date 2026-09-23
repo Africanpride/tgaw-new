@@ -42,6 +42,7 @@ export const ACTION_LEVEL: Record<AuditAction, AuditLevel> = {
   AUTH_LOGIN_FAILURE: "warn",
   AUTH_LOGOUT: "info",
   AUTH_PASSWORD_CHANGE: "warn",
+  TRANSLATION_CONFIG_CHANGE: "warn",
 }
 
 const ACTION_SERVICE: Record<AuditAction, string> = {
@@ -74,6 +75,7 @@ const ACTION_SERVICE: Record<AuditAction, string> = {
   AUTH_LOGIN_FAILURE: "auth",
   AUTH_LOGOUT: "auth",
   AUTH_PASSWORD_CHANGE: "auth",
+  TRANSLATION_CONFIG_CHANGE: "admin",
 }
 
 export function getAuditLevel(action: AuditAction): AuditLevel {

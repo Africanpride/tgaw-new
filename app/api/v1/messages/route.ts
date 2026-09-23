@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { createMessageSchema } from "@/lib/schemas/messageSchema";
+import { getIO } from "@/lib/socket/server";
 
 export async function GET(req: NextRequest) {
 	const session = await auth.api.getSession({ headers: req.headers });
@@ -58,6 +59,30 @@ export async function GET(req: NextRequest) {
 					})
 				)
 			);
+			// Broadcast read receipt to other clients
+			const io = getIO();
+			if (io) {
+				const readPayload = {
+					conversationId,
+					userId: session.user.id!,
+					messageIds: toMark.map((m) => m.id),
+				};
+				io.to(conversationId).emit("message:read", readPayload);
+				prisma.conversation
+					.findUnique({
+						where: { id: conversationId },
+						select: { memberIds: true },
+					})
+					.then((conv) => {
+						if (conv?.memberIds) {
+							for (const mId of conv.memberIds) {
+								io.to(`user:${mId}`).emit("message:read", readPayload);
+								io.to(mId).emit("message:read", readPayload);
+							}
+						}
+					})
+					.catch(() => {});
+			}
 		}
 	}
 
@@ -95,6 +120,32 @@ export async function POST(req: NextRequest) {
 			},
 		},
 	});
+
+	// Broadcast to other clients in the conversation and user rooms
+	const io = getIO();
+	if (io) {
+		const roomSockets = (io as unknown as { sockets: { adapter: { rooms: Map<string, Set<string>> } } }).sockets.adapter.rooms.get(message.conversationId);
+		console.log(`[SOCKET] Broadcasting message:new to room ${message.conversationId} (${roomSockets?.size ?? 0} sockets)`);
+		io.to(message.conversationId).emit("message:new", message);
+
+		// Broadcast to all conversation members' user rooms so inbox/list views receive the update in real time
+		prisma.conversation
+			.findUnique({
+				where: { id: message.conversationId },
+				select: { memberIds: true },
+			})
+			.then((conv) => {
+				if (conv?.memberIds) {
+					for (const mId of conv.memberIds) {
+						io.to(`user:${mId}`).emit("message:new", message);
+						io.to(mId).emit("message:new", message);
+					}
+				}
+			})
+			.catch((err) => console.error("[SOCKET] Failed to broadcast message:new to user rooms:", err));
+	} else {
+		console.error("[SOCKET] getIO() returned null — broadcast SKIPPED");
+	}
 
 	return NextResponse.json({ success: true, data: message }, { status: 201 });
 }

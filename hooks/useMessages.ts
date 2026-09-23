@@ -24,6 +24,7 @@ export function useMessages(conversationId: string | null) {
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [loading, setLoading] = useState(false);
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const bottomRef = useRef<HTMLDivElement>(null);
 	const loadedConvoRef = useRef<string | null>(null);
 
 	// Fetch messages when conversation changes
@@ -60,7 +61,9 @@ export function useMessages(conversationId: string | null) {
 
 	// Scroll to bottom
 	const scrollToBottom = useCallback(() => {
-		if (scrollRef.current) {
+		if (bottomRef.current) {
+			bottomRef.current.scrollIntoView({ behavior: "smooth" });
+		} else if (scrollRef.current) {
 			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
 		}
 	}, []);
@@ -71,6 +74,26 @@ export function useMessages(conversationId: string | null) {
 			scrollToBottom();
 		}
 	}, [messages.length, scrollToBottom]);
+
+	// Join/leave conversation rooms for real-time delivery + re-join on reconnect
+	useEffect(() => {
+		if (!socket || !conversationId) return;
+
+		const joinRoom = () => {
+			socket.emit("conversation:join", conversationId);
+		};
+
+		if (socket.connected) {
+			joinRoom();
+		}
+
+		socket.on("connect", joinRoom);
+
+		return () => {
+			socket.off("connect", joinRoom);
+			socket.emit("conversation:leave", conversationId);
+		};
+	}, [socket, conversationId]);
 
 	// Listen for socket events
 	useEffect(() => {
@@ -138,5 +161,5 @@ export function useMessages(conversationId: string | null) {
 		};
 	}, [socket, conversationId]);
 
-	return { messages, setMessages, loading, scrollRef, scrollToBottom };
+	return { messages, setMessages, loading, scrollRef, bottomRef, scrollToBottom };
 }

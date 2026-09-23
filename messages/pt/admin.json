@@ -183,5 +183,12 @@
   "logs.event.postHidden": "Publicação oculta",
   "logs.event.reportResolved": "Denúncia resolvida",
   "logs.event.groupCreated": "Grupo criado: {{name}}",
-  "logs.event.configShort": "Config {{id}}"
+  "logs.event.configShort": "Config {{id}}",
+  "translations.title": "Configurações de tradução",
+  "translations.description": "Controle quais idiomas estão disponíveis no aplicativo. O inglês sempre fica ativado.",
+  "translations.enabled": "ativado",
+  "translations.disabled": "desativado",
+  "translations.saved": "Configurações de tradução atualizadas",
+  "translations.saveFailed": "Falha ao atualizar as configurações de tradução",
+  "translations.loadFailed": "Falha ao carregar as configurações de tradução"
 }

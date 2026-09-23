@@ -9,6 +9,7 @@ import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME } from "@/i18n/config"
 import { AdminBookingConfig } from "@/components/booking/AdminBookingConfig"
 import { AdminMeetingLinkManager } from "@/components/booking/AdminMeetingLinkManager"
 import { AdminSlotOverride } from "@/components/booking/AdminSlotOverride"
+import { AdminTranslationConfig } from "@/components/admin/AdminTranslationConfig"
 
 export default async function AdminPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -59,11 +60,12 @@ export default async function AdminPage() {
         </div>
         <div className="flex-1">
           <h2 className="text-2xl font-semibold">{portalTitle}</h2>
-          <p className="text-sm text-muted-foreground">
-            {portalDescription}
-          </p>
+          <p className="text-sm text-muted-foreground">{portalDescription}</p>
         </div>
-        <a href="/admin/activity-logs" className="inline-flex h-9 items-center rounded-md bg-primary px-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 sm:px-4">
+        <a
+          href="/admin/activity-logs"
+          className="inline-flex h-9 items-center rounded-md bg-primary px-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 sm:px-4"
+        >
           {activityLogsLabel}
         </a>
       </div>
@@ -106,7 +108,10 @@ export default async function AdminPage() {
       </div>
 
       <div className="grid items-start gap-2 md:grid-cols-2 xl:grid-cols-3">
-        <AdminBookingConfig initialConfig={bookingConfig} />
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-1">
+          <AdminBookingConfig initialConfig={bookingConfig} />
+          {role === "superadmin" && <AdminTranslationConfig />}
+        </div>
         <AdminMeetingLinkManager />
         <div className="md:col-span-2 xl:col-span-1">
           <AdminSlotOverride />

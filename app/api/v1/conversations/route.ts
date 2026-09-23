@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
 import { z } from "zod"
+import { getIO } from "@/lib/socket/server"
 
 const createSchema = z.object({
   type: z.enum(["DIRECT", "GROUP"]),
@@ -31,19 +32,33 @@ export async function GET(req: NextRequest) {
   })
   const memberMap = new Map(members.map((m) => [m.id, m]))
 
-  // Compute unread status per conversation
-  const conversationsWithMeta = conversations.map((conv) => {
+  // Compute unread count per conversation
+  const conversationsWithMeta = await Promise.all(conversations.map(async (conv) => {
     const lastMsg = conv.messages[0]
     const hasUnread = lastMsg
       ? !lastMsg.readBy.includes(myId) && lastMsg.senderId !== myId
       : false
 
+    // Count unread messages
+    let unreadCount = 0
+    if (hasUnread) {
+      unreadCount = await prisma.message.count({
+        where: {
+          conversationId: conv.id,
+          deletedAt: null,
+          senderId: { not: myId },
+          NOT: { readBy: { has: myId } },
+        },
+      })
+    }
+
     return {
       ...conv,
       hasUnread,
+      unreadCount,
       members: conv.memberIds.map((id) => memberMap.get(id)).filter(Boolean),
     }
-  })
+  }))
 
   return NextResponse.json({ success: true, data: conversationsWithMeta })
 }
@@ -55,7 +70,8 @@ export async function POST(req: NextRequest) {
   const parsed = createSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.format() }, { status: 400 })
 
-  let { type, groupId, memberIds } = parsed.data
+  const { type, groupId } = parsed.data
+  let { memberIds } = parsed.data
   // ensure current user in memberIds
   if (!memberIds.includes(session.user.id!)) memberIds = [...memberIds, session.user.id!]
 
@@ -72,5 +88,15 @@ export async function POST(req: NextRequest) {
   const conv = await prisma.conversation.create({
     data: { type: type as never, groupId: groupId || undefined, memberIds },
   })
+
+  // Broadcast to all conversation members that a new conversation was created
+  const io = getIO()
+  if (io) {
+    for (const mId of conv.memberIds) {
+      io.to(`user:${mId}`).emit("conversation:new", conv)
+      io.to(mId).emit("conversation:new", conv)
+    }
+  }
+
   return NextResponse.json({ success: true, data: conv }, { status: 201 })
 }

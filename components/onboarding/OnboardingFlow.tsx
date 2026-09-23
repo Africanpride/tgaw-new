@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { useForm, type UseFormReturn } from "react-hook-form"
@@ -53,6 +53,7 @@ export function OnboardingFlow({
   const [stepIndex, setStepIndex] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
   const step = ONBOARDING_STEPS[stepIndex]
   const isLastContentStep = stepIndex === ONBOARDING_STEPS.length - 2
   const isCompleteStep = stepIndex === ONBOARDING_STEPS.length - 1
@@ -73,6 +74,11 @@ export function OnboardingFlow({
     const fields = Object.keys(step.schema.shape) as (keyof OnboardingValues)[]
     const valid = fields.length === 0 || (await form.trigger(fields))
     if (!valid) return
+
+    // Block if username step and availability not confirmed
+    if (step.id === "username" && usernameAvailable !== true) {
+      return
+    }
 
     if (isLastContentStep) {
       setIsSubmitting(true)
@@ -135,7 +141,7 @@ export function OnboardingFlow({
 
               <div className="mx-auto mt-10 grid w-full items-center md:px-16">
                 {step.id === "name" && <NameStep form={form} />}
-                {step.id === "username" && <UsernameStep form={form} />}
+                {step.id === "username" && <UsernameStep form={form} onAvailabilityChange={setUsernameAvailable} />}
                 {step.id === "contact" && <ContactStep form={form} />}
                 {step.id === "about" && <AboutStep form={form} />}
                 {step.id === "timezone" && <TimezoneStep form={form} />}
@@ -168,7 +174,7 @@ export function OnboardingFlow({
                     <Button
                       type="button"
                       onClick={goNext}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || (step.id === "username" && usernameAvailable !== true)}
                       className="gap-1.5 px-2 sm:px-6"
                     >
                       {isSubmitting
@@ -276,10 +282,46 @@ function Stepper({ stepIndex }: { stepIndex: number }) {
 
 // --- Step content ---
 
-function UsernameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
+function UsernameStep({ form, onAvailabilityChange }: { form: UseFormReturn<OnboardingValues>; onAvailabilityChange: (available: boolean | null) => void }) {
   const { t } = useTranslation("onboarding")
   const { register, formState, watch } = form
   const usernameValue = watch("username") ?? ""
+  const [status, setStatus] = useState<"idle" | "checking" | "available" | "taken">("idle")
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const checkAvailability = useCallback(async (value: string) => {
+    if (!value || value.length < 3) {
+      setStatus("idle")
+      onAvailabilityChange(null)
+      return
+    }
+    setStatus("checking")
+    try {
+      const res = await fetch(`/api/v1/profile/check-username?username=${encodeURIComponent(value)}`)
+      const json = await res.json()
+      if (json.available) {
+        setStatus("available")
+        onAvailabilityChange(true)
+      } else {
+        setStatus("taken")
+        onAvailabilityChange(false)
+      }
+    } catch {
+      setStatus("idle")
+      onAvailabilityChange(null)
+    }
+  }, [onAvailabilityChange])
+
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    if (!usernameValue || formState.errors.username) {
+      setStatus("idle")
+      onAvailabilityChange(null)
+      return
+    }
+    timerRef.current = setTimeout(() => checkAvailability(usernameValue), 400)
+    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
+  }, [usernameValue, formState.errors.username, checkAvailability, onAvailabilityChange])
 
   return (
     <div className="space-y-5">
@@ -308,9 +350,17 @@ function UsernameStep({ form }: { form: UseFormReturn<OnboardingValues> }) {
               {formState.errors.username.message}
             </p>
           )}
-          {usernameValue && !formState.errors.username && (
-            <p className="text-xs text-muted-foreground">
-              Your handle will be <span className="font-medium text-foreground">@{usernameValue}</span>
+          {!formState.errors.username && usernameValue && status === "checking" && (
+            <p className="text-xs text-muted-foreground">Checking availability...</p>
+          )}
+          {!formState.errors.username && status === "available" && (
+            <p className="text-xs text-green-600 dark:text-green-400">
+              <span className="font-medium">@{usernameValue}</span> is available
+            </p>
+          )}
+          {!formState.errors.username && status === "taken" && (
+            <p className="text-sm text-destructive">
+              <span className="font-medium">@{usernameValue}</span> is already taken
             </p>
           )}
         </div>

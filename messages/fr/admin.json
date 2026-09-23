@@ -222,5 +222,12 @@
   "logs.event.postHidden": "Publication masquée",
   "logs.event.reportResolved": "Signalement résolu",
   "logs.event.groupCreated": "Groupe créé : {{name}}",
-  "logs.event.configShort": "Config {{id}}"
+  "logs.event.configShort": "Config {{id}}",
+  "translations.title": "Paramètres de traduction",
+  "translations.description": "Contrôlez les langues disponibles dans l'application. L'anglais est toujours activé.",
+  "translations.enabled": "activé",
+  "translations.disabled": "désactivé",
+  "translations.saved": "Paramètres de traduction mis à jour",
+  "translations.saveFailed": "Échec de la mise à jour des paramètres de traduction",
+  "translations.loadFailed": "Échec du chargement des paramètres de traduction"
 }
