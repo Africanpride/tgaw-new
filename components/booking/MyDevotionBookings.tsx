@@ -22,6 +22,7 @@ import type { BookableType } from "@/lib/services/slotService";
 import { cancelSlotAction } from "@/actions/slotActions";
 import { cn } from "@/lib/utils";
 import { listRowClass } from "@/components/list-row";
+import { useTranslation, Trans } from "react-i18next";
 
 interface MyDevotionBookingsProps {
 	bookings: SlotData[];
@@ -31,6 +32,8 @@ interface MyDevotionBookingsProps {
 }
 
 export function MyDevotionBookings({ bookings, type, meetingUrl, slotNoun }: MyDevotionBookingsProps) {
+	const { t, i18n } = useTranslation("booking");
+	const { t: tc } = useTranslation("common");
 	const accent = slotAccent[type];
 	const [pending, startTransition] = useTransition();
 	const [toCancel, setToCancel] = useState<SlotData | null>(null);
@@ -42,9 +45,9 @@ export function MyDevotionBookings({ bookings, type, meetingUrl, slotNoun }: MyD
 		startTransition(async () => {
 			const result = await cancelSlotAction({ slotId });
 			if (result.success) {
-				toast.success("Booking cancelled");
+				toast.success(t("toast.cancelled"));
 			} else {
-				toast.error(result.error || "Failed to cancel booking");
+				toast.error(result.error || t("toast.cancelFailed"));
 			}
 		});
 	};
@@ -53,9 +56,9 @@ export function MyDevotionBookings({ bookings, type, meetingUrl, slotNoun }: MyD
 		return (
 			<EmptyState
 				icon={CalendarCheck2}
-				title="Nothing booked yet"
-				description="Claim a quiet window and keep the watch going."
-				actionLabel="Book a slot"
+				title={t("agenda.emptyTitle")}
+				description={t("agenda.emptyDescription")}
+				actionLabel={t("agenda.emptyAction")}
 				actionHref={`/booking?type=${type}`}
 				className="py-2 sm:py-8"
 			/>
@@ -107,8 +110,8 @@ export function MyDevotionBookings({ bookings, type, meetingUrl, slotNoun }: MyD
 								{live && meetingUrl && (
 									<Button size="sm" className="h-8" asChild>
 										<a href={meetingUrl} target="_blank" rel="noreferrer">
-											<ExternalLink className="size-3.5" aria-hidden="true" />
-											Join
+										<ExternalLink className="size-3.5" aria-hidden="true" />
+										{t("action.join")}
 										</a>
 									</Button>
 								)}
@@ -120,7 +123,7 @@ export function MyDevotionBookings({ bookings, type, meetingUrl, slotNoun }: MyD
 										onClick={() => setToCancel(booking)}
 									>
 										<X className="size-3.5" aria-hidden="true" />
-										Cancel
+										{tc("action.cancel")}
 									</Button>
 								)}
 							</div>
@@ -132,29 +135,33 @@ export function MyDevotionBookings({ bookings, type, meetingUrl, slotNoun }: MyD
 			<AlertDialog open={!!toCancel} onOpenChange={(open) => !open && setToCancel(null)}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Cancel this booking?</AlertDialogTitle>
+						<AlertDialogTitle>{t("cancel.title")}</AlertDialogTitle>
 						<AlertDialogDescription>
-							Your {slotNoun} booking on{" "}
-							<span className="font-medium text-foreground">
-								{toCancel?.date
-									? new Date(`${toCancel.date}T00:00:00Z`).toLocaleDateString("en-US", {
-											weekday: "short",
-											month: "short",
-											day: "numeric",
-											timeZone: "UTC",
-										})
-									: "the selected day"}
-								, {convertUtcTimeToLocal(toCancel?.startTime ?? "")} –{" "}
-								{convertUtcTimeToLocal(toCancel?.endTime ?? "")}
-							</span>{" "}
-							will be released for another member. This cannot be undone.
+							<Trans
+								i18nKey="cancel.descriptionSlot"
+								ns="booking"
+								values={{
+									noun: slotNoun,
+									date: toCancel?.date
+										? new Date(`${toCancel.date}T00:00:00Z`).toLocaleDateString(i18n.language, {
+												weekday: "short",
+												month: "short",
+												day: "numeric",
+												timeZone: "UTC",
+											})
+										: t("cancel.noDate"),
+									start: convertUtcTimeToLocal(toCancel?.startTime ?? ""),
+									end: convertUtcTimeToLocal(toCancel?.endTime ?? ""),
+								}}
+								components={{ hl: <span className="font-medium text-foreground" /> }}
+							/>
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel
 							className={cn(buttonVariants({ variant: "outline" }), "cursor-pointer")}
 						>
-							Keep booking
+							{t("action.keepBooking")}
 						</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={(e) => {
@@ -163,7 +170,7 @@ export function MyDevotionBookings({ bookings, type, meetingUrl, slotNoun }: MyD
 							}}
 							className={cn(buttonVariants({ variant: "destructive" }), "cursor-pointer")}
 						>
-							Cancel booking
+							{t("action.cancelBooking")}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

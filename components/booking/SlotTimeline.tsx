@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/EmptyState";
 import { slotAccent } from "./slotAccent";
 import { EventType } from "@prisma/client";
+import { useTranslation } from "react-i18next";
 
 const INITIAL_VISIBLE = 8;
 
@@ -26,6 +27,7 @@ export function SlotTimeline({
   onSelectionChange,
   onEmptyAction,
 }: SlotTimelineProps) {
+  const { t } = useTranslation("booking");
   const visibleSlots = useMemo(
     () => slots.filter((s) => !isPastSlot(s) || isCurrentSlot(s)),
     [slots],
@@ -85,9 +87,9 @@ export function SlotTimeline({
     return (
       <EmptyState
         icon={CalendarX2}
-        title="No slots for this day"
-        description="This day is quiet. Pick another day on the calendar to keep your devotional watch."
-        actionLabel={onEmptyAction ? "Pick another day" : undefined}
+        title={t("empty.noSlotsTitle")}
+        description={t("empty.noSlotsDesc")}
+        actionLabel={onEmptyAction ? t("empty.pickAnotherDay") : undefined}
         onAction={onEmptyAction}
       />
     );
@@ -112,7 +114,7 @@ export function SlotTimeline({
             onClick={() => setExpanded(true)}
             className="flex min-h-11 cursor-pointer items-center justify-center gap-1.5 border-t bg-muted/30 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
           >
-            Show {visibleSlots.length - INITIAL_VISIBLE} more slots
+            {t("showMore", { count: visibleSlots.length - INITIAL_VISIBLE })}
             <ChevronDown className="size-4" aria-hidden="true" />
           </button>
         )}

@@ -13,6 +13,7 @@ import { slotAccent } from "./slotAccent"
 import type { SlotAccent } from "./slotAccent"
 import { EventBlockBadge } from "./EventBlockPopover"
 import { EventType } from "@prisma/client"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 
 interface SlotGridProps {
@@ -30,6 +31,7 @@ export function SlotGrid({
   onSelectionChange,
   onEmptyAction,
 }: SlotGridProps) {
+  const { t } = useTranslation("booking")
   const visibleSlots = slots.filter((s) => !isPastSlot(s) || isCurrentSlot(s))
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -102,10 +104,9 @@ export function SlotGrid({
         >
           <CalendarX2 className="size-6" aria-hidden="true" />
         </div>
-        <p className="font-medium">No slots for this day</p>
+        <p className="font-medium">{t("empty.noSlotsTitle")}</p>
         <p className="max-w-xs text-sm text-muted-foreground">
-          This day is quiet. Pick another day on the calendar to keep your
-          devotional watch.
+          {t("empty.noSlotsDesc")}
         </p>
         {onEmptyAction && (
           <Button
@@ -114,7 +115,7 @@ export function SlotGrid({
             onClick={onEmptyAction}
             className="mt-1"
           >
-            Pick another day
+            {t("empty.pickAnotherDay")}
           </Button>
         )}
       </div>
@@ -157,9 +158,22 @@ function SlotGridCell({
   accent,
   isCurrent,
 }: SlotGridCellProps) {
+  const { t } = useTranslation("booking")
   const past = isPastSlot(slot)
   const isBlocked = !!slot.eventId
   const isAvailable = !slot.isBooked && !past && !isBlocked
+
+  const statusLabel = past
+    ? t("aria.past")
+    : isBlocked
+      ? slot.event
+        ? t("aria.reservedTitled", { title: slot.event.title })
+        : t("aria.reserved")
+      : isAvailable
+        ? isSelected
+          ? t("aria.selected")
+          : t("aria.available")
+        : t("aria.booked")
 
   return (
     <motion.div
@@ -170,9 +184,12 @@ function SlotGridCell({
       tabIndex={isAvailable ? 0 : -1}
       aria-pressed={isSelected}
       aria-disabled={!isAvailable}
-      aria-label={`${convertUtcTimeToLocal(slot.startTime)} to ${convertUtcTimeToLocal(
-        slot.endTime
-      )} slot, ${past ? "past" : isBlocked ? `reserved for special event${slot.event ? ` ${slot.event.title}` : ""}` : isAvailable ? (isSelected ? "selected" : "available") : "booked"}${isCurrent ? " (current)" : ""}`}
+      aria-label={t("aria.slotRange", {
+        start: convertUtcTimeToLocal(slot.startTime),
+        end: convertUtcTimeToLocal(slot.endTime),
+        status: statusLabel,
+        current: isCurrent ? t("aria.current") : "",
+      })}
       onKeyDown={(e) => {
         if (isAvailable && (e.key === "Enter" || e.key === " ")) {
           e.preventDefault()
@@ -222,12 +239,12 @@ function SlotGridCell({
         {past ? (
           <span className="flex items-center gap-1 text-xs text-muted-foreground/60">
             <Clock className="size-3" aria-hidden="true" />
-            Past
+            {t("chip.past")}
           </span>
         ) : isBlocked ? (
           <EventBlockBadge event={slot.event}>
             <CalendarClock className="size-3" aria-hidden="true" />
-            Event
+            {t("chip.event")}
           </EventBlockBadge>
         ) : isAvailable ? (
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -237,7 +254,7 @@ function SlotGridCell({
                 isSelected ? accent.dotStrong : "bg-muted-foreground/40"
               )}
             />
-            {isSelected ? "Selected" : "Available"}
+            {isSelected ? t("chip.selected") : t("chip.available")}
           </span>
         ) : (
           <div className="flex min-w-0 items-center gap-2">
@@ -245,7 +262,7 @@ function SlotGridCell({
               variant={slot.isOwnBooking ? "default" : "secondary"}
               className={cn(slot.isOwnBooking && cn(accent.solid))}
             >
-              {slot.isOwnBooking ? "My booking" : "Booked"}
+              {slot.isOwnBooking ? t("chip.myBooking") : t("chip.booked")}
             </Badge>
             {slot.bookedByName && (
               <span className="hidden min-w-0 items-center gap-1.5 sm:flex">

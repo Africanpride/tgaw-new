@@ -55,3 +55,6 @@ session-ses_*.md
 
 # scratchpads
 .memory/
+
+# translator CSV exports (i18n:export handoffs — re-generate anytime)
+*.csv

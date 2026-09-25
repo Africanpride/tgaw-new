@@ -12,6 +12,7 @@ import { slotAccent } from "./slotAccent";
 import { cn } from "@/lib/utils";
 import { EventType } from "@prisma/client";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 
 const SPRING_TRANSITION = {
   type: "spring" as const,
@@ -47,9 +48,9 @@ const CARD_CONFIGS = [
   { variant: popup1Variant, top: 80 },
 ];
 
-function getTypeLabel(type: EventType | undefined): string {
-  if (!type) return "Session";
-  return type === "BIBLE" ? "Bible Reading" : type === "PRAYER" ? "Prayer" : "Praise & Worship";
+function getTypeLabel(type: EventType | undefined, t: (key: string) => string): string {
+  if (!type) return t("type.session");
+  return type === "BIBLE" ? t("type.bible") : type === "PRAYER" ? t("type.prayer") : t("type.worship");
 }
 
 interface MyBookingsStackProps {
@@ -59,6 +60,7 @@ interface MyBookingsStackProps {
 }
 
 export function MyBookingsStack({ bookings, onCancel, dateLabel }: MyBookingsStackProps) {
+  const { t } = useTranslation("booking");
   const upcomingBookings = bookings.filter((b) => !isPastSlot(b));
   const pastBookings = bookings.filter(isPastSlot);
 
@@ -68,8 +70,8 @@ export function MyBookingsStack({ bookings, onCancel, dateLabel }: MyBookingsSta
     return (
       <EmptyState
         icon={CalendarCheck2}
-        title={`No bookings for ${dateLabel}`}
-        description="Claim a slot and keep your devotional watch alive."
+        title={t("empty.noBookingsFor", { date: dateLabel })}
+        description={t("agenda.emptyDescription")}
       />
     );
   }
@@ -82,7 +84,7 @@ export function MyBookingsStack({ bookings, onCancel, dateLabel }: MyBookingsSta
           {upcomingBookings.map((booking) => {
             const type = booking.type as EventType | undefined;
             const accent = type ? slotAccent[type] : slotAccent.BIBLE;
-            const typeLabel = getTypeLabel(type);
+            const typeLabel = getTypeLabel(type, t);
 
             return (
               <Card key={booking.id} className={cn("overflow-hidden border-l-2", accent.rail)}>
@@ -103,7 +105,7 @@ export function MyBookingsStack({ bookings, onCancel, dateLabel }: MyBookingsSta
                     className="text-destructive hover:bg-destructive/10 h-6 w-6 p-0"
                     onClick={() => onCancel(booking)}
                   >
-                    <span className="sr-only">Cancel booking</span>
+                    <span className="sr-only">{t("action.cancelBooking")}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                     </svg>
@@ -122,7 +124,7 @@ export function MyBookingsStack({ bookings, onCancel, dateLabel }: MyBookingsSta
             {pastBookings.slice(0, 3).map((booking, idx) => {
               const config = CARD_CONFIGS[idx] || CARD_CONFIGS[CARD_CONFIGS.length - 1];
               const type = booking.type as EventType | undefined;
-              const typeLabel = getTypeLabel(type);
+              const typeLabel = getTypeLabel(type, t);
 
               return (
                 <motion.div
@@ -150,7 +152,7 @@ export function MyBookingsStack({ bookings, onCancel, dateLabel }: MyBookingsSta
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                       <span className="inline-block w-1.5 h-1.5 rounded-full bg-muted-foreground/40" aria-hidden="true" />
-                      Past
+                      {t("chip.past")}
                     </span>
                   </div>
                 </motion.div>
@@ -180,7 +182,7 @@ export function MyBookingsStack({ bookings, onCancel, dateLabel }: MyBookingsSta
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
                     >
-                      {isOpen ? "Hide" : `+${pastBookings.length - 3} more`}
+                      {isOpen ? t("stack.hide") : t("stack.moreCount", { count: pastBookings.length - 3 })}
                     </motion.span>
                   </AnimatePresence>
 

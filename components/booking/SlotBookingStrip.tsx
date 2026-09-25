@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { BookableType } from "@/lib/services/slotService";
 import {
   Carousel,
@@ -28,6 +29,7 @@ interface SlotBookingStripProps {
 }
 
 export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStripProps) {
+  const { t } = useTranslation("booking");
   const [selectedSlot, setSelectedSlot] = useState<SlotData | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,11 +54,11 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
     
     setIsSubmitting(false);
     if (result.success) {
-      toast.success("Slot booked successfully");
+      toast.success(t("toast.bookedOne"));
       setSelectedSlot(null);
       return true;
     } else {
-      toast.error(result.error || "Failed to book slot");
+      toast.error(result.error || t("toast.bookFailedOne"));
       return false;
     }
   };
@@ -64,17 +66,17 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h3 className="font-semibold">Today&apos;s Slots</h3>
+        <h3 className="font-semibold">{t("strip.today")}</h3>
         <Button variant="link" asChild className="p-0 h-auto">
           <Link href={`/booking?type=${type}`}>
-            View Full Calendar <ArrowRight className="w-4 h-4 ml-1" />
+            {t("strip.viewFullCalendar")} <ArrowRight className="w-4 h-4 ml-1" />
           </Link>
         </Button>
       </div>
       
       {slots.length === 0 ? (
         <div className="text-muted-foreground text-sm rounded-lg border p-2 sm:p-4">
-          No slots available.
+          {t("strip.noSlots")}
         </div>
       ) : (
         <Carousel
@@ -92,6 +94,18 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
               const isAvailable = !slot.isBooked && !past && !blocked;
               const isCurrent = slot.id === initialSlotId;
 
+              const statusLabel = past
+                ? t("aria.past")
+                : blocked
+                  ? slot.event
+                    ? t("aria.reservedTitled", { title: slot.event.title })
+                    : t("aria.reserved")
+                  : isAvailable
+                    ? t("aria.available")
+                    : slot.isOwnBooking
+                      ? t("aria.yourBooking")
+                      : t("aria.booked");
+
               const cell = (
                 <div
                   data-slot-id={slot.id}
@@ -99,17 +113,11 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
                   role="button"
                   tabIndex={isAvailable ? 0 : undefined}
                   aria-disabled={!isAvailable}
-                  aria-label={`${convertUtcTimeToLocal(slot.startTime)} slot, ${
-                    past
-                      ? "past"
-                      : blocked
-                        ? `reserved for special event${slot.event ? ` ${slot.event.title}` : ""}`
-                        : isAvailable
-                          ? "available"
-                          : slot.isOwnBooking
-                            ? "your booking"
-                            : "booked"
-                  }${isCurrent ? " (current)" : ""}`}
+                  aria-label={t("aria.slotSingle", {
+                    time: convertUtcTimeToLocal(slot.startTime),
+                    status: statusLabel,
+                    current: isCurrent ? t("aria.current") : "",
+                  })}
                   onKeyDown={(e) => {
                     if (isAvailable && (e.key === "Enter" || e.key === " ")) {
                       e.preventDefault();
@@ -142,22 +150,22 @@ export function SlotBookingStrip({ slots, type, initialSlotId }: SlotBookingStri
                     {past ? (
                       <>
                         <Clock className="size-2.5" aria-hidden="true" />
-                        Past
+                        {t("chip.past")}
                       </>
                     ) : blocked ? (
                       <>
                         <CalendarClock className="size-3" aria-hidden="true" />
-                        Event
+                        {t("chip.event")}
                       </>
                     ) : slot.isOwnBooking ? (
                       <>
                         <Check className="size-3 text-emerald-500" aria-hidden="true" />
-                        Mine
+                        {t("chip.mine")}
                       </>
                     ) : isAvailable ? (
-                      "Available"
+                      t("chip.available")
                     ) : (
-                      "Booked"
+                      t("chip.booked")
                     )}
                   </span>
                 </div>

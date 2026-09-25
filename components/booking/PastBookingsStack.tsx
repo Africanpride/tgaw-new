@@ -9,6 +9,8 @@ import { convertUtcTimeToLocal, isPastSlot } from "./slotTime";
 import { slotAccent } from "./slotAccent";
 import { cn } from "@/lib/utils";
 import { EventType } from "@prisma/client";
+import { useTranslation } from "react-i18next";
+import { dateLocale } from "@/lib/date-locale";
 
 const SPRING_TRANSITION = {
   type: "spring" as const,
@@ -44,12 +46,13 @@ const CARD_CONFIGS = [
   { variant: popup1Variant, top: 80 },
 ];
 
-function getTypeLabel(type: EventType | undefined): string {
-  if (!type) return "Session";
-  return type === "BIBLE" ? "Bible Reading" : type === "PRAYER" ? "Prayer" : "Praise & Worship";
+function getTypeLabel(type: EventType | undefined, t: (key: string) => string): string {
+  if (!type) return t("type.session");
+  return type === "BIBLE" ? t("type.bible") : type === "PRAYER" ? t("type.prayer") : t("type.worship");
 }
 
 export function PastBookingsStack({ bookings }: { bookings: SlotData[] }) {
+  const { t, i18n } = useTranslation("booking");
   const pastBookings = bookings.filter(isPastSlot).slice(0, 3);
   const remainingCount = bookings.filter(isPastSlot).length - 3;
 
@@ -64,7 +67,7 @@ export function PastBookingsStack({ bookings }: { bookings: SlotData[] }) {
           const config = CARD_CONFIGS[idx] || CARD_CONFIGS[CARD_CONFIGS.length - 1];
           const type = booking.type as EventType | undefined;
           const accent = type ? slotAccent[type] : slotAccent.BIBLE;
-          const typeLabel = getTypeLabel(type);
+          const typeLabel = getTypeLabel(type, t);
 
           return (
             <motion.div
@@ -92,7 +95,7 @@ export function PastBookingsStack({ bookings }: { bookings: SlotData[] }) {
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
                 <Clock className="size-3" aria-hidden="true" />
-                {booking.date ? format(parseISO(booking.date), "MMM d") : "Past"}
+                {booking.date ? format(parseISO(booking.date), "MMM d", { locale: dateLocale(i18n.language) }) : t("chip.past")}
               </div>
             </motion.div>
           );
@@ -121,7 +124,7 @@ export function PastBookingsStack({ bookings }: { bookings: SlotData[] }) {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {isOpen ? "Hide" : `+${remainingCount} more`}
+                  {isOpen ? t("stack.hide") : t("stack.moreCount", { count: remainingCount })}
                 </motion.span>
               </AnimatePresence>
 

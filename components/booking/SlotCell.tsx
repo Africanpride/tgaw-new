@@ -1,6 +1,7 @@
 "use client"
 
 import { motion, useReducedMotion } from "motion/react"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { CalendarClock, Check, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -42,10 +43,23 @@ export function SlotCell({
   accent,
   isCurrent,
 }: SlotCellProps) {
+  const { t } = useTranslation("booking")
   const isBlocked = !!slot.eventId
   const isAvailable = !slot.isBooked && !isPastSlot(slot) && !isBlocked
   const past = isPastSlot(slot)
   const reduceMotion = useReducedMotion()
+
+  const statusLabel = past
+    ? t("aria.past")
+    : isBlocked
+      ? slot.event
+        ? t("aria.reservedTitled", { title: slot.event.title })
+        : t("aria.reserved")
+      : isAvailable
+        ? isSelected
+          ? t("aria.selected")
+          : t("aria.available")
+        : t("aria.booked")
 
   return (
     <motion.div
@@ -64,9 +78,12 @@ export function SlotCell({
       tabIndex={isAvailable ? 0 : -1}
       aria-pressed={isSelected}
       aria-disabled={!isAvailable}
-      aria-label={`${convertUtcTimeToLocal(slot.startTime)} to ${convertUtcTimeToLocal(
-        slot.endTime
-      )} slot, ${past ? "past" : isBlocked ? `reserved for special event${slot.event ? ` ${slot.event.title}` : ""}` : isAvailable ? (isSelected ? "selected" : "available") : "booked"}${isCurrent ? " (current)" : ""}`}
+      aria-label={t("aria.slotRange", {
+        start: convertUtcTimeToLocal(slot.startTime),
+        end: convertUtcTimeToLocal(slot.endTime),
+        status: statusLabel,
+        current: isCurrent ? t("aria.current") : "",
+      })}
       onKeyDown={(e) => {
         if (isAvailable && (e.key === "Enter" || e.key === " ")) {
           e.preventDefault()
@@ -97,12 +114,12 @@ export function SlotCell({
         {past ? (
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
             <Clock className="size-3" aria-hidden="true" />
-            Past
+            {t("chip.past")}
           </span>
         ) : isBlocked ? (
           <EventBlockBadge event={slot.event}>
             <CalendarClock className="size-3" aria-hidden="true" />
-            Event
+            {t("chip.event")}
           </EventBlockBadge>
         ) : isAvailable ? (
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -112,7 +129,7 @@ export function SlotCell({
                 isSelected ? accent.dotStrong : "bg-muted-foreground/40"
               )}
             />
-            {isSelected ? "Selected" : "Available"}
+            {isSelected ? t("chip.selected") : t("chip.available")}
           </span>
         ) : (
           <div className="flex items-center gap-2">
@@ -120,7 +137,7 @@ export function SlotCell({
               variant={slot.isOwnBooking ? "default" : "secondary"}
               className={cn(slot.isOwnBooking && cn(accent.solid))}
             >
-              {slot.isOwnBooking ? "My booking" : "Booked"}
+              {slot.isOwnBooking ? t("chip.myBooking") : t("chip.booked")}
             </Badge>
             {slot.bookedByName && (
               <div className="flex items-center gap-2">

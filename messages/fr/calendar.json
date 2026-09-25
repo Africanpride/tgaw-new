@@ -38,5 +38,7 @@
   "form.notesPlaceholder": "Ajoutez des notes ou consignes de session...",
   "form.submitCreate": "Créer l'événement",
   "form.submitUpdate": "Mettre à jour",
-  "form.saving": "Enregistrement..."
+  "form.saving": "Enregistrement...",
+  "detail.joinAria": "Rejoindre la réunion",
+  "detail.closeAria": "Fermer les détails"
 }

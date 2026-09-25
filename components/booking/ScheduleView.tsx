@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 import { listRowClass } from "@/components/list-row";
 import { EventType } from "@prisma/client";
 import { PastBookingsStack } from "./PastBookingsStack";
+import { useTranslation } from "react-i18next";
+import { dateLocale } from "@/lib/date-locale";
 
 type ScheduleTab = "this-week" | "next-week";
 
@@ -25,9 +27,9 @@ interface ScheduleViewProps {
   onCancel: (slot: SlotData) => void;
 }
 
-function getTypeLabel(type: EventType | undefined): string {
-  if (!type) return "Session";
-  return type === "BIBLE" ? "Bible Reading" : type === "PRAYER" ? "Prayer" : "Praise & Worship";
+function getTypeLabel(type: EventType | undefined, t: (key: string) => string): string {
+  if (!type) return t("type.session");
+  return type === "BIBLE" ? t("type.bible") : type === "PRAYER" ? t("type.prayer") : t("type.worship");
 }
 
 function getMeetingLink(links: Record<EventType, { url: string; label: string | null } | null>, type: EventType | undefined) {
@@ -36,6 +38,7 @@ function getMeetingLink(links: Record<EventType, { url: string; label: string | 
 }
 
 export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewProps) {
+  const { t, i18n } = useTranslation("booking");
   const [activeTab, setActiveTab] = useState<ScheduleTab>("this-week");
 
   const filteredBookings = useMemo(() => {
@@ -65,24 +68,24 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
     
     filteredBookings.forEach((booking) => {
       if (!booking.date) return;
-      const dateKey = format(parseISO(booking.date), "EEE, MMM d");
+      const dateKey = format(parseISO(booking.date), "EEE, MMM d", { locale: dateLocale(i18n.language) });
       if (!groups[dateKey]) groups[dateKey] = [];
       groups[dateKey].push(booking);
     });
 
     return Object.entries(groups)
       .sort(([a], [b]) => parseISO(a).getTime() - parseISO(b).getTime());
-  }, [filteredBookings]);
+  }, [filteredBookings, i18n.language]);
 
   const emptyMessage = activeTab === "this-week"
-    ? "No bookings this week"
-    : "No bookings next week";
+    ? t("schedule.emptyThisWeek")
+    : t("schedule.emptyNextWeek");
 
   const tabsContent = (
     <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ScheduleTab)} className="w-full">
       <TabsList className="group-data-[orientation=horizontal]:h-9 bg-muted p-[3px] rounded-lg w-full">
-        <TabsTrigger value="this-week" className="text-xs flex-1">This week</TabsTrigger>
-        <TabsTrigger value="next-week" className="text-xs flex-1">Next week</TabsTrigger>
+        <TabsTrigger value="this-week" className="text-xs flex-1">{t("schedule.thisWeek")}</TabsTrigger>
+        <TabsTrigger value="next-week" className="text-xs flex-1">{t("schedule.nextWeek")}</TabsTrigger>
       </TabsList>
     </Tabs>
   );
@@ -94,7 +97,7 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
         <CardContent className="flex flex-col items-center justify-center p-2 text-center flex-1 sm:p-8">
           <Calendar className="size-10 text-muted-foreground/40" aria-hidden="true" />
           <p className="mt-3 text-sm font-medium text-muted-foreground">{emptyMessage}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Book a slot to see it here</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("schedule.emptyHint")}</p>
         </CardContent>
       </Card>
     );
@@ -119,7 +122,7 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
                   if (past) return null; // Past bookings shown in stack below
                   const type = booking.type as EventType | undefined;
                   const accent = type ? slotAccent[type] : slotAccent.BIBLE;
-                  const typeLabel = getTypeLabel(type);
+                  const typeLabel = getTypeLabel(type, t);
                   const meetingLink = getMeetingLink(meetingLinks, type);
                   const dotColor = "hsl(var(--primary))";
 
@@ -162,14 +165,14 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
                           {meetingLink && (
                             <>
                               <Video className="size-3 shrink-0" aria-hidden="true" />
-                              <span className="truncate">{meetingLink.label || "Video Call"}</span>
+                              <span className="truncate">{meetingLink.label || t("meeting.videoCall")}</span>
                               <Link2 className="size-2.5 shrink-0" aria-hidden="true" />
                             </>
                           )}
                         </div>
 
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center" role="group" aria-label={"Attendees for " + typeLabel}>
+                          <div className="flex items-center" role="group" aria-label={t("schedule.attendeesAria", { type: typeLabel })}>
                             <div className="flex -space-x-1.5">
                               {booking.bookedByName && (
                                 <UserAvatar
@@ -180,17 +183,17 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
                               )}
                               {booking.isOwnBooking && !booking.bookedByName && (
                                 <UserAvatar
-                                  name="You"
+                                  name={t("schedule.you")}
                                   className="size-5 border border-card"
                                 />
                               )}
                             </div>
                             <span className="ml-2 text-[10px] text-muted-foreground">
-                              {booking.isOwnBooking 
-                                ? "You organized" 
-                                : booking.bookedByName 
-                                  ? "with " + booking.bookedByName 
-                                  : "Booked"}
+                              {booking.isOwnBooking
+                                ? t("schedule.youOrganized")
+                                : booking.bookedByName
+                                  ? t("schedule.withName", { name: booking.bookedByName })
+                                  : t("chip.booked")}
                             </span>
                           </div>
 
@@ -200,7 +203,7 @@ export function ScheduleView({ bookings, meetingLinks, onCancel }: ScheduleViewP
                             className="text-destructive hover:bg-destructive/10 h-6 w-6 p-0"
                             onClick={() => onCancel(booking)}
                           >
-                            <span className="sr-only">Cancel booking</span>
+                            <span className="sr-only">{t("action.cancelBooking")}</span>
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                               <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                             </svg>

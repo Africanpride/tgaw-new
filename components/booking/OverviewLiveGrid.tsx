@@ -66,26 +66,22 @@ function getLiveWindow(slots: Slot[], upcoming: number): Slot[] {
 const channelMeta: Record<
   BookableType,
   {
-    label: string
     href: string
     icon: typeof Book
     accent: (typeof slotAccent)[keyof typeof slotAccent]
   }
 > = {
   BIBLE: {
-    label: "Bible Reading",
     href: "/bible",
     icon: Book,
     accent: slotAccent.BIBLE,
   },
   PRAYER: {
-    label: "Prayer",
     href: "/prayer",
     icon: Church,
     accent: slotAccent.PRAYER,
   },
   PRAISE_WORSHIP: {
-    label: "Praise & Worship",
     href: "/worship",
     icon: Music,
     accent: slotAccent.PRAISE_WORSHIP,
@@ -93,6 +89,8 @@ const channelMeta: Record<
 }
 
 function SlotCard({ slot, isLive }: { slot: Slot; isLive: boolean }) {
+  const { t } = useTranslation("dashboard")
+  const { t: tc } = useTranslation("common")
   const meta = channelMeta[slot.type]
   const Icon = meta.icon
   const timeLocal = `${convertUtcTimeToLocal(slot.startTime)} – ${convertUtcTimeToLocal(slot.endTime)}`
@@ -100,18 +98,18 @@ function SlotCard({ slot, isLive }: { slot: Slot; isLive: boolean }) {
   let line2: string
   let avatarName: string | null = null
   let avatarUrl: string | null = null
-  let isBlocked = !!slot.eventId
+  const isBlocked = !!slot.eventId
 
   if (isBlocked) {
     line2 = slot.event
-      ? `Blocked — ${slot.event.title}`
-      : "Blocked — Special Event"
+      ? t("liveGrid.blockedEvent", { title: slot.event.title })
+      : t("liveGrid.blockedSpecial")
   } else if (slot.isBooked) {
-    line2 = slot.bookedByName ?? "Member"
+    line2 = slot.bookedByName ?? tc("role.member")
     avatarName = slot.bookedByName ?? "M"
     avatarUrl = slot.bookedByImage ?? null
   } else {
-    line2 = "Available"
+    line2 = t("liveGrid.available")
   }
 
   const anchorHref = `${meta.href}?date=${slot.date}`
@@ -163,12 +161,12 @@ function SlotCard({ slot, isLive }: { slot: Slot; isLive: boolean }) {
                   variant="default"
                   className="h-[clamp(16px,4cqi,20px)] shrink-0 px-1.5 text-[clamp(9px,2.2cqi,10px)] leading-none text-white bg-emerald-600 dark:bg-emerald-500"
                 >
-                  LIVE
+                  {t("liveGrid.live")}
                 </Badge>
               )}
               {slot.isOwnBooking && (
                 <Badge variant="outline" className="h-[clamp(16px,4cqi,20px)] shrink-0 text-[clamp(9px,2.2cqi,10px)]">
-                  You
+                  {t("liveGrid.you")}
                 </Badge>
               )}
               {isBlocked && (
@@ -176,7 +174,7 @@ function SlotCard({ slot, isLive }: { slot: Slot; isLive: boolean }) {
                   variant="secondary"
                   className="h-[clamp(16px,4cqi,20px)] shrink-0 bg-violet-500/15 text-[clamp(9px,2.2cqi,10px)] text-violet-700 dark:text-violet-300"
                 >
-                  Blocked
+                  {t("liveGrid.blocked")}
                 </Badge>
               )}
             </p>
@@ -199,16 +197,18 @@ function ChannelSection({
   slots: Slot[]
   liveIds: Set<string>
 }) {
+  const { t, i18n } = useTranslation("dashboard")
+  const { t: tb } = useTranslation("booking")
   const meta = channelMeta[type]
   const Icon = meta.icon
   const dateBadge = slots[0]?.date
     ? (() => {
         const d = new Date(`${slots[0].date}T00:00:00Z`)
         const today = toDateKey(new Date())
-        if (slots[0].date === today) return "Today"
+        if (slots[0].date === today) return t("liveGrid.today")
         const tomorrow = addDays(today, 1)
-        if (slots[0].date === tomorrow) return "Tomorrow"
-        return d.toLocaleDateString("en-US", {
+        if (slots[0].date === tomorrow) return t("liveGrid.tomorrow")
+        return d.toLocaleDateString(i18n.language, {
           month: "short",
           day: "numeric",
           timeZone: "UTC",
@@ -220,7 +220,9 @@ function ChannelSection({
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-1.5">
         <IconTile icon={Icon} size="xs" tone={meta.accent.iconTile} className="border" />
-        <h3 className="text-xs font-semibold tracking-tight">{meta.label}</h3>
+        <h3 className="text-xs font-semibold tracking-tight">
+          {tb(`type.${type}`)}
+        </h3>
         <Badge variant="outline" className="ml-1 text-[10px] font-normal">
           {dateBadge}
         </Badge>
@@ -228,7 +230,7 @@ function ChannelSection({
           href={meta.href}
           className="ml-auto cursor-pointer text-[10px] text-muted-foreground underline-offset-4 hover:underline"
         >
-          View all →
+          {t("liveGrid.viewAll")}
         </Link>
       </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">

@@ -3,7 +3,9 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { useCallback, useEffect, useState } from "react"
 import { format } from "date-fns"
+import { useTranslation } from "react-i18next"
 import type { BookableType } from "@/lib/services/slotService"
+import { dateLocale } from "@/lib/date-locale"
 import { toast } from "sonner"
 import { BookOpen, Check, Copy, Flame, Link2, Loader2, Music, Save, Trash2, Video } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -54,6 +56,9 @@ interface MeetingLinkData {
 }
 
 export function AdminMeetingLinkManager() {
+  const { t: tm, i18n } = useTranslation("admin")
+  const { t: tb } = useTranslation("booking")
+  const { t: tc } = useTranslation("common")
   const [type, setType] = useState<BookableType>("BIBLE")
   const [date, setDate] = useState<Date>(new Date())
   const [url, setUrl] = useState("")
@@ -85,9 +90,13 @@ export function AdminMeetingLinkManager() {
 
   // Default-tab underline animation state
   const defaultTabItems = [
-    { id: "BIBLE" as BookableType, label: "Bible", icon: BookOpen },
-    { id: "PRAYER" as BookableType, label: "Prayer", icon: Flame },
-    { id: "PRAISE_WORSHIP" as BookableType, label: "Worship", icon: Music },
+    { id: "BIBLE" as BookableType, label: tb("type.bibleShort"), icon: BookOpen },
+    { id: "PRAYER" as BookableType, label: tb("type.prayer"), icon: Flame },
+    {
+      id: "PRAISE_WORSHIP" as BookableType,
+      label: tb("type.worshipShort"),
+      icon: Music,
+    },
   ] as const
   const [activeDefaultTab, setActiveDefaultTab] = useState<BookableType>("BIBLE")
   const [hoveredDefaultTab, setHoveredDefaultTab] = useState<string | null>(null)
@@ -102,10 +111,10 @@ export function AdminMeetingLinkManager() {
   const accent = slotAccent[type]
   const typeLabel =
     type === "BIBLE"
-      ? "Bible Reading"
+      ? tb("type.bible")
       : type === "PRAYER"
-        ? "Prayer"
-        : "Praise & Worship"
+        ? tb("type.prayer")
+        : tb("type.worship")
 
   // Load default links for all 3 activity types
   const loadDefaults = useCallback(async () => {
@@ -176,7 +185,7 @@ export function AdminMeetingLinkManager() {
   const handleSaveDefault = async (t: BookableType) => {
     const input = defaultInputs[t]
     if (!input.url.trim()) {
-      toast.error("Meeting URL is required")
+      toast.error(tm("meeting.toastUrlRequired"))
       return
     }
     setSavingDefaultType(t)
@@ -193,13 +202,22 @@ export function AdminMeetingLinkManager() {
       })
       const data = await res.json()
       if (data.success) {
-        toast.success(`Default ${t === "BIBLE" ? "Bible" : t === "PRAYER" ? "Prayer" : "Worship"} meeting link saved`)
+        toast.success(
+          tm("meeting.toastDefaultSaved", {
+            type:
+              t === "BIBLE"
+                ? tb("type.bibleShort")
+                : t === "PRAYER"
+                  ? tb("type.prayer")
+                  : tb("type.worshipShort"),
+          }),
+        )
         await loadDefaults()
       } else {
-        toast.error(data.error?.message || "Failed to save default link")
+        toast.error(data.error?.message || tm("meeting.toastDefaultSaveFailed"))
       }
     } catch {
-      toast.error("An error occurred")
+      toast.error(tm("action.error"))
     } finally {
       setSavingDefaultType(null)
     }
@@ -211,7 +229,7 @@ export function AdminMeetingLinkManager() {
 
   const handleSave = async () => {
     if (!url.trim()) {
-      toast.error("Meeting URL is required")
+      toast.error(tm("meeting.toastUrlRequired"))
       return
     }
     setIsSaving(true)
@@ -228,15 +246,15 @@ export function AdminMeetingLinkManager() {
       })
       const data = await res.json()
       if (data.success) {
-        toast.success("Date override meeting link saved")
+        toast.success(tm("meeting.toastDateSaved"))
         setCurrentLink({ url: url.trim(), label: label.trim() || null })
         setUrl("")
         setLabel("")
       } else {
-        toast.error(data.error?.message || "Failed to save meeting link")
+        toast.error(data.error?.message || tm("meeting.toastSaveFailed"))
       }
     } catch {
-      toast.error("An error occurred")
+      toast.error(tm("action.error"))
     } finally {
       setIsSaving(false)
     }
@@ -246,10 +264,10 @@ export function AdminMeetingLinkManager() {
     try {
       await navigator.clipboard.writeText(targetUrl)
       setCopied(key)
-      toast.success("Link copied to clipboard")
+      toast.success(tm("meeting.toastCopied"))
       window.setTimeout(() => setCopied(null), 1500)
     } catch {
-      toast.error("Failed to copy link")
+      toast.error(tm("meeting.toastCopyFailed"))
     }
   }
 
@@ -269,17 +287,17 @@ export function AdminMeetingLinkManager() {
       )
       const data = await res.json()
       if (data.success) {
-        toast.success("Meeting link deleted")
+        toast.success(tm("meeting.toastDeleted"))
         if (target.date === "DEFAULT") {
           await loadDefaults()
         } else {
           setCurrentLink(null)
         }
       } else {
-        toast.error(data.error?.message || "Failed to delete meeting link")
+        toast.error(data.error?.message || tm("meeting.toastDeleteFailed"))
       }
     } catch {
-      toast.error("An error occurred")
+      toast.error(tm("action.error"))
     } finally {
       setIsSaving(false)
     }
@@ -292,20 +310,20 @@ export function AdminMeetingLinkManager() {
           <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
             <Video className="size-4 text-primary" aria-hidden="true" />
           </div>
-          Meeting Link Manager
+          {tm("meeting.title")}
         </CardTitle>
-        <CardDescription>
-          Set permanent default Zoom/Teams links for each devotion type, or set date-specific link overrides.
-        </CardDescription>
+        <CardDescription>{tm("meeting.description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
         {/* SECTION 1: DEFAULT ROOM LINKS (ALL DAYS) */}
         <div className="space-y-4">
           <div className="flex items-center justify-between border-b border-border/40 pb-2">
             <div>
-              <h3 className="text-sm  tracking-tight">Default Meeting Links (All Days)</h3>
+              <h3 className="text-sm  tracking-tight">
+                {tm("meeting.defaultsTitle")}
+              </h3>
               <p className="text-xs text-muted-foreground">
-                These links automatically apply to every calendar day unless overridden for a specific date.
+                {tm("meeting.defaultsDesc")}
               </p>
             </div>
           </div>
@@ -369,7 +387,12 @@ export function AdminMeetingLinkManager() {
                   if (tab.id !== activeDefaultTab) return null
                   const t = tab.id
                   const tAccent = slotAccent[t]
-                  const tName = t === "BIBLE" ? "Bible Reading" : t === "PRAYER" ? "Prayer Watch" : "Praise & Worship"
+                  const tName =
+                    t === "BIBLE"
+                      ? tb("type.bible")
+                      : t === "PRAYER"
+                        ? tm("meeting.prayerWatch")
+                        : tb("type.worship")
                   const currentDef = defaultLinks[t]
                   const inputVal = defaultInputs[t]
                   const isSavingThis = savingDefaultType === t
@@ -398,7 +421,7 @@ export function AdminMeetingLinkManager() {
                             </Badge>
                             {currentDef && (
                               <Badge className="border-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]">
-                                Active Default
+                                {tm("meeting.activeDefault")}
                               </Badge>
                             )}
                           </div>
@@ -406,7 +429,9 @@ export function AdminMeetingLinkManager() {
                           {currentDef && (
                             <div className="flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-muted/30 p-2.5">
                               <div className="min-w-0 flex-1">
-                                <p className="truncate text-xs font-semibold">{currentDef.label || "Default Room"}</p>
+                                <p className="truncate text-xs font-semibold">
+                                  {currentDef.label || tm("meeting.defaultRoom")}
+                                </p>
                                 <p className="truncate text-[11px] text-muted-foreground">{currentDef.url}</p>
                               </div>
                               <Button
@@ -426,7 +451,9 @@ export function AdminMeetingLinkManager() {
 
                           <div className="space-y-2 pt-1 lg:grid lg:grid-cols-1 lg:gap-2 lg:space-y-0">
                             <div className="space-y-1">
-                              <Label htmlFor={`def-url-${t}`} className="text-[11px]">Meeting URL</Label>
+                              <Label htmlFor={`def-url-${t}`} className="text-[11px]">
+                                {tm("meeting.urlLabel")}
+                              </Label>
                               <Input
                                 id={`def-url-${t}`}
                                 type="url"
@@ -442,10 +469,15 @@ export function AdminMeetingLinkManager() {
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label htmlFor={`def-label-${t}`} className="text-[11px]">Label (optional)</Label>
+                              <Label htmlFor={`def-label-${t}`} className="text-[11px]">
+                                {tm("meeting.label")}{" "}
+                                <span className="font-normal text-muted-foreground">
+                                  {tm("form.optional")}
+                                </span>
+                              </Label>
                               <Input
                                 id={`def-label-${t}`}
-                                placeholder="e.g. Daily Zoom Room"
+                                placeholder={tm("meeting.labelPlaceholderDefault")}
                                 className="h-8 text-xs"
                                 value={inputVal.label}
                                 onChange={(e) =>
@@ -469,12 +501,12 @@ export function AdminMeetingLinkManager() {
                             {isSavingThis ? (
                               <>
                                 <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-                                Saving...
+                                {tm("action.saving")}
                               </>
                             ) : (
                               <>
                                 <Save className="size-3.5" aria-hidden="true" />
-                                Save Default
+                                {tm("meeting.saveDefault")}
                               </>
                             )}
                           </Button>
@@ -502,9 +534,11 @@ export function AdminMeetingLinkManager() {
         <div className="space-y-4 pt-2 sm:pt-4 border-t border-border/40">
           <div className="flex items-center justify-between border-b border-border/40 pb-2">
             <div>
-              <h3 className="text-sm tracking-tight">Date-Specific Link Overrides</h3>
+              <h3 className="text-sm tracking-tight">
+                {tm("meeting.overridesTitle")}
+              </h3>
               <p className="text-xs text-muted-foreground">
-                Set a custom meeting URL for a specific date (overrides default link for that day).
+                {tm("meeting.overridesDesc")}
               </p>
             </div>
           </div>
@@ -512,19 +546,19 @@ export function AdminMeetingLinkManager() {
           <div className="space-y-5">
             {/* Row 1: Slot type selector */}
             <div className="space-y-2">
-              <Label htmlFor="ml-type">Slot type</Label>
+              <Label htmlFor="ml-type">{tm("meeting.slotType")}</Label>
               <Select
                 value={type}
                 onValueChange={(v) => setType(v as BookableType)}
               >
                 <SelectTrigger id="ml-type" className="w-full">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={tm("meeting.selectType")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="BIBLE">Bible Reading</SelectItem>
-                  <SelectItem value="PRAYER">Prayer</SelectItem>
+                  <SelectItem value="BIBLE">{tb("type.bible")}</SelectItem>
+                  <SelectItem value="PRAYER">{tb("type.prayer")}</SelectItem>
                   <SelectItem value="PRAISE_WORSHIP">
-                    Praise & Worship
+                    {tb("type.worship")}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -532,12 +566,13 @@ export function AdminMeetingLinkManager() {
 
             {/* Row 2: Full-width calendar */}
             <div className="space-y-2">
-              <Label>Date</Label>
+              <Label>{tm("meeting.dateLabel")}</Label>
               <div className="w-full rounded-lg border p-1">
                 <Calendar
                   mode="single"
                   selected={date}
                   onSelect={(d) => d && setDate(d)}
+                  locale={dateLocale(i18n.language)}
                   className="mx-auto w-full rounded-md"
                 />
               </div>
@@ -546,7 +581,7 @@ export function AdminMeetingLinkManager() {
             {/* Row 3: Meeting URL + Label — side by side on larger screens */}
             <div className="grid grid-cols-1 gap-2">
               <div className="space-y-2">
-                <Label htmlFor="ml-url">Meeting URL</Label>
+                <Label htmlFor="ml-url">{tm("meeting.urlLabel")}</Label>
                 <Input
                   id="ml-url"
                   type="url"
@@ -557,11 +592,14 @@ export function AdminMeetingLinkManager() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ml-label">
-                  Label <span className="text-muted-foreground">(optional)</span>
+                  {tm("meeting.label")}{" "}
+                  <span className="text-muted-foreground">
+                    {tm("form.optional")}
+                  </span>
                 </Label>
                 <Input
                   id="ml-label"
-                  placeholder="e.g. Special Marathon Zoom Room"
+                  placeholder={tm("meeting.labelPlaceholderDate")}
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                 />
@@ -581,12 +619,12 @@ export function AdminMeetingLinkManager() {
                       className="size-4 animate-spin"
                       aria-hidden="true"
                     />
-                    Saving…
+                    {tm("action.saving")}
                   </>
                 ) : (
                   <>
                     <Save className="size-4" aria-hidden="true" />
-                    Save Override
+                    {tm("meeting.saveOverride")}
                   </>
                 )}
               </Button>
@@ -597,7 +635,7 @@ export function AdminMeetingLinkManager() {
                 className="text-destructive hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
               >
                 <Trash2 className="size-4" aria-hidden="true" />
-                Delete
+                {tc("action.delete")}
               </Button>
             </div>
 
@@ -605,7 +643,11 @@ export function AdminMeetingLinkManager() {
             <div className="space-y-2 rounded-lg border border-border/40 bg-muted/20 p-2 sm:p-3">
               <div className="flex items-center justify-between gap-2">
                 <Label className="mb-0 text-xs">
-                  Link for {format(date, "EEEE, MMMM d")}
+                  {tm("meeting.linkFor", {
+                    date: format(date, "EEEE, MMMM d", {
+                      locale: dateLocale(i18n.language),
+                    }),
+                  })}
                 </Label>
                 <Badge className={cn("border-0 text-xs", accent.tabFill, accent.text)}>
                   {typeLabel}
@@ -642,10 +684,10 @@ export function AdminMeetingLinkManager() {
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-2 text-sm font-semibold">
                         <span className="truncate">
-                          {currentLink.label || "Meeting link"}
+                          {currentLink.label || tm("meeting.fallbackName")}
                         </span>
                         <Badge className="shrink-0 border-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-[10px]">
-                          Active
+                          {tm("meeting.active")}
                         </Badge>
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
@@ -656,7 +698,11 @@ export function AdminMeetingLinkManager() {
                       size="icon"
                       variant="ghost"
                       onClick={() => handleCopy(currentLink.url, "date-override")}
-                      aria-label={copied === "date-override" ? "Link copied" : "Copy meeting link"}
+                      aria-label={
+                        copied === "date-override"
+                          ? tm("meeting.copiedAria")
+                          : tm("meeting.copyAria")
+                      }
                     >
                       {copied === "date-override" ? (
                         <Check
@@ -678,7 +724,7 @@ export function AdminMeetingLinkManager() {
                     className="flex h-[52px] items-center justify-center gap-2 rounded-md border border-dashed text-sm text-muted-foreground"
                   >
                     <Link2 className="size-4" aria-hidden="true" />
-                    No specific link override. Default link applies.
+                    {tm("meeting.noOverride")}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -696,12 +742,12 @@ export function AdminMeetingLinkManager() {
               <IconTile icon={Trash2} size="md" tone="bg-destructive/10 text-destructive" />
             <AlertDialogHeader className="gap-1.5">
               <AlertDialogTitle className="text-base sm:text-lg">
-                Delete meeting link?
+                {tm("meeting.deleteConfirmTitle")}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {deleteTarget?.date === "DEFAULT"
-                  ? "This removes the default meeting link for all days. Members won't see a default link unless set."
-                  : "This removes the specific meeting link override for this day. The default link (if set) will apply."}
+                  ? tm("meeting.deleteConfirmDefault")
+                  : tm("meeting.deleteConfirmDate")}
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
@@ -711,15 +757,19 @@ export function AdminMeetingLinkManager() {
               <div className="flex items-center gap-3">
                 <Badge className={cn("border-0", slotAccent[deleteTarget.type].solid)}>
                   {deleteTarget.type === "BIBLE"
-                    ? "Bible Reading"
+                    ? tb("type.bible")
                     : deleteTarget.type === "PRAYER"
-                      ? "Prayer"
-                      : "Praise & Worship"}
+                      ? tb("type.prayer")
+                      : tb("type.worship")}
                 </Badge>
                 <span className="text-sm font-medium">
                   {deleteTarget.date === "DEFAULT"
-                    ? "Default (All Days)"
-                    : format(new Date(`${deleteTarget.date}T00:00:00`), "EEEE, MMMM d")}
+                    ? tm("meeting.defaultAllDays")
+                    : format(
+                        new Date(`${deleteTarget.date}T00:00:00`),
+                        "EEEE, MMMM d",
+                        { locale: dateLocale(i18n.language) },
+                      )}
                 </span>
               </div>
               <Video
@@ -736,7 +786,7 @@ export function AdminMeetingLinkManager() {
                 "cursor-pointer"
               )}
             >
-              Keep link
+              {tm("meeting.keepLink")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
@@ -746,7 +796,7 @@ export function AdminMeetingLinkManager() {
               )}
             >
               <Trash2 className="size-4" aria-hidden="true" />
-              Delete link
+              {tm("meeting.deleteLink")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

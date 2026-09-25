@@ -33,22 +33,35 @@ async function loadNamespace(
  * Server-side translation lookup reading messages/{locale}/{ns}.json from disk.
  * Falls back to the default locale, then returns the key on a miss (per plan §7.2).
  */
+function interpolate(
+	template: string,
+	vars?: Record<string, string | number>,
+): string {
+	if (!vars) return template;
+	let out = template;
+	for (const [name, value] of Object.entries(vars)) {
+		out = out.replaceAll(`{{${name}}}`, String(value));
+	}
+	return out;
+}
+
 export async function getServerTranslation(
 	locale: string,
 	namespace: string,
 	key: string,
+	vars?: Record<string, string | number>,
 ): Promise<string> {
 	const normalized: Locale = isLocale(locale) ? locale : DEFAULT_LOCALE;
 
 	const primary = await loadNamespace(normalized, namespace);
 	if (typeof primary[key] === "string" && primary[key].length > 0) {
-		return primary[key];
+		return interpolate(primary[key], vars);
 	}
 
 	if (normalized !== DEFAULT_LOCALE) {
 		const fallback = await loadNamespace(DEFAULT_LOCALE, namespace);
 		if (typeof fallback[key] === "string" && fallback[key].length > 0) {
-			return fallback[key];
+			return interpolate(fallback[key], vars);
 		}
 	}
 

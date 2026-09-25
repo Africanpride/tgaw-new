@@ -2,7 +2,14 @@ import type { LucideIcon } from "lucide-react";
 import { format, isToday, parse } from "date-fns";
 import { VideoOff } from "lucide-react";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import {
+	DEFAULT_LOCALE,
+	LOCALE_COOKIE_NAME,
+	isLocale,
+} from "@/i18n/config";
+import { getServerTranslation } from "@/lib/notifications/locale";
+import { dateLocale } from "@/lib/date-locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { IconTile } from "@/components/IconTile";
@@ -55,14 +62,22 @@ export async function DevotionPage({
 	const session = await auth.api.getSession({ headers: await headers() });
 	const userId = session?.user?.id;
 
+	const cookieLocale = (await cookies()).get(LOCALE_COOKIE_NAME)?.value;
+	const locale = isLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE;
+	const t = (key: string, vars?: Record<string, string | number>) =>
+		getServerTranslation(locale, "booking", key, vars);
+	const dateFmt = dateLocale(locale);
+
 	const viewingToday = isToday(parse(dateStr, "yyyy-MM-dd", new Date()));
 
-	const [bookingData, stats] = await Promise.all([
+	const [bookingData, stats, statLabels] = await Promise.all([
 		getSlotsForDate(dateStr, type, userId, session?.user?.role as string),
 		userId
 			? getUserSlotStats(userId)
 			: Promise.resolve({ weekSessions: 0, monthSessions: 0, monthMinutes: 0 }),
+		Promise.all([t("stat.sessionsWeek"), t("stat.sessionsMonth"), t("stat.timeMonth")]),
 	]);
+	const [statWeekTitle, statMonthTitle, statTimeTitle] = statLabels;
 	const { slots, meetingLinks, displacedBookings } = bookingData;
 
 	const meetingLink = meetingLinks[type];
@@ -91,19 +106,19 @@ export async function DevotionPage({
 			<FadeIn delay={0.06}>
 				<div className="grid gap-2 sm:grid-cols-3">
 					<StatCard
-						title="Sessions This Week"
+						title={statWeekTitle}
 						value={stats.weekSessions}
 						icon={Icon}
 						className={accent.rail}
 					/>
 					<StatCard
-						title="Sessions This Month"
+						title={statMonthTitle}
 						value={stats.monthSessions}
 						icon={Icon}
 						className={accent.rail}
 					/>
 					<StatCard
-						title="Time This Month"
+						title={statTimeTitle}
 						value={formatMinutes(stats.monthMinutes)}
 						icon={Icon}
 						className={accent.rail}
@@ -126,11 +141,12 @@ export async function DevotionPage({
 				<FadeIn delay={0.18}>
 					<Card className="h-full min-w-0">
 						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<Icon className={`size-5 ${accent.iconText}`} aria-hidden="true" />
-								Your Slots for{" "}
-								{format(parse(dateStr, "yyyy-MM-dd", new Date()), "MMM d")}
-							</CardTitle>
+						<CardTitle className="flex items-center gap-2">
+							<Icon className={`size-5 ${accent.iconText}`} aria-hidden="true" />
+							{await t("yourSlotsFor", {
+								date: format(parse(dateStr, "yyyy-MM-dd", new Date()), "MMM d", { locale: dateFmt }),
+							})}
+						</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-3">
 							<DisplacedBookingNotice bookings={displacedBookings ?? []} slotNoun={slotNoun} />
@@ -147,7 +163,7 @@ export async function DevotionPage({
 				<FadeIn delay={0.24}>
 					<Card className="h-full min-w-0">
 						<CardHeader>
-							<CardTitle>Meeting Room</CardTitle>
+							<CardTitle>{await t("meetingRoom")}</CardTitle>
 						</CardHeader>
 						<CardContent>
 							{meetingLink ? (
@@ -159,8 +175,10 @@ export async function DevotionPage({
 							) : (
 								<EmptyState
 									icon={VideoOff}
-									title="No meeting link yet"
-									description={`A Zoom/Teams link for ${format(parse(dateStr, "yyyy-MM-dd", new Date()), "MMMM d")} will appear here once posted.`}
+									title={await t("noMeetingLinkTitle")}
+									description={await t("noMeetingLinkDesc", {
+										date: format(parse(dateStr, "yyyy-MM-dd", new Date()), "MMMM d", { locale: dateFmt }),
+									})}
 								/>
 							)}
 						</CardContent>

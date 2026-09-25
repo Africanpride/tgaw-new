@@ -97,5 +97,14 @@
   "communityActivity.badgeLive": "En vivo",
   "communityActivity.emptyTitle": "Vigilia tranquila",
   "communityActivity.emptyAll": "Sin actividad reciente — sé el primero en compartir un testimonio u oración.",
-  "communityActivity.emptyFilter": "Sin actividad de {{filter}} reciente."
+  "communityActivity.emptyFilter": "Sin actividad de {{filter}} reciente.",
+  "liveGrid.today": "Hoy",
+  "liveGrid.tomorrow": "Mañana",
+  "liveGrid.viewAll": "Ver todo →",
+  "liveGrid.available": "Disponible",
+  "liveGrid.blockedEvent": "Bloqueado — {{title}}",
+  "liveGrid.blockedSpecial": "Bloqueado — Evento especial",
+  "liveGrid.you": "Tú",
+  "liveGrid.blocked": "Bloqueado",
+  "liveGrid.live": "EN VIVO"
 }

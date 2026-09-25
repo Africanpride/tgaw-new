@@ -11,7 +11,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
+import { dateLocale } from "@/lib/date-locale";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -80,23 +82,31 @@ type ViewState = "calendar" | "slots";
 // Helpers
 // ---------------------------------------------------------------------------
 
-const TYPE_LABELS: Record<string, string> = {
-  BIBLE: "Bible",
-  PRAYER: "Prayer",
-  PRAISE_WORSHIP: "Worship",
+const TYPE_KEYS: Record<
+  string,
+  "type.bibleShort" | "type.prayer" | "type.worshipShort"
+> = {
+  BIBLE: "type.bibleShort",
+  PRAYER: "type.prayer",
+  PRAISE_WORSHIP: "type.worshipShort",
 };
+
+function getTypeLabel(type: string, t: (key: string) => string): string {
+  const key = TYPE_KEYS[type];
+  return key ? t(key) : type;
+}
 
 function getAccent(type: string): SlotAccent {
   return slotAccent[type as keyof typeof slotAccent] ?? slotAccent.BIBLE;
 }
 
-function firstNameOf(name: string | null): string {
-  if (!name) return "Member";
-  return name.split(/\s+/).filter(Boolean)[0] ?? "Member";
+function firstNameOf(name: string | null, t: (key: string) => string): string {
+  if (!name) return t("role.member");
+  return name.split(/\s+/).filter(Boolean)[0] ?? t("role.member");
 }
 
-function formatSelectedDate(d: Date): string {
-  return d.toLocaleDateString("en-US", {
+function formatSelectedDate(d: Date, language: string): string {
+  return d.toLocaleDateString(language, {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -121,6 +131,7 @@ function UserSearchCombobox({
   value: SearchUser | null;
   onSelect: (u: SearchUser | null) => void;
 }) {
+  const { t } = useTranslation("admin");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchUser[]>([]);
@@ -156,7 +167,7 @@ function UserSearchCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          aria-label="Search for a user"
+          aria-label={t("override.searchUser")}
           className="w-full justify-start gap-2 font-normal"
         >
           {value ? (
@@ -167,7 +178,7 @@ function UserSearchCombobox({
           ) : (
             <span className="flex items-center gap-2 text-muted-foreground">
               <Search className="size-3.5" aria-hidden="true" />
-              Search user…
+              {t("override.searchUserPlaceholder")}
             </span>
           )}
         </Button>
@@ -176,7 +187,7 @@ function UserSearchCombobox({
         <Command className="w-full" shouldFilter={false}>
           <CommandInput
             className="w-full"
-            placeholder="Type a name or email…"
+            placeholder={t("override.searchTypePlaceholder")}
             value={query}
             onValueChange={(v) => {
               setQuery(v);
@@ -190,7 +201,7 @@ function UserSearchCombobox({
               </div>
             )}
             {!loading && query.length > 0 && results.length === 0 && (
-              <CommandEmpty>No users found.</CommandEmpty>
+              <CommandEmpty>{t("override.noUsers")}</CommandEmpty>
             )}
             <CommandGroup>
               {results.map((u) => (
@@ -236,6 +247,9 @@ function OverrideDialogContent({
   onSuccess: () => void;
   onOptimisticAssign: (slotId: string, user: SearchUser, notes?: string) => void;
 }) {
+  const { t } = useTranslation("admin");
+  const { t: tb } = useTranslation("booking");
+  const { t: tc } = useTranslation("common");
   // Initial values come from props at mount time — no useEffect needed.
   // The parent keys this component by slot.id so it remounts for each new slot.
   const [targetUser, setTargetUser] = useState<SearchUser | null>(null);
@@ -245,7 +259,7 @@ function OverrideDialogContent({
 
   const handleAssign = async () => {
     if (!slot || !targetUser) {
-      toast.error("Please select a target user");
+      toast.error(t("override.toastSelectUser"));
       return;
     }
     setSaving(true);
@@ -263,16 +277,18 @@ function OverrideDialogContent({
       const data = await res.json();
       if (data.success) {
         toast.success(
-          `Slot ${slot.isBooked ? "overridden" : "assigned"} successfully`,
+          t(slot.isBooked ? "override.toastOverridden" : "override.toastAssigned"),
         );
         onOpenChange(false);
         onSuccess();
       } else {
-        toast.error(data.error?.message || data.error || "Failed to assign slot");
+        toast.error(
+          data.error?.message || data.error || t("override.toastAssignFailed"),
+        );
         onSuccess();
       }
     } catch {
-      toast.error("An error occurred");
+      toast.error(t("action.error"));
       onSuccess();
     } finally {
       setSaving(false);
@@ -293,16 +309,16 @@ function OverrideDialogContent({
       });
       const data = await res.json();
       if (data.success) {
-        toast.success("Slot cancelled successfully");
+        toast.success(t("override.toastCancelled"));
         onOpenChange(false);
         onSuccess();
       } else {
         toast.error(
-          data.error?.message || data.error || "Failed to cancel slot",
+          data.error?.message || data.error || t("override.toastCancelFailed"),
         );
       }
     } catch {
-      toast.error("An error occurred");
+      toast.error(t("action.error"));
     } finally {
       setSaving(false);
     }
@@ -310,7 +326,7 @@ function OverrideDialogContent({
 
 
   const accent = getAccent(slot.type);
-  const typeLabel = TYPE_LABELS[slot.type] ?? slot.type;
+  const typeLabel = getTypeLabel(slot.type, tb);
 
   return (
     <>
@@ -318,12 +334,14 @@ function OverrideDialogContent({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarCheck className="size-4" aria-hidden="true" />
-            {slot.isBooked ? "Override Slot" : "Assign Slot"}
+            {slot.isBooked ? t("override.titleOverride") : t("override.titleAssign")}
           </DialogTitle>
           <DialogDescription>
-            {convertUtcTimeToLocal(slot.startTime)} –{" "}
-            {convertUtcTimeToLocal(slot.endTime)} on{" "}
-            {slot.date}
+            {t("override.when", {
+              start: convertUtcTimeToLocal(slot.startTime),
+              end: convertUtcTimeToLocal(slot.endTime),
+              date: slot.date,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -338,14 +356,14 @@ function OverrideDialogContent({
             </Badge>
             {slot.isBooked && slot.bookedByName && (
               <span className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
-                Currently:
+                {t("override.currently")}
                 <UserAvatar
                   name={slot.bookedByName}
                   image={slot.bookedByImage}
                   className="size-5 shrink-0"
                 />
                 <span className="min-w-0 flex-1 truncate font-medium text-foreground">
-                  {firstNameOf(slot.bookedByName)}
+                  {firstNameOf(slot.bookedByName, tc)}
                 </span>
               </span>
             )}
@@ -356,7 +374,7 @@ function OverrideDialogContent({
           {/* Target user */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">
-              {slot.isBooked ? "Reassign to" : "Assign to"}
+              {slot.isBooked ? t("override.reassignTo") : t("override.assignTo")}
             </label>
             <UserSearchCombobox value={targetUser} onSelect={setTargetUser} />
           </div>
@@ -364,13 +382,13 @@ function OverrideDialogContent({
           {/* Notes */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">
-              Notes{" "}
+              {t("override.notes")}{" "}
               <span className="font-normal text-muted-foreground">
-                (optional)
+                {t("form.optional")}
               </span>
             </label>
             <Textarea
-              placeholder="Optional context…"
+              placeholder={t("override.notesPlaceholder")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
@@ -390,9 +408,9 @@ function OverrideDialogContent({
               {saving ? (
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
               ) : (
-                <XCircle className="size-4" aria-hidden="true" />
-              )}
-              Force Cancel
+              <XCircle className="size-4" aria-hidden="true" />
+            )}
+              {t("override.forceCancel")}
             </Button>
           )}
           <Button onClick={handleAssign} disabled={saving || !targetUser}>
@@ -401,7 +419,7 @@ function OverrideDialogContent({
             ) : (
               <UserPlus className="size-4" aria-hidden="true" />
             )}
-            {slot.isBooked ? "Override" : "Assign"}
+            {slot.isBooked ? t("override.overrideBtn") : t("override.assignBtn")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -447,8 +465,11 @@ function AdminSlotRow({
   slot: SlotRow;
   onAction: (slot: SlotRow) => void;
 }) {
+  const { t } = useTranslation("admin");
+  const { t: tb } = useTranslation("booking");
+  const { t: tc } = useTranslation("common");
   const accent = getAccent(slot.type);
-  const typeLabel = TYPE_LABELS[slot.type] ?? slot.type;
+  const typeLabel = getTypeLabel(slot.type, tb);
 
   return (
     <motion.div
@@ -486,11 +507,13 @@ function AdminSlotRow({
               className="size-6 shrink-0"
             />
             <span className="truncate text-sm font-medium">
-              {firstNameOf(slot.bookedByName)}
+              {firstNameOf(slot.bookedByName, tc)}
             </span>
           </>
         ) : (
-          <span className="text-sm text-muted-foreground">Available</span>
+          <span className="text-sm text-muted-foreground">
+            {t("override.available")}
+          </span>
         )}
       </div>
 
@@ -504,12 +527,12 @@ function AdminSlotRow({
         {slot.isBooked ? (
           <>
             <SlidersHorizontal className="size-3" aria-hidden="true" />
-            Override
+            {t("override.overrideBtn")}
           </>
         ) : (
           <>
             <UserPlus className="size-3" aria-hidden="true" />
-            Assign
+            {t("override.assignBtn")}
           </>
         )}
       </Button>
@@ -522,6 +545,7 @@ function AdminSlotRow({
 // ---------------------------------------------------------------------------
 
 export function AdminSlotOverride() {
+  const { t, i18n } = useTranslation("admin");
   const [view, setView] = useState<ViewState>("calendar");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [slots, setSlots] = useState<SlotRow[]>([]);
@@ -539,14 +563,14 @@ export function AdminSlotOverride() {
         // Only show booked slots + a handful of available ones for context
         setSlots(data.data.slots ?? []);
       } else {
-        toast.error("Failed to load slots");
+        toast.error(t("override.toastLoadFailed"));
       }
     } catch {
-      toast.error("Failed to load slots");
+      toast.error(t("override.toastLoadFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const handleDateSelect = useCallback(
     (date: Date | undefined) => {
@@ -609,11 +633,9 @@ export function AdminSlotOverride() {
                 aria-hidden="true"
               />
             </div>
-            Slot Override
+            {t("override.cardTitle")}
           </CardTitle>
-          <CardDescription>
-            Pick a date to view and override bookings.
-          </CardDescription>
+          <CardDescription>{t("override.cardDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="px-2 sm:px-4 pb-2 sm:pb-4">
           <AnimatePresence mode="wait" initial={false}>
@@ -630,6 +652,7 @@ export function AdminSlotOverride() {
                   selected={selectedDate}
                   onSelect={handleDateSelect}
                   showOutsideDays={false}
+                  locale={dateLocale(i18n.language)}
                   disabled={(date) => {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
@@ -674,17 +697,20 @@ export function AdminSlotOverride() {
                     size="icon"
                     className="size-8"
                     onClick={handleBack}
-                    aria-label="Back to calendar"
+                    aria-label={t("override.backAria")}
                   >
                     <ArrowLeft className="size-4" />
                   </Button>
                   <div className="flex-1">
                     <p className="text-sm font-semibold">
-                      {selectedDate && formatSelectedDate(selectedDate)}
+                      {selectedDate &&
+                        formatSelectedDate(selectedDate, i18n.language)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {bookedSlots.length} booked · {availableSlots.length}{" "}
-                      available
+                      {t("override.summary", {
+                        booked: bookedSlots.length,
+                        available: availableSlots.length,
+                      })}
                     </p>
                   </div>
                 </div>
@@ -707,10 +733,10 @@ export function AdminSlotOverride() {
                   <div className="flex flex-col items-center gap-2 py-2 text-center sm:py-8">
                     <CalendarCheck className="size-8 text-muted-foreground/40" />
                     <p className="text-sm font-medium text-muted-foreground">
-                      No slots on this date
+                      {t("override.emptyTitle")}
                     </p>
                     <p className="text-xs text-muted-foreground/60">
-                      Slots may need to be generated first.
+                      {t("override.emptyDesc")}
                     </p>
                   </div>
                 ) : (
@@ -720,7 +746,9 @@ export function AdminSlotOverride() {
                       <div>
                         <p className="sticky top-0 z-10 mb-1 bg-card px-2 sm:px-3 py-1">
                           <span className={sectionLabelClass}>
-                            Booked ({bookedSlots.length})
+                            {t("override.bookedCount", {
+                              count: bookedSlots.length,
+                            })}
                           </span>
                         </p>
                         <AnimatePresence>
@@ -740,7 +768,9 @@ export function AdminSlotOverride() {
                       <div className="mt-3">
                         <p className="sticky top-0 z-10 mb-1 bg-card px-2 sm:px-3 py-1">
                           <span className={sectionLabelClass}>
-                            Available ({availableSlots.length})
+                            {t("override.availableCount", {
+                              count: availableSlots.length,
+                            })}
                           </span>
                         </p>
                         <AnimatePresence>

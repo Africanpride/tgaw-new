@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { slotAccent } from "./slotAccent";
 import { EventType } from "@prisma/client";
+import { useTranslation } from "react-i18next";
+import { dateLocale } from "@/lib/date-locale";
 
 interface BookingCalendarMiniProps {
   date: Date;
@@ -22,18 +24,20 @@ export function BookingCalendarMini({
   myBookedDates = new Set(),
   type,
 }: BookingCalendarMiniProps) {
+  const { t, i18n } = useTranslation("booking");
   const accent = slotAccent[type];
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">Pick a day</CardTitle>
+        <CardTitle className="text-sm font-medium">{t("pickADay")}</CardTitle>
       </CardHeader>
       <CardContent>
         <Calendar
           mode="single"
           selected={date}
           onSelect={onDateChange}
+          locale={dateLocale(i18n.language)}
           className="w-full rounded-lg"
           classNames={{
             root: "w-full rdp-root",

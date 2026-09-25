@@ -11,6 +11,8 @@ import {
 	X,
 } from "lucide-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
+import { dateLocale } from "@/lib/date-locale";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -45,13 +47,6 @@ const COLOR_DOT: Record<CalendarItemColor, string> = {
 	amber: "bg-amber-500",
 	blue: "bg-blue-500",
 	violet: "bg-violet-500",
-};
-
-const TYPE_LABEL: Record<CalendarItem["type"], string> = {
-	BIBLE: "Bible Reading",
-	PRAYER: "Prayer",
-	PRAISE_WORSHIP: "Praise & Worship",
-	SPECIAL: "Special Event",
 };
 
 function addMinutesToTime(time: string, minutes: number): string {
@@ -89,6 +84,8 @@ function ItemDetail({
 	onDelete?: (item: CalendarItem) => void;
 	onClose: () => void;
 }) {
+	const { t, i18n } = useTranslation("calendar");
+	const { t: tc } = useTranslation("common");
 	const endTime =
 		item.endTime ??
 		(item.duration ? addMinutesToTime(item.startTime, item.duration) : null);
@@ -106,10 +103,10 @@ function ItemDetail({
 								className={cn("size-2 rounded-full", COLOR_DOT[item.color])}
 								aria-hidden="true"
 							/>
-							{TYPE_LABEL[item.type]}
+							{t(`type.${item.type}`)}
 						</Badge>
 						{item.source === "slot" && (
-							<Badge variant="secondary">Booked</Badge>
+							<Badge variant="secondary">{t("detail.booked")}</Badge>
 						)}
 						{item.zoomUrl && (
 							<a
@@ -117,7 +114,7 @@ function ItemDetail({
 								target="_blank"
 								rel="noreferrer"
 								className="cursor-pointer inline-flex items-center rounded-md p-1 text-primary transition-colors hover:bg-primary/10"
-								aria-label={item.zoomLabel ?? "Join meeting"}
+								aria-label={item.zoomLabel ?? t("detail.joinAria")}
 							>
 								<Video className="size-4" aria-hidden="true" />
 							</a>
@@ -128,7 +125,7 @@ function ItemDetail({
 					variant="ghost"
 					size="icon"
 					onClick={onClose}
-					aria-label="Close details"
+					aria-label={t("detail.closeAria")}
 				>
 					<X className="size-4" aria-hidden="true" />
 				</Button>
@@ -137,7 +134,9 @@ function ItemDetail({
 			<div className="space-y-2.5 text-sm">
 				<div className="flex items-center gap-2 text-muted-foreground">
 					<CalendarDays className="size-4 shrink-0" aria-hidden="true" />
-					{format(new Date(item.date), "EEEE, MMMM d, yyyy")}
+					{format(new Date(item.date), "EEEE, MMMM d, yyyy", {
+						locale: dateLocale(i18n.language),
+					})}
 				</div>
 				<div className="flex items-center gap-2">
 					<Clock
@@ -147,7 +146,9 @@ function ItemDetail({
 					<span>
 						{item.startTime}
 						{endTime ? ` – ${endTime}` : ""}
-						{item.duration ? ` (${item.duration} min)` : ""}
+						{item.duration
+							? ` (${t("form.durationMinutes", { minutes: item.duration })})`
+							: ""}
 					</span>
 					<span className="text-xs text-muted-foreground">({timezone})</span>
 				</div>
@@ -175,7 +176,7 @@ function ItemDetail({
 						}}
 					>
 						<Pencil className="size-3.5" aria-hidden="true" />
-						Edit
+						{t("detail.edit")}
 					</Button>
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
@@ -186,19 +187,20 @@ function ItemDetail({
 								className="h-8 gap-1.5 text-xs"
 							>
 								<Trash2 className="size-3.5" aria-hidden="true" />
-								Delete
+								{t("detail.delete")}
 							</Button>
 						</AlertDialogTrigger>
 						<AlertDialogContent>
 							<AlertDialogHeader>
-								<AlertDialogTitle>Delete this event?</AlertDialogTitle>
+								<AlertDialogTitle>
+									{t("detail.deleteConfirmTitle")}
+								</AlertDialogTitle>
 								<AlertDialogDescription>
-									This will unblock any slots reserved for this event and
-									restore displaced bookings.
+									{t("detail.deleteConfirmDesc")}
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
-								<AlertDialogCancel>Cancel</AlertDialogCancel>
+								<AlertDialogCancel>{tc("action.cancel")}</AlertDialogCancel>
 								<AlertDialogAction
 									className={buttonVariants({ variant: "destructive" })}
 									onClick={() => {
@@ -206,7 +208,7 @@ function ItemDetail({
 										onClose();
 									}}
 								>
-									Delete Event
+									{t("detail.deleteConfirmBtn")}
 								</AlertDialogAction>
 							</AlertDialogFooter>
 						</AlertDialogContent>

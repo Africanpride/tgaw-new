@@ -11,7 +11,9 @@
 		"format": "prettier --write \"**/*.{ts,tsx}\"",
 		"typecheck": "tsc --noEmit",
 		"set-superadmin": "tsx --env-file=.env scripts/set-superadmin.ts",
-		"i18n:check": "node scripts/check-translations.mjs"
+		"i18n:check": "node scripts/check-translations.mjs",
+		"i18n:export": "node scripts/export-translations.mjs",
+		"i18n:import": "node scripts/import-translations.mjs"
 	},
 	"dependencies": {
 		"@base-ui-components/react": "^1.0.0-rc.0",

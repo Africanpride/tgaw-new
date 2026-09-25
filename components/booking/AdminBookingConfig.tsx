@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { Check, Settings } from "lucide-react"
 import { IconTile } from "@/components/IconTile"
@@ -42,6 +43,8 @@ export function AdminBookingConfig({
   )
   const [isSaving, setIsSaving] = useState(false)
   const router = useRouter()
+  const { t } = useTranslation("admin")
+  const { t: tb } = useTranslation("booking")
 
   useEffect(() => {
     if (initialConfig) setConfig((prev) => ({ ...prev, ...initialConfig }))
@@ -63,13 +66,13 @@ export function AdminBookingConfig({
       })
       const data = await res.json()
       if (data.success) {
-        toast.success("Configuration updated successfully")
+        toast.success(t("config.toastSaved"))
         router.refresh()
       } else {
-        toast.error(data.error?.message || "Failed to update configuration")
+        toast.error(data.error?.message || t("config.toastFailed"))
       }
     } catch {
-      toast.error("An error occurred")
+      toast.error(t("action.error"))
     } finally {
       setIsSaving(false)
     }
@@ -80,18 +83,16 @@ export function AdminBookingConfig({
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           <IconTile icon={Settings} size="md" iconClassName="size-4" />
-          Booking Configuration
+          {t("config.title")}
         </CardTitle>
-        <CardDescription>
-          Set global limits and visibility modes for all users.
-        </CardDescription>
+        <CardDescription>{t("config.description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
-          <h3 className="text-sm font-medium">Daily Limits (Slots per user)</h3>
+          <h3 className="text-sm font-medium">{t("config.dailyLimits")}</h3>
           <div className="grid grid-cols-3 gap-2">
             <div className="space-y-2">
-              <Label htmlFor="maxBible">Bible</Label>
+              <Label htmlFor="maxBible">{tb("type.bibleShort")}</Label>
               <Input
                 id="maxBible"
                 type="number"
@@ -107,7 +108,7 @@ export function AdminBookingConfig({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="maxPrayer">Prayer</Label>
+              <Label htmlFor="maxPrayer">{tb("type.prayer")}</Label>
               <Input
                 id="maxPrayer"
                 type="number"
@@ -123,7 +124,7 @@ export function AdminBookingConfig({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="maxWorship">Worship</Label>
+              <Label htmlFor="maxWorship">{tb("type.worshipShort")}</Label>
               <Input
                 id="maxWorship"
                 type="number"
@@ -142,11 +143,11 @@ export function AdminBookingConfig({
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-sm font-medium">Overview Live Grid</h3>
+          <h3 className="text-sm font-medium">{t("config.liveGrid")}</h3>
           <div className="grid gap-2 sm:grid-cols-1">
             <div className="space-y-2">
               <Label htmlFor="liveGridUpcoming">
-                Upcoming slots per channel
+                {t("config.upcomingPerChannel")}
               </Label>
               <Input
                 id="liveGridUpcoming"
@@ -162,24 +163,21 @@ export function AdminBookingConfig({
                 max={10}
               />
               <p className="text-xs text-muted-foreground">
-                Live slot + this many upcoming = total cards. 0 = live only, 2 =
-                live +2 (default), 5 = live +5. 0–10.
+                {t("config.liveGridHint")}
               </p>
             </div>
             <div className="flex items-end pb-2">
               <p className="text-xs text-muted-foreground">
-                Total displayed:{" "}
-                <span className="font-medium text-foreground">
-                  {1 + Number(config.liveGridUpcoming ?? 2)}
-                </span>{" "}
-                per channel (Bible/Prayer/Worship). 3-col grid.
+                {t("config.totalDisplayed", {
+                  count: 1 + Number(config.liveGridUpcoming ?? 2),
+                })}
               </p>
             </div>
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-sm font-medium">Visibility Mode</h3>
+          <h3 className="text-sm font-medium">{t("config.visibilityMode")}</h3>
           <RadioGroup
             value={String(config.visibilityMode ?? 4)}
             onValueChange={(v) =>
@@ -190,23 +188,23 @@ export function AdminBookingConfig({
             {[
               {
                 value: "1",
-                title: "1. Full Public",
-                desc: "Everyone sees who booked every slot.",
+                title: t("config.mode1Title"),
+                desc: t("config.mode1Desc"),
               },
               {
                 value: "2",
-                title: "2. Count Only",
-                desc: 'Hide names, show only "Booked".',
+                title: t("config.mode2Title"),
+                desc: t("config.mode2Desc"),
               },
               {
                 value: "3",
-                title: "3. Full Transparency",
-                desc: "Show names + prominent empty slots.",
+                title: t("config.mode3Title"),
+                desc: t("config.mode3Desc"),
               },
               {
                 value: "4",
-                title: "4. Role-Scoped (Default)",
-                desc: "Leaders see names, members only see availability.",
+                title: t("config.mode4Title"),
+                desc: t("config.mode4Desc"),
               },
             ].map((mode) => {
               const selected = String(config.visibilityMode ?? 4) === mode.value
@@ -254,7 +252,7 @@ export function AdminBookingConfig({
         </div>
 
         <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? "Saving..." : "Save Configuration"}
+          {isSaving ? t("action.saving") : t("config.saveConfiguration")}
         </Button>
       </CardContent>
     </Card>

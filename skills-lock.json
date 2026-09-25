@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "i18n-translation-guide": {
+      "source": "JaveedIshaq/ai-workflow-orchestrator",
+      "sourceType": "github",
+      "skillPath": "skills/ballee/i18n-translation-guide/SKILL.md",
+      "computedHash": "4416f9fcd364a474110600355326f1b45e550737e2785421c4ba7dab7042409a"
+    }
+  }
+}

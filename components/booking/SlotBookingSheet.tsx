@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -43,12 +44,6 @@ const TYPE_ICON: Record<BookableType, typeof BookOpen> = {
   PRAISE_WORSHIP: Music,
 };
 
-const TYPE_LABEL: Record<BookableType, string> = {
-  BIBLE: "Bible Reading",
-  PRAYER: "Prayer",
-  PRAISE_WORSHIP: "Praise & Worship",
-};
-
 import { convertUtcTimeToLocal } from "./slotTime";
 
 export function SlotBookingSheet({
@@ -59,6 +54,8 @@ export function SlotBookingSheet({
   onConfirm,
   isSubmitting,
 }: SlotBookingSheetProps) {
+  const { t, i18n } = useTranslation("booking");
+  const { t: tc } = useTranslation("common");
   const [notes, setNotes] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -66,6 +63,8 @@ export function SlotBookingSheet({
 
   const accent = slotAccent[type];
   const TypeIcon = TYPE_ICON[type];
+  const typeKey = type === "PRAISE_WORSHIP" ? "worship" : type.toLowerCase();
+  const typeLabel = t(`type.${typeKey}`);
   const first = selectedSlots[0];
   const last = selectedSlots[selectedSlots.length - 1];
   const startLocal = convertUtcTimeToLocal(first.startTime);
@@ -74,10 +73,10 @@ export function SlotBookingSheet({
 
   const notesLabel =
     type === "BIBLE"
-      ? "What passage will you read? (optional)"
+      ? t("notes.bible")
       : type === "PRAYER"
-        ? "Prayer focus (optional)"
-        : "Worship theme (optional)";
+        ? t("notes.prayer")
+        : t("notes.worship");
 
   const handleConfirm = async () => {
     const ok = await onConfirm(notes);
@@ -112,10 +111,9 @@ export function SlotBookingSheet({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
             >
-              <p className="text-lg font-semibold">Your slot is confirmed</p>
+              <p className="text-lg font-semibold">{t("success.title")}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                See you at the altar. The meeting link is ready in your
-                dashboard.
+                {t("success.body")}
               </p>
             </motion.div>
           </div>
@@ -132,18 +130,18 @@ export function SlotBookingSheet({
             <IconTile icon={TypeIcon} size="md" tone={accent.iconTile} />
             <div>
               <DialogTitle className="text-lg leading-tight">
-                Confirm your {TYPE_LABEL[type].toLowerCase()} slot
+                {t(`confirmTitle.${typeKey}`)}
               </DialogTitle>
               <DialogDescription className="mt-1 flex items-center gap-1.5 text-sm">
                 <CalendarDays className="size-3.5" aria-hidden="true" />
                 <span>
                   {first.date
-                    ? new Date(`${first.date}T00:00:00`).toLocaleDateString(undefined, {
+                    ? new Date(`${first.date}T00:00:00`).toLocaleDateString(i18n.language, {
                         weekday: "long",
                         month: "short",
                         day: "numeric",
                       })
-                    : "Today"}
+                    : tc("time.today")}
                 </span>
               </DialogDescription>
             </div>
@@ -159,11 +157,11 @@ export function SlotBookingSheet({
                 </p>
                 <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="size-3.5" aria-hidden="true" />
-                  {durationMins} minutes · local time
+                  {t("duration", { count: durationMins })}
                 </p>
               </div>
               <Badge variant="outline" className={accent.text}>
-                {TYPE_LABEL[type]}
+                {typeLabel}
               </Badge>
             </div>
           </div>
@@ -172,7 +170,7 @@ export function SlotBookingSheet({
             <Label htmlFor="booking-notes">{notesLabel}</Label>
             <Textarea
               id="booking-notes"
-              placeholder="Add optional context..."
+              placeholder={t("notes.placeholder")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="resize-none"
@@ -183,14 +181,14 @@ export function SlotBookingSheet({
 
         <DialogFooter className="border-t bg-muted/30 px-2 sm:px-6 py-2 sm:py-6 sm:justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tc("action.cancel")}
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={isSubmitting}
             className={cn("min-w-32", accent.solid)}
           >
-            {isSubmitting ? "Booking…" : "Confirm booking"}
+            {isSubmitting ? t("action.booking") : t("action.confirmBooking")}
           </Button>
         </DialogFooter>
       </DialogContent>

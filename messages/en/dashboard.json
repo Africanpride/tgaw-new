@@ -97,5 +97,14 @@
   "communityActivity.badgeLive": "Live",
   "communityActivity.emptyTitle": "Quiet watch",
   "communityActivity.emptyAll": "No recent activity — be first to share a testimony or prayer.",
-  "communityActivity.emptyFilter": "No {{filter}} activity recently."
+  "communityActivity.emptyFilter": "No {{filter}} activity recently.",
+  "liveGrid.today": "Today",
+  "liveGrid.tomorrow": "Tomorrow",
+  "liveGrid.viewAll": "View all →",
+  "liveGrid.available": "Available",
+  "liveGrid.blockedEvent": "Blocked — {{title}}",
+  "liveGrid.blockedSpecial": "Blocked — Special Event",
+  "liveGrid.you": "You",
+  "liveGrid.blocked": "Blocked",
+  "liveGrid.live": "LIVE"
 }
