@@ -1,4 +1,4 @@
-import { addMonths, format, startOfMonth } from "date-fns";
+import { format } from "date-fns";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { EventType } from "@prisma/client";
@@ -10,6 +10,10 @@ import {
 	type CalendarItem,
 	type CalendarItemColor,
 } from "@/components/calendar/calendar-view";
+import {
+	isCalendarViewMode,
+	type CalendarViewMode,
+} from "@/components/calendar/calendar-helpers";
 import {
 	convertTimeToTimezone,
 	utcSlotToLocalDate,
@@ -25,10 +29,25 @@ const SLOT_COLOR_MAP: Record<EventType, CalendarItemColor> = {
 };
 
 export default async function CalendarPage(props: {
-	searchParams: Promise<{ month?: string }>;
+	searchParams: Promise<{ month?: string; view?: string; date?: string }>;
 }) {
 	const searchParams = await props.searchParams;
 	const monthParam = searchParams?.month;
+	const viewParam = searchParams?.view;
+	const dateParam = searchParams?.date;
+
+	// Mirrors the client-side derivation in CalendarView: ?date > ?month > today.
+	const initialView: CalendarViewMode = isCalendarViewMode(viewParam)
+		? viewParam
+		: "month";
+	const initialDate = (() => {
+		if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) return dateParam;
+		if (monthParam && /^\d{4}-\d{2}$/.test(monthParam)) {
+			const [y, m] = monthParam.split("-").map(Number);
+			return format(new Date(y, m - 1, 1), "yyyy-MM-dd");
+		}
+		return undefined;
+	})();
 
 	const cookieLocale = (await cookies()).get(LOCALE_COOKIE_NAME)?.value;
 	const locale = isLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE;
@@ -52,15 +71,13 @@ export default async function CalendarPage(props: {
 
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session?.user?.id) redirect("/login");
-	const monthStart = monthParam
-		? (() => {
-				const [y, m] = monthParam.split("-").map(Number);
-				return new Date(y, m - 1, 1);
-			})()
-		: startOfMonth(new Date());
 
-	const startDate = format(startOfMonth(monthStart), "yyyy-MM-dd");
-	const endDate = format(addMonths(monthStart, 1), "yyyy-MM-dd");
+	// Fetch the full anchor year so year/month/week/day views are all derived client-side.
+	const anchorYear = (initialDate
+		? Number(initialDate.slice(0, 4))
+		: new Date().getFullYear());
+	const startDate = `${anchorYear}-01-01`;
+	const endDate = `${anchorYear}-12-31`;
 
 	// Fetch the user's timezone so slot/event times render in their locale.
 	const profile = await prisma.userProfile.findUnique({
@@ -90,25 +107,15 @@ export default async function CalendarPage(props: {
 		}),
 	]);
 
-	// Fetch meeting links for the [type, date] combos the user booked, plus DEFAULT fallbacks.
-	const slotKeys = [...new Set(slots.map((s) => `${s.type}|${s.date}`))];
-	const uniqueTypes = [...new Set(slots.map((s) => s.type))];
-	const meetingLinks = slotKeys.length
-		? await prisma.meetingLink.findMany({
-				where: {
-					OR: [
-						...slotKeys.map((key) => {
-							const [type, date] = key.split("|");
-							return { type: type as EventType, date };
-						}),
-						...uniqueTypes.map((type) => ({
-							type: type as EventType,
-							date: "DEFAULT",
-						})),
-					],
-				},
-			})
-		: [];
+	// Meeting links: DEFAULT fallbacks plus any link set within the anchor year.
+	const meetingLinks = await prisma.meetingLink.findMany({
+		where: {
+			OR: [
+				{ date: "DEFAULT" },
+				{ date: { gte: startDate, lte: endDate } },
+			],
+		},
+	});
 	// Exact date matches take priority; DEFAULT is the fallback.
 	const meetingLinkMap = new Map<string, (typeof meetingLinks)[number]>();
 	for (const ml of meetingLinks) {
@@ -174,7 +181,8 @@ export default async function CalendarPage(props: {
 			<CalendarView
 				items={[...slotItems, ...eventItems]}
 				userTimezone={userTimezone}
-				initialMonth={format(monthStart, "yyyy-MM")}
+				initialView={initialView}
+				initialDate={initialDate}
 				canCreate={
 					session.user.role === "superadmin" ||
 					session.user.role === "coordinator"

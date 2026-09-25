@@ -40,5 +40,14 @@
   "form.submitUpdate": "Actualizar evento",
   "form.saving": "Guardando...",
   "detail.joinAria": "Unirse a la reunión",
-  "detail.closeAria": "Cerrar los detalles"
+  "detail.closeAria": "Cerrar los detalles",
+  "view.year": "Año",
+  "view.month": "Mes",
+  "view.week": "Semana",
+  "view.day": "Día",
+  "nav.previous": "Anterior",
+  "nav.next": "Siguiente",
+  "switcher.label": "Vista del calendario",
+  "year.itemOne": "1 elemento",
+  "year.itemOther": "{{n}} elementos"
 }

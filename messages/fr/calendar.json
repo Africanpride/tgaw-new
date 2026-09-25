@@ -40,5 +40,14 @@
   "form.submitUpdate": "Mettre à jour",
   "form.saving": "Enregistrement...",
   "detail.joinAria": "Rejoindre la réunion",
-  "detail.closeAria": "Fermer les détails"
+  "detail.closeAria": "Fermer les détails",
+  "view.year": "Année",
+  "view.month": "Mois",
+  "view.week": "Semaine",
+  "view.day": "Jour",
+  "nav.previous": "Précédent",
+  "nav.next": "Suivant",
+  "switcher.label": "Vue du calendrier",
+  "year.itemOne": "1 élément",
+  "year.itemOther": "{{n}} éléments"
 }

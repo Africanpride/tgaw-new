@@ -40,5 +40,14 @@
   "form.submitUpdate": "Update Event",
   "form.saving": "Saving...",
   "detail.joinAria": "Join meeting",
-  "detail.closeAria": "Close details"
+  "detail.closeAria": "Close details",
+  "view.year": "Year",
+  "view.month": "Month",
+  "view.week": "Week",
+  "view.day": "Day",
+  "nav.previous": "Previous",
+  "nav.next": "Next",
+  "switcher.label": "Calendar view",
+  "year.itemOne": "1 item",
+  "year.itemOther": "{{n}} items"
 }

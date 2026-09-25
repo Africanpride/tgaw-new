@@ -3,11 +3,13 @@
 import {
 	addDays,
 	addMonths,
+	addYears,
+	endOfWeek,
 	format,
 	isSameDay,
 	isSameMonth,
 	startOfMonth,
-	subMonths,
+	startOfWeek,
 } from "date-fns";
 import {
 	BookOpen,
@@ -34,10 +36,19 @@ import {
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { CalendarDetailPopover } from "./calendar-detail-popover";
 import { CalendarEmptyState } from "./calendar-empty-state";
+import {
+	CALENDAR_COLORS,
+	buildMonthCells,
+	isCalendarViewMode,
+	type CalendarViewMode,
+} from "./calendar-helpers";
 import { EventFormDialog } from "./event-form-dialog";
+import { TimeGrid, weekDays } from "./time-grid";
+import { YearView } from "./year-view";
 
 /* -------------------------------------------------------------------------- */
 /*                                  Types                                     */
@@ -69,16 +80,8 @@ export interface CalendarItem {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                Constants                                   */
+/*                                  Constants                                   */
 /* -------------------------------------------------------------------------- */
-
-const CALENDAR_COLORS: Record<CalendarItemColor, string> = {
-	purple: "bg-purple-500",
-	red: "bg-red-500",
-	amber: "bg-amber-500",
-	blue: "bg-blue-500",
-	violet: "bg-violet-500",
-};
 
 const CALENDAR_FILTERS = [
 	{
@@ -125,12 +128,6 @@ const FILTER_DEFAULT_ON = new Set<string>(
 /* -------------------------------------------------------------------------- */
 /*                                 Helpers                                    */
 /* -------------------------------------------------------------------------- */
-
-function buildMonthCells(month: Date) {
-	const first = startOfMonth(month);
-	const start = addDays(first, -first.getDay());
-	return Array.from({ length: 42 }, (_, i) => addDays(start, i));
-}
 
 /** An item is visible if any active filter matches it (events match "EVENTS", slots match their type). */
 function matchesActiveFilters(
@@ -256,14 +253,16 @@ function DayCell({
 export function CalendarView({
 	items = [],
 	userTimezone = "UTC",
-	initialMonth,
+	initialView = "month",
+	initialDate,
 	canCreate = false,
 	canManage = false,
 	className,
 }: {
 	items?: CalendarItem[];
 	userTimezone?: string;
-	initialMonth?: string;
+	initialView?: CalendarViewMode;
+	initialDate?: string;
 	canCreate?: boolean;
 	canManage?: boolean;
 	className?: string;
@@ -274,17 +273,49 @@ export function CalendarView({
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
-	const visibleMonth = React.useMemo(() => {
-		const monthParam = searchParams.get("month") ?? initialMonth;
-		return monthParam
-			? (() => {
-					const [y, m] = monthParam.split("-").map(Number);
-					return new Date(y, m - 1, 1);
-				})()
-			: new Date();
-	}, [searchParams, initialMonth]);
+	const legacyMonth = searchParams.get("month");
+	const viewParam = searchParams.get("view");
+	const dateParam = searchParams.get("date");
 
-	const [selectedDate, setSelectedDate] = React.useState(new Date());
+	// Active view: explicit ?view= wins; legacy ?month= implies month view.
+	const view: CalendarViewMode = isCalendarViewMode(viewParam)
+		? viewParam
+		: legacyMonth
+			? "month"
+			: initialView;
+
+	// Anchor date for the whole view (single source of truth: ?date=).
+	const anchorDate = React.useMemo(() => {
+		const parseDay = (value: string) => {
+			const [y, m, d] = value.split("-").map(Number);
+			return new Date(y, (m || 1) - 1, d || 1);
+		};
+		if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+			return parseDay(dateParam);
+		}
+		if (legacyMonth && /^\d{4}-\d{2}$/.test(legacyMonth)) {
+			const [y, m] = legacyMonth.split("-").map(Number);
+			return new Date(y, m - 1, 1);
+		}
+		if (initialDate && /^\d{4}-\d{2}-\d{2}$/.test(initialDate)) {
+			return parseDay(initialDate);
+		}
+		return new Date();
+	}, [dateParam, legacyMonth, initialDate]);
+
+	const visibleMonth = React.useMemo(() => startOfMonth(anchorDate), [anchorDate]);
+
+	const [selectedDate, setSelectedDate] = React.useState<Date>(
+		() => new Date(anchorDate),
+	);
+
+	// Follow the URL when it changes (nav buttons, sidebar, back/forward) —
+	// render-phase adjustment instead of an effect (no cascading render).
+	const [prevAnchor, setPrevAnchor] = React.useState<Date>(anchorDate);
+	if (!Object.is(prevAnchor, anchorDate)) {
+		setPrevAnchor(anchorDate);
+		setSelectedDate(new Date(anchorDate));
+	}
 	const [query, setQuery] = React.useState("");
 	const [activeFilters, setActiveFilters] =
 		React.useState<Set<string>>(FILTER_DEFAULT_ON);
@@ -348,21 +379,55 @@ export function CalendarView({
 		return result;
 	}, [items, activeFilters, query]);
 
-	const goToPrevMonth = () => {
-		const prev = subMonths(visibleMonth, 1);
-		router.push(`${pathname}?month=${format(prev, "yyyy-MM")}`, {
-			scroll: false,
-		});
+	// Days fed to the week/day time grids (memoized for TimeGrid's inner memo).
+	const week = React.useMemo(() => weekDays(anchorDate), [anchorDate]);
+	const dayCol = React.useMemo(() => [anchorDate], [anchorDate]);
+
+	const pushUrl = (nextView: CalendarViewMode, nextDate: Date) => {
+		router.push(
+			`${pathname}?view=${nextView}&date=${format(nextDate, "yyyy-MM-dd")}`,
+			{ scroll: false },
+		);
 	};
-	const goToNextMonth = () => {
-		const next = addMonths(visibleMonth, 1);
-		router.push(`${pathname}?month=${format(next, "yyyy-MM")}`, {
-			scroll: false,
-		});
+
+	// Prev/next steps one year, month, week, or day depending on the active view.
+	const stepDate = (direction: 1 | -1): Date => {
+		if (view === "year") return addYears(anchorDate, direction);
+		if (view === "month") return addMonths(anchorDate, direction);
+		if (view === "week") return addDays(anchorDate, 7 * direction);
+		return addDays(anchorDate, direction);
+	};
+
+	const viewTitle =
+		view === "year"
+			? format(anchorDate, "yyyy")
+			: view === "week"
+				? `${format(startOfWeek(anchorDate), "MMM d")} – ${format(
+						endOfWeek(anchorDate),
+						"MMM d, yyyy",
+					)}`
+				: view === "day"
+					? format(anchorDate, "EEEE, MMMM d, yyyy")
+					: format(visibleMonth, "MMMM yyyy");
+
+	const goToPrev = () => {
+		const next = stepDate(-1);
+		pushUrl(view, next);
+		setSelectedDate(next);
+	};
+	const goToNext = () => {
+		const next = stepDate(1);
+		pushUrl(view, next);
+		setSelectedDate(next);
 	};
 	const goToToday = () => {
-		router.push(pathname, { scroll: false });
-		setSelectedDate(new Date());
+		const now = new Date();
+		pushUrl(view, now);
+		setSelectedDate(now);
+	};
+	const switchView = (next: string) => {
+		if (!next || next === view) return;
+		pushUrl(next as CalendarViewMode, selectedDate);
 	};
 
 	const toggleFilter = (id: string) => {
@@ -398,10 +463,7 @@ export function CalendarView({
 								onSelect={(d) => {
 									if (d) {
 										setSelectedDate(d);
-										router.push(
-											`${pathname}?month=${format(d, "yyyy-MM")}`,
-											{ scroll: false },
-										);
+										pushUrl(view, d);
 									}
 								}}
 								className="w-full"
@@ -500,8 +562,8 @@ export function CalendarView({
 									variant="outline"
 									size="sm"
 									className="gap-1.5"
-									onClick={goToPrevMonth}
-									aria-label="Previous month"
+									onClick={goToPrev}
+									aria-label={`${t("nav.previous", "Previous")} ${t(`view.${view}`, view)}`}
 								>
 									&lt;
 								</Button>
@@ -509,8 +571,8 @@ export function CalendarView({
 									variant="outline"
 									size="sm"
 									className="gap-1.5"
-									onClick={goToNextMonth}
-									aria-label="Next month"
+									onClick={goToNext}
+									aria-label={`${t("nav.next", "Next")} ${t(`view.${view}`, view)}`}
 								>
 									&gt;
 								</Button>
@@ -518,11 +580,27 @@ export function CalendarView({
 									{tc("time.today", "Today")}
 								</Button>
 							</div>
-							<h1 className="text-2xl">
-								{format(visibleMonth, "MMMM yyyy")}
-							</h1>
+							<h1 className="text-2xl">{viewTitle}</h1>
 						</div>
 						<div className="flex flex-col gap-3 md:flex-row md:items-center">
+							<ToggleGroup
+								type="single"
+								variant="outline"
+								size="sm"
+								value={view}
+								onValueChange={switchView}
+								aria-label={t("switcher.label", "Calendar view")}
+							>
+								{(["year", "month", "week", "day"] as const).map((mode) => (
+									<ToggleGroupItem
+										key={mode}
+										value={mode}
+										aria-label={t(`view.${mode}`, mode)}
+									>
+										{t(`view.${mode}`, mode)}
+									</ToggleGroupItem>
+								))}
+							</ToggleGroup>
 							<div className="relative">
 								<Search
 									className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -542,6 +620,43 @@ export function CalendarView({
 						<CalendarEmptyState
 							onCreateEvent={() => setCreateDialogOpen(true)}
 							canCreate={canCreate}
+						/>
+					) : view === "year" ? (
+						<YearView
+							items={filteredEvents}
+							anchor={anchorDate}
+							timezone={userTimezone}
+							onSelectDay={(day) => {
+								setSelectedDate(day);
+								pushUrl("day", day);
+							}}
+							onSelectMonth={(month) => {
+								const first = startOfMonth(month);
+								setSelectedDate(first);
+								pushUrl("month", first);
+							}}
+						/>
+					) : view === "week" ? (
+						<TimeGrid
+							days={week}
+							items={filteredEvents}
+							timezone={userTimezone}
+							canManage={canManage}
+							onEdit={handleEdit}
+							onDelete={handleDelete}
+							onSelectDay={(day) => {
+								setSelectedDate(day);
+								pushUrl("day", day);
+							}}
+						/>
+					) : view === "day" ? (
+						<TimeGrid
+							days={dayCol}
+							items={filteredEvents}
+							timezone={userTimezone}
+							canManage={canManage}
+							onEdit={handleEdit}
+							onDelete={handleDelete}
 						/>
 					) : (
 						<div className="flex-1 bg-background">
