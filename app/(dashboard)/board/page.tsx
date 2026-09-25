@@ -1,6 +1,12 @@
 import { Shield, Users, CalendarCheck, TrendingUp } from "lucide-react"
 import { cookies, headers } from "next/headers"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
 import { EmptyState } from "@/components/EmptyState"
@@ -22,7 +28,9 @@ export default async function BoardDashboardPage() {
     await Promise.all([
       prisma.user.count({ where: { banned: { not: true } } }),
       prisma.slot.count({ where: { date: { gte: today } } }),
-      prisma.slot.count({ where: { date: { gte: today }, bookedBy: { not: null } } }),
+      prisma.slot.count({
+        where: { date: { gte: today }, bookedBy: { not: null } },
+      }),
       prisma.slot.count({ where: { bookedBy: { not: null } } }),
       prisma.slot.count({ where: { date: today, bookedBy: { not: null } } }),
     ])
@@ -81,14 +89,14 @@ export default async function BoardDashboardPage() {
       <Card className="hidden">
         <CardHeader>
           <CardTitle>{overviewTitle}</CardTitle>
-          <CardDescription>
-            {overviewDesc}
-          </CardDescription>
+          <CardDescription>{overviewDesc}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
-              <span className="text-sm text-muted-foreground">{upcomingFilled}</span>
+              <span className="text-sm text-muted-foreground">
+                {upcomingFilled}
+              </span>
               <span className="text-sm font-medium tabular-nums">
                 {ofTotalText}
               </span>
@@ -114,33 +122,46 @@ export default async function BoardDashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <Users className="size-4 text-muted-foreground" aria-hidden="true" />
+              <Users
+                className="size-4 text-muted-foreground"
+                aria-hidden="true"
+              />
               {activeMembers}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold tabular-nums">{memberCount}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{activeMembersDesc}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {activeMembersDesc}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <CalendarCheck className="size-4 text-muted-foreground" aria-hidden="true" />
+              <CalendarCheck
+                className="size-4 text-muted-foreground"
+                aria-hidden="true"
+              />
               {bookingsTodayLabel}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold tabular-nums">{todayBookings}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{bookingsTodayDesc}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {bookingsTodayDesc}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <TrendingUp className="size-4 text-muted-foreground" aria-hidden="true" />
+              <TrendingUp
+                className="size-4 text-muted-foreground"
+                aria-hidden="true"
+              />
               {engagementLabel}
             </CardTitle>
           </CardHeader>
@@ -155,17 +176,21 @@ export default async function BoardDashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <CalendarCheck className="size-4 text-muted-foreground" aria-hidden="true" />
+              <CalendarCheck
+                className="size-4 text-muted-foreground"
+                aria-hidden="true"
+              />
               {totalBookingsLabel}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold tabular-nums">{totalBookings}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{totalBookingsDesc}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {totalBookingsDesc}
+            </p>
           </CardContent>
         </Card>
       </div>
-
     </div>
   )
 }

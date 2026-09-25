@@ -2,7 +2,19 @@
 
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { BarChart3, UserPlus, BookOpen, HandHeart, Music, Megaphone, ShieldCheck, Activity, MessageSquare, TrendingUp, TrendingDown } from "lucide-react"
+import {
+  BarChart3,
+  UserPlus,
+  BookOpen,
+  HandHeart,
+  Music,
+  Megaphone,
+  ShieldCheck,
+  Activity,
+  MessageSquare,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
@@ -19,24 +31,51 @@ interface SlotFill {
 
 interface BoardStatsData {
   range: string
-  memberGrowth: { current: number; previous: number; total: number; change: number }
+  memberGrowth: {
+    current: number
+    previous: number
+    total: number
+    change: number
+  }
   slotFillRate: { bible: SlotFill; prayer: SlotFill; worship: SlotFill }
   communityActivity: { current: number; previous: number; change: number }
-  moderationHealth: { open: number; resolved: number; total: number; resolutionRate: number; previousResolutionRate: number; change: number }
-  activeUsers: { current: number; total: number; rate: number; previousRate: number; change: number }
+  moderationHealth: {
+    open: number
+    resolved: number
+    total: number
+    resolutionRate: number
+    previousResolutionRate: number
+    change: number
+  }
+  activeUsers: {
+    current: number
+    total: number
+    rate: number
+    previousRate: number
+    change: number
+  }
   messagesSent: { current: number; previous: number; change: number }
 }
 
 function TrendBadge({ change, label }: { change: number; label?: string }) {
   const positive = change >= 0
   return (
-    <span className={cn(
-      "inline-flex items-center gap-0.5 text-xs font-medium tabular-nums",
-      positive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400",
-    )}>
-      {positive ? <TrendingUp className="size-3" aria-hidden="true" /> : <TrendingDown className="size-3" aria-hidden="true" />}
-      {positive ? "+" : ""}{change}%
-      {label && <span className="text-muted-foreground ml-1">{label}</span>}
+    <span
+      className={cn(
+        "inline-flex items-center gap-0.5 text-xs font-medium tabular-nums",
+        positive
+          ? "text-emerald-600 dark:text-emerald-400"
+          : "text-red-600 dark:text-red-400"
+      )}
+    >
+      {positive ? (
+        <TrendingUp className="size-3" aria-hidden="true" />
+      ) : (
+        <TrendingDown className="size-3" aria-hidden="true" />
+      )}
+      {positive ? "+" : ""}
+      {change}%
+      {label && <span className="ml-1 text-muted-foreground">{label}</span>}
     </span>
   )
 }
@@ -63,13 +102,13 @@ function StatCard({
     <Card className={cn("overflow-hidden", className)}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
-          <h5 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <h5 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {t(titleKey)}
           </h5>
           <Icon className="size-4 text-muted-foreground" aria-hidden={true} />
         </div>
 
-        <p className="mt-2 text-2xl font-bold tabular-nums leading-none text-foreground">
+        <p className="mt-2 text-2xl leading-none font-bold text-foreground tabular-nums">
           {primaryValue}
         </p>
 
@@ -81,7 +120,9 @@ function StatCard({
         </div>
 
         <div className="mt-2 flex items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground truncate">{description}</p>
+          <p className="truncate text-xs text-muted-foreground">
+            {description}
+          </p>
           <TrendBadge change={trendChange} />
         </div>
       </CardContent>
@@ -138,7 +179,9 @@ export function BoardExecutiveStats() {
       }
     }
     run()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [range])
 
   return (
@@ -146,8 +189,13 @@ export function BoardExecutiveStats() {
       {/* Section header + toggle */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <BarChart3 className="size-5 text-muted-foreground" aria-hidden="true" />
-          <h3 className="text-lg font-semibold tracking-tight">{t("board.stats.title")}</h3>
+          <BarChart3
+            className="size-5 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <h3 className="text-lg font-semibold tracking-tight">
+            {t("board.stats.title")}
+          </h3>
         </div>
         <div className="flex rounded-lg border bg-muted p-0.5">
           <button
@@ -156,7 +204,7 @@ export function BoardExecutiveStats() {
               "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
               range === "week"
                 ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {t("board.stats.weekly")}
@@ -167,7 +215,7 @@ export function BoardExecutiveStats() {
               "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
               range === "month"
                 ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {t("board.stats.monthly")}
@@ -175,7 +223,9 @@ export function BoardExecutiveStats() {
         </div>
       </div>
 
-      <p className="text-sm text-muted-foreground">{t("board.stats.description")}</p>
+      <p className="text-sm text-muted-foreground">
+        {t("board.stats.description")}
+      </p>
 
       {loading && !data ? (
         <StatsSkeleton />
@@ -186,9 +236,15 @@ export function BoardExecutiveStats() {
             titleKey="board.stats.memberGrowth"
             icon={UserPlus}
             primaryValue={`+${data.memberGrowth.current}`}
-            progressPct={data.memberGrowth.total > 0 ? (data.memberGrowth.current / data.memberGrowth.total) * 100 : 0}
+            progressPct={
+              data.memberGrowth.total > 0
+                ? (data.memberGrowth.current / data.memberGrowth.total) * 100
+                : 0
+            }
             trendChange={data.memberGrowth.change}
-            description={t("board.stats.memberGrowthDesc", { total: data.memberGrowth.total })}
+            description={t("board.stats.memberGrowthDesc", {
+              total: data.memberGrowth.total,
+            })}
           />
 
           {/* 2 — Bible Fill Rate */}
@@ -235,9 +291,15 @@ export function BoardExecutiveStats() {
             titleKey="board.stats.communityPosts"
             icon={Megaphone}
             primaryValue={String(data.communityActivity.current)}
-            progressPct={data.communityActivity.previous > 0
-              ? (data.communityActivity.current / data.communityActivity.previous) * 100
-              : data.communityActivity.current > 0 ? 100 : 0}
+            progressPct={
+              data.communityActivity.previous > 0
+                ? (data.communityActivity.current /
+                    data.communityActivity.previous) *
+                  100
+                : data.communityActivity.current > 0
+                  ? 100
+                  : 0
+            }
             trendChange={data.communityActivity.change}
             description={t("board.stats.communityPostsDesc")}
           />
@@ -273,15 +335,21 @@ export function BoardExecutiveStats() {
             titleKey="board.stats.messagesSent"
             icon={MessageSquare}
             primaryValue={String(data.messagesSent.current)}
-            progressPct={data.messagesSent.previous > 0
-              ? (data.messagesSent.current / data.messagesSent.previous) * 100
-              : data.messagesSent.current > 0 ? 100 : 0}
+            progressPct={
+              data.messagesSent.previous > 0
+                ? (data.messagesSent.current / data.messagesSent.previous) * 100
+                : data.messagesSent.current > 0
+                  ? 100
+                  : 0
+            }
             trendChange={data.messagesSent.change}
             description={t("board.stats.messagesDesc")}
           />
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">{t("board.stats.noData")}</p>
+        <p className="text-sm text-muted-foreground">
+          {t("board.stats.noData")}
+        </p>
       )}
     </div>
   )

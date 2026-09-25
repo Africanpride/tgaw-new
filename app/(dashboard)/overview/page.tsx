@@ -330,7 +330,8 @@ export default async function OverviewPage() {
   if (nextBlocks.length > 0 && nextDate) {
     days.push({
       key: "next",
-      label: nextDate === tomorrow ? dayTomorrow : formatDateLabel(nextDate, locale),
+      label:
+        nextDate === tomorrow ? dayTomorrow : formatDateLabel(nextDate, locale),
       dateLabel: formatDateLabel(nextDate, locale),
       events: buildEvents(nextDate, nextBlocks),
     })

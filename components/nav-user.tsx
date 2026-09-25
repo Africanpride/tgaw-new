@@ -235,54 +235,54 @@ export function NavUser({
               return (
                 <DropdownMenuItem
                   key={link.id}
+                  asChild
                   className={cn(
                     "cursor-pointer gap-2",
                     link.isActive && "bg-emerald-500/5"
                   )}
-                  render={
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="cursor-pointer"
-                    />
-                  }
                 >
-                  <span
-                    className={cn(
-                      "flex size-6 shrink-0 items-center justify-center rounded-md border text-[10px]",
-                      meta?.tint ?? "bg-muted"
-                    )}
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="cursor-pointer"
                   >
-                    <Icon className="size-3" aria-hidden="true" />
-                  </span>
-                  <span className="flex-1 truncate text-sm">{displayLabel}</span>
-                  {link.isActive ? (
-                    <span className="ml-auto inline-flex items-center gap-1.5">
-                      <span className="hidden text-[10px] font-medium text-emerald-700 sm:inline dark:text-emerald-400">
-                        {t("usermenu.live")}
-                      </span>
-                      <span className="relative flex size-2" aria-hidden="true">
-                        <span
-                          className={cn(
-                            "absolute inline-flex size-full animate-ping rounded-full opacity-75",
-                            activeTint
-                          )}
-                        />
-                        <span
-                          className={cn(
-                            "relative inline-flex size-2 rounded-full",
-                            activeTint
-                          )}
-                        />
-                      </span>
+                    <span
+                      className={cn(
+                        "flex size-6 shrink-0 items-center justify-center rounded-md border text-[10px]",
+                        meta?.tint ?? "bg-muted"
+                      )}
+                    >
+                      <Icon className="size-3" aria-hidden="true" />
                     </span>
-                  ) : (
-                    <Video
-                      className="ml-auto size-3 shrink-0 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                  )}
+                    <span className="flex-1 truncate text-sm">{displayLabel}</span>
+                    {link.isActive ? (
+                      <span className="ml-auto inline-flex items-center gap-1.5">
+                        <span className="hidden text-[10px] font-medium text-emerald-700 sm:inline dark:text-emerald-400">
+                          {t("usermenu.live")}
+                        </span>
+                        <span className="relative flex size-2" aria-hidden="true">
+                          <span
+                            className={cn(
+                              "absolute inline-flex size-full animate-ping rounded-full opacity-75",
+                              activeTint
+                            )}
+                          />
+                          <span
+                            className={cn(
+                              "relative inline-flex size-2 rounded-full",
+                              activeTint
+                            )}
+                          />
+                        </span>
+                      </span>
+                    ) : (
+                      <Video
+                        className="ml-auto size-3 shrink-0 text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </a>
                 </DropdownMenuItem>
               )
             })}
@@ -306,9 +306,11 @@ export function NavUser({
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/" className="cursor-pointer" />}>
-          <Globe />
-          {t("usermenu.backToWebsite")}
+        <DropdownMenuItem asChild>
+          <Link href="/" className="cursor-pointer">
+            <Globe />
+            {t("usermenu.backToWebsite")}
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem className="cursor-pointer" onClick={handleSignOut}>
           <LogOut />

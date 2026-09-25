@@ -266,10 +266,11 @@ export default function UserManagementPage() {
       header: ({ table }) => (
         <Checkbox
           aria-label={t("users.selectAll")}
-          checked={table.getIsAllPageRowsSelected()}
-          indeterminate={
+          checked={
             table.getIsSomePageRowsSelected() &&
             !table.getIsAllPageRowsSelected()
+              ? "indeterminate"
+              : table.getIsAllPageRowsSelected()
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         />

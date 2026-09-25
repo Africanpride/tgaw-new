@@ -2,7 +2,7 @@
 // THE DASHBOARD LAYOUT IS IN app/(dashboard)/layout.tsx
 
 import type { Metadata } from "next"
-import { Bebas_Neue, Geist, Geist_Mono } from "next/font/google"
+import { Bebas_Neue, Geist, Geist_Mono, IBM_Plex_Sans } from "next/font/google"
 import { cookies, headers } from "next/headers"
 
 import "./globals.css"
@@ -13,6 +13,8 @@ import { ConsentProvider } from "@/components/consent/ConsentProvider"
 import { CookieConsent } from "@/components/consent"
 import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, isLocale } from "@/i18n/config"
 import { cn } from "@/lib/utils"
+
+const ibmPlexSans = IBM_Plex_Sans({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -89,12 +91,11 @@ export default async function RootLayout({
       lang={lang}
       suppressHydrationWarning
       className={cn(
-        "antialiased",
-        geistSans.variable,
-        bebasNeue.variable,
-        fontMono.variable,
-        "font-sans"
-      )}
+              "antialiased",
+              geistSans.variable,
+              bebasNeue.variable,
+              fontMono.variable
+            , "font-sans", ibmPlexSans.variable)}
     >
       <body>
         <template

@@ -194,36 +194,36 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              render={
-                <Link
-                  href="https://tgaw.app/help"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="cursor-pointer"
-                />
-              }
+              asChild
               tooltip={t("sidebar.helpTooltip")}
             >
-              <CircleQuestionMarkIcon />
-              <span>{t("sidebar.help")}</span>
+              <Link
+                href="https://tgaw.app/help"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cursor-pointer"
+              >
+                <CircleQuestionMarkIcon />
+                <span>{t("sidebar.help")}</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              render={
-                <Link
-                  href="https://tgaw.app/docs"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="cursor-pointer"
-                />
-              }
+              asChild
               tooltip={t("sidebar.documentation")}
             >
-              <BookAIcon />
-              <span>{t("sidebar.documentation")}</span>
+              <Link
+                href="https://tgaw.app/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cursor-pointer"
+              >
+                <BookAIcon />
+                <span>{t("sidebar.documentation")}</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
