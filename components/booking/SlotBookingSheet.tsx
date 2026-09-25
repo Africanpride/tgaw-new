@@ -93,7 +93,7 @@ export function SlotBookingSheet({
   if (success) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
+        <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 max-sm:top-0 max-sm:translate-y-0 max-sm:max-w-none max-sm:pt-[env(safe-area-inset-top)] sm:max-w-md">
           <div className="flex flex-col items-center gap-4 px-2 sm:px-6 py-14 text-center">
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
@@ -124,7 +124,7 @@ export function SlotBookingSheet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 max-sm:top-0 max-sm:translate-y-0 max-sm:max-w-none max-sm:pt-[env(safe-area-inset-top)] sm:max-w-md">
         <DialogHeader className={cn("border-b p-2 sm:p-6 pb-2 sm:pb-5", accent.tintStrong)}>
           <div className="flex items-center gap-3">
             <IconTile icon={TypeIcon} size="md" tone={accent.iconTile} />
@@ -148,7 +148,7 @@ export function SlotBookingSheet({
           </div>
         </DialogHeader>
 
-        <div className="p-2 sm:p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto p-2 sm:p-6">
           <div className="rounded-lg border bg-muted/40 p-2 sm:p-4">
             <div className="flex items-center justify-between gap-3">
               <div>

@@ -76,6 +76,7 @@ function ItemDetail({
 	onEdit,
 	onDelete,
 	onClose,
+	showCloseButton = true,
 }: {
 	item: CalendarItem;
 	timezone: string;
@@ -83,6 +84,7 @@ function ItemDetail({
 	onEdit?: (item: CalendarItem) => void;
 	onDelete?: (item: CalendarItem) => void;
 	onClose: () => void;
+	showCloseButton?: boolean;
 }) {
 	const { t, i18n } = useTranslation("calendar");
 	const { t: tc } = useTranslation("common");
@@ -121,14 +123,16 @@ function ItemDetail({
 						)}
 					</div>
 				</div>
-				<Button
-					variant="ghost"
-					size="icon"
-					onClick={onClose}
-					aria-label={t("detail.closeAria")}
-				>
-					<X className="size-4" aria-hidden="true" />
-				</Button>
+				{showCloseButton && (
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={onClose}
+						aria-label={t("detail.closeAria")}
+					>
+						<X className="size-4" aria-hidden="true" />
+					</Button>
+				)}
 			</div>
 
 			<div className="space-y-2.5 text-sm">
@@ -237,7 +241,7 @@ export function CalendarDetailPopover({
 	const [open, setOpen] = React.useState(false);
 	const isDesktop = useIsDesktop();
 
-	const content = (
+	const content = (showCloseButton: boolean) => (
 		<ItemDetail
 			item={item}
 			timezone={timezone ?? "UTC"}
@@ -245,6 +249,7 @@ export function CalendarDetailPopover({
 			onEdit={onEdit}
 			onDelete={onDelete}
 			onClose={() => setOpen(false)}
+			showCloseButton={showCloseButton}
 		/>
 	);
 
@@ -256,7 +261,7 @@ export function CalendarDetailPopover({
 					<SheetHeader>
 						<SheetTitle className="sr-only">{item.title}</SheetTitle>
 					</SheetHeader>
-					{content}
+					{content(false)}
 				</SheetContent>
 			</Sheet>
 		);
@@ -266,7 +271,7 @@ export function CalendarDetailPopover({
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>{children}</PopoverTrigger>
 			<PopoverContent className="w-80 p-2 sm:p-4" align="start" sideOffset={4}>
-				{content}
+				{content(true)}
 			</PopoverContent>
 		</Popover>
 	);

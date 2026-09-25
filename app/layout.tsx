@@ -1,7 +1,7 @@
 // THIS IS THE ROOT LAYOUT (LANDING + AUTH)
 // THE DASHBOARD LAYOUT IS IN app/(dashboard)/layout.tsx
 
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Bebas_Neue, Geist, Geist_Mono, IBM_Plex_Sans } from "next/font/google"
 import { cookies, headers } from "next/headers"
 
@@ -38,6 +38,12 @@ export const metadata: Metadata = {
     description:
       "Your Daily Faith Companion — devotion, prayer, and fellowship worldwide.",
   },
+}
+
+export const viewport: Viewport = {
+  // Shrink the layout viewport when the mobile keyboard opens so fixed-position
+  // dialogs (e.g. the booking confirm sheet) stay fully visible above it.
+  interactiveWidget: "resizes-content",
 }
 
 const geistSans = Geist({
