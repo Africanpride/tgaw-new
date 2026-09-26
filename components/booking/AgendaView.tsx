@@ -99,19 +99,17 @@ export function AgendaView({ days, summary }: AgendaViewProps) {
         description={t("agenda.emptyDescription")}
         actionLabel={t("agenda.emptyAction")}
         actionHref="/booking"
-        className="h-full"
+        className="h-full rounded-2xl bg-card"
       />
     )
   }
 
   return (
-    <div className="h-full rounded-xl border border-border/60 bg-background/40 p-2 sm:p-4">
+    <div className="h-full rounded-2xl border border-border bg-card p-2 sm:p-4">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <div className={eyebrowClass}>
-            {eyebrowDate} &middot; My Agenda
-          </div>
-          <h1 className="font-heading mt-1 text-3xl tracking-tight">
+          <div className={eyebrowClass}>{eyebrowDate} &middot; My Agenda</div>
+          <h1 className="mt-1 font-heading text-3xl tracking-tight">
             {heading}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -130,12 +128,8 @@ export function AgendaView({ days, summary }: AgendaViewProps) {
       {days.map((day) => (
         <section key={day.key} className="mt-8">
           <div className="mb-2 flex items-end justify-between">
-            <span className={eyebrowClass}>
-              {day.label}
-            </span>
-            <span className={eyebrowClass}>
-              {day.dateLabel}
-            </span>
+            <span className={eyebrowClass}>{day.label}</span>
+            <span className={eyebrowClass}>{day.dateLabel}</span>
           </div>
           <ol className="flex flex-col gap-1.5">
             {day.events.map((evt) => (
@@ -143,7 +137,7 @@ export function AgendaView({ days, summary }: AgendaViewProps) {
                 key={evt.id}
                 className={cn(
                   listRowClass,
-                  "grid grid-cols-[80px_1fr] gap-2 border-border/60 bg-background/40 px-2 sm:px-3 py-3 hover:bg-background/60"
+                  "grid grid-cols-[80px_1fr] gap-2 border-border/60 bg-background/40 px-2 py-3 hover:bg-background/60 sm:px-3"
                 )}
               >
                 <div className="font-mono text-[11px]">

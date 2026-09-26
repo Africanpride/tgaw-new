@@ -397,24 +397,28 @@ export default async function OverviewPage() {
             sessionCount > 0 ? statSessionsTodayActive : statSessionsTodayEmpty
           }
           icon={CalendarDays}
+          trendChange={stats?.trends.today}
         />
         <StatCard
           title={statSessionsWeek}
           value={stats?.weekSessions ?? 0}
           description={statSessionsWeekHint}
           icon={Flame}
+          trendChange={stats?.trends.week}
         />
         <StatCard
           title={statPrayerMonth}
           value={stats?.monthByType["PRAYER"] ?? 0}
           description={statThisMonth}
           icon={Heart}
+          trendChange={stats?.trends.prayerMonth}
         />
         <StatCard
           title={statTotalTime}
           value={formatMinutes(stats?.monthMinutes ?? 0)}
           description={statTotalTimeHint}
           icon={Clock}
+          trendChange={stats?.trends.month}
         />
       </div>
 

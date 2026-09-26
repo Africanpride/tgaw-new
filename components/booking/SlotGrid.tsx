@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { motion } from "motion/react"
 import { CalendarX2, CalendarClock, Check, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { UserAvatar } from "@/components/UserAvatar"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card } from "@/components/ui/card"
 import { SlotData } from "./SlotCell"
 import { convertUtcTimeToLocal, isCurrentSlot, isPastSlot } from "./slotTime"
 import { slotAccent } from "./slotAccent"
@@ -34,19 +34,8 @@ export function SlotGrid({
   const { t } = useTranslation("booking")
   const visibleSlots = slots.filter((s) => !isPastSlot(s) || isCurrentSlot(s))
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
 
   const accent = slotAccent[type]
-
-  useEffect(() => {
-    if (!scrollRef.current) return
-    const current = visibleSlots.find((s) => isCurrentSlot(s))
-    if (!current) return
-    const el = scrollRef.current.querySelector(`[data-slot-id="${current.id}"]`)
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "center" })
-    }
-  }, [visibleSlots])
 
   const handleSelect = (id: string, shiftKey: boolean) => {
     const targetSlot = visibleSlots.find((s) => s.id === id)
@@ -95,7 +84,7 @@ export function SlotGrid({
 
   if (visibleSlots.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-md border py-14 text-center">
+      <Card className="flex h-full items-center justify-center gap-3 py-14 text-center">
         <div
           className={cn(
             "flex size-12 items-center justify-center rounded-full",
@@ -118,16 +107,13 @@ export function SlotGrid({
             {t("empty.pickAnotherDay")}
           </Button>
         )}
-      </div>
+      </Card>
     )
   }
 
   return (
-    <ScrollArea className="h-[560px] w-full max-w-full overflow-hidden rounded-md border">
-      <div
-        ref={scrollRef}
-        className="grid grid-cols-1 gap-2 p-2 sm:grid-cols-2 lg:grid-cols-3"
-      >
+    <Card className="h-full w-full max-w-full">
+      <div className="grid grid-cols-1 gap-2 p-2 sm:grid-cols-2 lg:grid-cols-3">
         {visibleSlots.map((slot) => (
           <SlotGridCell
             key={slot.id}
@@ -139,7 +125,7 @@ export function SlotGrid({
           />
         ))}
       </div>
-    </ScrollArea>
+    </Card>
   )
 }
 
@@ -198,12 +184,14 @@ function SlotGridCell({
       }}
       data-slot-id={slot.id}
       className={cn(
-        "flex min-h-[64px] flex-col gap-1.5 rounded-lg border p-2 sm:p-3 text-left transition-colors outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        "flex min-h-[64px] flex-col gap-1.5 rounded-2xl border border-slate-200/80 bg-white p-2 text-left transition-all duration-300 ease-out outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:p-3 dark:border-white/10 dark:bg-[#0B1121]",
         past ? "cursor-default opacity-40" : "cursor-pointer",
         isBlocked &&
           !past &&
           "cursor-not-allowed border-violet-500/40 bg-violet-500/10 dark:bg-violet-500/20",
-        !past && isAvailable && "hover:bg-muted/50",
+        !past &&
+          isAvailable &&
+          "hover:-translate-y-1 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/5 dark:hover:bg-[#0F172A]",
         !past && !isAvailable && !isBlocked && "cursor-not-allowed opacity-60",
         isSelected && isAvailable && cn(accent.tint, "border-primary/40"),
         slot.isOwnBooking &&

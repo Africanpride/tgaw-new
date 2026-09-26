@@ -1,34 +1,36 @@
-"use client";
+"use client"
 
-import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { slotAccent } from "./slotAccent";
-import { EventType } from "@prisma/client";
-import { useTranslation } from "react-i18next";
-import { dateLocale } from "@/lib/date-locale";
+import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+import { slotAccent } from "./slotAccent"
+import { EventType } from "@prisma/client"
+import { useTranslation } from "react-i18next"
+import { dateLocale } from "@/lib/date-locale"
 
 interface BookingCalendarMiniProps {
-  date: Date;
-  onDateChange: (date: Date | undefined) => void;
-  bookedDates?: Set<string>;
-  myBookedDates?: Set<string>;
-  type: EventType;
+  className?: string
+  date: Date
+  onDateChange: (date: Date | undefined) => void
+  bookedDates?: Set<string>
+  myBookedDates?: Set<string>
+  type: EventType
 }
 
 export function BookingCalendarMini({
+  className,
   date,
   onDateChange,
   bookedDates = new Set(),
   myBookedDates = new Set(),
   type,
 }: BookingCalendarMiniProps) {
-  const { t, i18n } = useTranslation("booking");
-  const accent = slotAccent[type];
+  const { t, i18n } = useTranslation("booking")
+  const accent = slotAccent[type]
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">{t("pickADay")}</CardTitle>
       </CardHeader>
@@ -44,9 +46,9 @@ export function BookingCalendarMini({
           }}
           components={{
             DayButton: (props) => {
-              const dateKey = format(props.day.date, "yyyy-MM-dd");
-              const hasBooking = bookedDates.has(dateKey);
-              const hasOwn = myBookedDates.has(dateKey);
+              const dateKey = format(props.day.date, "yyyy-MM-dd")
+              const hasBooking = bookedDates.has(dateKey)
+              const hasOwn = myBookedDates.has(dateKey)
               return (
                 <CalendarDayButton {...props}>
                   {props.children}
@@ -54,16 +56,16 @@ export function BookingCalendarMini({
                     <span
                       className={cn(
                         "absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full",
-                        hasOwn ? accent.dotStrong : accent.dot,
+                        hasOwn ? accent.dotStrong : accent.dot
                       )}
                     />
                   )}
                 </CalendarDayButton>
-              );
+              )
             },
           }}
         />
       </CardContent>
     </Card>
-  );
+  )
 }

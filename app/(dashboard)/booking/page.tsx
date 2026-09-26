@@ -16,7 +16,10 @@ import { SlotBookingSheet } from "@/components/booking/SlotBookingSheet"
 import { MyBookingsStack } from "@/components/booking/MyBookingsStack"
 import { MeetingLinkCard } from "@/components/booking/MeetingLinkCard"
 import { SlotData } from "@/components/booking/SlotCell"
-import { convertUtcTimeToLocal, isPastSlot } from "@/components/booking/slotTime"
+import {
+  convertUtcTimeToLocal,
+  isPastSlot,
+} from "@/components/booking/slotTime"
 import { slotAccent } from "@/components/booking/slotAccent"
 import type { BookableType } from "@/lib/services/slotService"
 import { floatingBarClass, selectedSlotsBarClass } from "@/lib/mobileDock"
@@ -117,7 +120,9 @@ export default function BookingPage() {
         const allBookings: SlotData[] = []
 
         for (const t of types) {
-          const res = await fetch(`/api/v1/slots?date=${dateStr}&type=${t}&_=${Date.now()}`)
+          const res = await fetch(
+            `/api/v1/slots?date=${dateStr}&type=${t}&_=${Date.now()}`
+          )
           const data = await res.json()
           if (data.success) {
             const ownBookings = (data.data.slots as SlotData[]).filter(
@@ -148,7 +153,9 @@ export default function BookingPage() {
       const allBookings: SlotData[] = []
 
       for (const t of types) {
-        const res = await fetch(`/api/v1/slots?date=${dateStr}&type=${t}&_=${Date.now()}`)
+        const res = await fetch(
+          `/api/v1/slots?date=${dateStr}&type=${t}&_=${Date.now()}`
+        )
         const data = await res.json()
         if (data.success) {
           const ownBookings = (data.data.slots as SlotData[]).filter(
@@ -160,7 +167,9 @@ export default function BookingPage() {
       allBookings.sort((a, b) => a.startTime.localeCompare(b.startTime))
       setAllMyBookings(allBookings)
 
-      const res = await fetch(`/api/v1/slots?date=${dateStr}&type=${type}&_=${Date.now()}`)
+      const res = await fetch(
+        `/api/v1/slots?date=${dateStr}&type=${type}&_=${Date.now()}`
+      )
       const data = await res.json()
       if (data.success) {
         setSlots(data.data.slots)
@@ -253,42 +262,22 @@ export default function BookingPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-6 md:flex-row">
-        {/* Left Column: Calendar + My Bookings + Meeting Links */}
-        <div className="space-y-6 md:w-1/4 lg:w-2/5 min-w-0">
+      <div className="flex flex-col gap-2 md:flex-row md:gap-6">
+        {/* Left Column: Calendar */}
+        <div className="min-w-0 space-y-6 md:w-1/2">
           <BookingCalendarMini
+            className="h-full"
             date={date}
             onDateChange={(d) => d && setDate(d)}
             bookedDates={bookedDates}
             myBookedDates={myBookedDates}
             type={type}
           />
-
-          {/* <div className="hidden md:block">
-            <h3 className="mb-3 font-semibold">
-              My Bookings for {format(date, "MMM d")}
-            </h3>
-            <MyBookingsStack
-              bookings={myBookings}
-              onCancel={handleCancelBooking}
-              dateLabel={format(date, "MMM d")}
-            />
-          </div> */}
-
-          {meetingLink && (
-            <div className="hidden md:block">
-              <MeetingLinkCard
-                url={meetingLink.url}
-                label={meetingLink.label}
-              />
-            </div>
-          )}
         </div>
 
         {/* Middle Column: Slot Grid/Timeline for Booking */}
-        <div className="space-y-4 md:w-1/2 lg:w-3/5 min-w-0">
+        <div className="h-auto min-w-0 space-y-2 md:w-1/2">
           <TypeTabs value={type} onChange={handleTypeChange} />
-
           {isLoading ? (
             <div className="space-y-2">
               {[...Array(10)].map((_, i) => (
@@ -296,7 +285,7 @@ export default function BookingPage() {
               ))}
             </div>
           ) : (
-            <div className="relative">
+            <div className="relative h-full">
               {view === "grid" ? (
                 <SlotGrid
                   slots={slots}
@@ -380,6 +369,12 @@ export default function BookingPage() {
         </div> */}
       </div>
 
+      {meetingLink && (
+        <div className="hidden md:block">
+          <MeetingLinkCard url={meetingLink.url} label={meetingLink.label} />
+        </div>
+      )}
+
       <SlotBookingSheet
         open={sheetOpen}
         onOpenChange={setSheetOpen}
@@ -429,7 +424,7 @@ export default function BookingPage() {
                     {cancelTarget.date
                       ? format(
                           new Date(`${cancelTarget.date}T00:00:00`),
-                          "EEEE, MMMM d",
+                          "EEEE, MMMM d"
                         )
                       : format(date, "EEEE, MMMM d")}
                   </span>
@@ -446,7 +441,7 @@ export default function BookingPage() {
             <AlertDialogCancel
               className={cn(
                 buttonVariants({ variant: "outline" }),
-                "cursor-pointer",
+                "cursor-pointer"
               )}
             >
               {t("action.keepBooking")}
@@ -455,7 +450,7 @@ export default function BookingPage() {
               onClick={confirmCancelBooking}
               className={cn(
                 buttonVariants({ variant: "destructive" }),
-                "cursor-pointer",
+                "cursor-pointer"
               )}
             >
               <Trash2 className="size-4" aria-hidden="true" />
