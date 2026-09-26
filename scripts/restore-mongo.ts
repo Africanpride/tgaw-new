@@ -111,6 +111,26 @@ async function main(from: string, uri: string): Promise<void> {
     return
   }
 
+  // Guard E: read + parse _indexes.json BEFORE any connection is opened.
+  // Guard D proved the file exists, so a failure here means it cannot be
+  // read or parsed (e.g. truncated mid-write by a crashed backup).
+  // Restoring anyway would wipe the target, load the data, and then be
+  // unable to recreate a single index — losing every unique constraint —
+  // so a corrupt file is rejected while the target is still untouched.
+  const indexPath = join(dumpDir, "_indexes.json")
+  let indexMap: Record<string, Document[]> = {}
+  try {
+    indexMap = BSON.EJSON.parse(await readFile(indexPath, "utf8"), {
+      relaxed: false,
+    }) as Record<string, Document[]>
+  } catch {
+    console.error(
+      `[ERROR] Corrupt or unreadable _indexes.json in ${dumpDir} — refusing to restore a partial backup`
+    )
+    process.exit(1)
+    return // unreachable in practice — process.exit never returns
+  }
+
   console.log(`[INFO] Restoring dump: ${dumpDir}`)
   client = new MongoClient(uri)
   await client.connect()
@@ -161,24 +181,7 @@ async function main(from: string, uri: string): Promise<void> {
   }
 
   // --- Indexes: recreate what the backup recorded -----------------------
-  const indexPath = join(dumpDir, "_indexes.json")
-  let indexMap: Record<string, Document[]> = {}
-  try {
-    indexMap = BSON.EJSON.parse(await readFile(indexPath, "utf8"), {
-      relaxed: false,
-    }) as Record<string, Document[]>
-  } catch {
-    // Presence was already checked by Guard D above, so reaching here
-    // means the file exists but cannot be read or parsed (e.g. truncated
-    // mid-write by a crashed backup). Continuing would silently restore
-    // zero indexes — losing every unique constraint — so treat it like
-    // any other partial backup and abort before reporting success.
-    console.error(
-      `[ERROR] Missing or unreadable _indexes.json in ${dumpDir} — refusing to restore a partial backup`
-    )
-    process.exit(1)
-  }
-
+  // (parsed pre-connect by Guard E above; only the creation happens here)
   for (const [name, indexes] of Object.entries(indexMap)) {
     const specs: Document[] = []
     for (const raw of indexes) {
