@@ -8,7 +8,7 @@ export function CalendarSkeleton() {
 				<Skeleton className="h-4 w-48" />
 			</div>
 
-			<div className="border rounded-lg bg-background">
+			<div className="border rounded-lg bg-card">
 				<div className="flex min-h-[800px]">
 					{/* Sidebar skeleton */}
 					<div className="hidden xl:block w-80 flex-shrink-0 border-r">

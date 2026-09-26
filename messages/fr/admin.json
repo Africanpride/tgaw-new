@@ -77,7 +77,6 @@
   "board.ofTotal": "{{booked}} sur {{total}}",
   "board.emptyTitle": "Aucune réservation à venir pour le moment",
   "board.emptyDesc": "Dès que les membres commenceront à réserver des créneaux de dévotion, l'engagement apparaîtra ici.",
-  "board.stats.title": "Synthèse exécutive",
   "board.stats.description": "indicateurs de performance à l'échelle de l'organisation, avec les tendances d'une période à l'autre.",
   "board.stats.weekly": "Cette semaine",
   "board.stats.monthly": "Ce mois",

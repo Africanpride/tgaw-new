@@ -30,7 +30,7 @@ export function IcalCopyButton({ token, baseUrl }: { token: string; baseUrl?: st
 				aria-label="iCal feed URL"
 				onFocus={(e) => e.target.select()}
 			/>
-			<Button size="sm" variant="outline" className="cursor-pointer" onClick={handleCopy} aria-label="Copy iCal link">
+			<Button size="sm" variant="outline" className="cursor-pointer bg-card" onClick={handleCopy} aria-label="Copy iCal link">
 				{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
 				{copied ? "Copied" : "Copy"}
 			</Button>

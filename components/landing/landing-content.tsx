@@ -125,7 +125,7 @@ export function LandingContent({ verseSlot }: { verseSlot?: React.ReactNode }) {
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
           scrolled
-            ? "border-b bg-background/80 shadow-sm backdrop-blur-md"
+            ? "border-b bg-background/80 shadow-xs backdrop-blur-md"
             : "border-b border-transparent bg-transparent"
         }`}
       >

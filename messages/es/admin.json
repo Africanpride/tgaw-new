@@ -77,7 +77,6 @@
   "board.ofTotal": "{{booked}} de {{total}}",
   "board.emptyTitle": "Aún no hay próximas reservas",
   "board.emptyDesc": "Cuando los miembros empiecen a reservar turnos devocionales, la participación aparecerá aquí.",
-  "board.stats.title": "Información ejecutiva",
   "board.stats.description": "métricas de rendimiento de toda la organización con tendencias de un período a otro.",
   "board.stats.weekly": "Esta semana",
   "board.stats.monthly": "Este mes",

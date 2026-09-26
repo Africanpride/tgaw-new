@@ -126,7 +126,7 @@ export function Topbar() {
 		: Monitor;
 
 	return (
-		<header className="sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-background px-2 sm:px-4 lg:px-6">
+		<header className="sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-card px-2 sm:px-4 lg:px-6">
 			<SidebarTrigger className="cursor-pointer shrink-0" />
 			<div className="h-4 w-px shrink-0 bg-border" />
 			<div className="min-w-0 flex-1 sm:hidden">

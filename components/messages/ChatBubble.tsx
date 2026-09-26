@@ -158,7 +158,7 @@ export function ChatBubble({
 								key={emoji}
 								type="button"
 								onClick={() => onReact(message.id, emoji)}
-								className="flex cursor-pointer items-center gap-1 rounded-full border border-border/30 bg-background px-2 py-0.5 text-xs shadow-sm transition-colors hover:bg-muted"
+								className="flex cursor-pointer items-center gap-1 rounded-full border border-border/30 bg-background px-2 py-0.5 text-xs shadow-xs transition-colors hover:bg-muted"
 							>
 								<span>{emoji}</span>
 								<span className="text-muted-foreground">{userIds.length}</span>

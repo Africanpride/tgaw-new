@@ -168,7 +168,7 @@ export default async function CalendarPage(props: {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div className="flex flex-col gap-3">
+			<div className="flex flex-col gap-3 rounded-lg border bg-card p-4 sm:p-6">
 				<div>
 					<h1 className="text-2xl">{pageTitle}</h1>
 					<p className="text-muted-foreground">

@@ -304,7 +304,7 @@ export function AdminMeetingLinkManager() {
   }
 
   return (
-    <Card className="shadow-sm border-border/60">
+    <Card className="shadow-xs border-border/60">
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">

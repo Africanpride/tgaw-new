@@ -206,7 +206,7 @@ export function MeetingBanner({
     return (
       <Card
         key={`special-${evt.id}`}
-        className="flex flex-col justify-between border-violet-500/30 bg-card p-2 transition-shadow hover:shadow-sm sm:p-3"
+        className="flex flex-col justify-between border-violet-500/30 bg-card p-2 transition-shadow hover:shadow-xs sm:p-3"
       >
         <CardContent className="p-0">
           <div className="flex items-start gap-2">
@@ -336,7 +336,7 @@ export function MeetingBanner({
         return (
           <Card
             key={section.key}
-            className="flex flex-col justify-between border-border bg-card p-2 transition-shadow hover:shadow-sm sm:p-3"
+            className="flex flex-col justify-between border-border bg-card p-2 transition-shadow hover:shadow-xs sm:p-3"
           >
             <CardContent className="p-0">
               <div className="flex items-start gap-2">

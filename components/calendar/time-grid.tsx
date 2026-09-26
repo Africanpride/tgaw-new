@@ -72,7 +72,7 @@ export function TimeGrid({
 				}}
 			>
 				{/* Corner (sticky both axes) */}
-				<div className="sticky top-0 left-0 z-40 h-12 border-b border-r bg-background" />
+				<div className="sticky top-0 left-0 z-40 h-12 border-b border-r bg-card" />
 
 				{/* Day headers (sticky top) */}
 				{dayCols.map((col) => (
@@ -81,7 +81,7 @@ export function TimeGrid({
 						type="button"
 						disabled={!onSelectDay}
 						className={cn(
-							"sticky top-0 z-30 flex h-12 flex-col items-center justify-center border-b bg-background transition-colors",
+							"sticky top-0 z-30 flex h-12 flex-col items-center justify-center border-b bg-card transition-colors",
 							onSelectDay && "cursor-pointer hover:bg-accent/50",
 						)}
 						aria-label={format(col.day, "EEEE, MMMM d, yyyy")}
@@ -103,7 +103,7 @@ export function TimeGrid({
 				))}
 
 				{/* Hour gutter (sticky left) */}
-				<div className="sticky left-0 z-20 bg-background">
+				<div className="sticky left-0 z-20 bg-card">
 					{HOURS.map((h) => (
 						<div
 							key={h}

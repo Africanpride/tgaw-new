@@ -276,7 +276,7 @@ export function EventFormDialog({
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "flex size-9 shrink-0 items-center justify-center rounded-lg border bg-background shadow-xs",
+                "flex size-9 shrink-0 items-center justify-center rounded-lg border bg-card shadow-xs",
                 currentTypeConfig.border
               )}
             >
@@ -326,7 +326,7 @@ export function EventFormDialog({
                       "flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-2.5 py-2 text-center transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       isSelected
                         ? cn(
-                            "border-2 bg-background font-semibold shadow-2xs",
+                            "border-2 bg-card font-semibold shadow-2xs",
                             t.border
                           )
                         : "border-border/60 bg-muted/40 text-muted-foreground hover:bg-muted/80 hover:text-foreground"

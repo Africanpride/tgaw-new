@@ -77,7 +77,6 @@
   "board.ofTotal": "{{booked}} de {{total}}",
   "board.emptyTitle": "Ainda não há próximas reservas",
   "board.emptyDesc": "Quando os membros começarem a reservar horários devocionais, o engajamento aparecerá aqui.",
-  "board.stats.title": "Informações executivas",
   "board.stats.description": "métricas de desempenho de toda a organização com tendências de um período para outro.",
   "board.stats.weekly": "Esta semana",
   "board.stats.monthly": "Este mês",

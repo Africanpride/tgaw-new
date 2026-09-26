@@ -77,7 +77,6 @@
   "board.ofTotal": "{{booked}} of {{total}}",
   "board.emptyTitle": "No upcoming bookings yet",
   "board.emptyDesc": "Once members start booking devotional slots, engagement will appear here.",
-  "board.stats.title": "Executive Insights",
   "board.stats.description": "organization-wide performance metrics with period-over-period trends.",
   "board.stats.weekly": "This Week",
   "board.stats.monthly": "This Month",

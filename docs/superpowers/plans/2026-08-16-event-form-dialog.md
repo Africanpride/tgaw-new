@@ -328,7 +328,7 @@ export function EventFormDialog({
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={isSubmitting} className={cn("gap-2 font-medium shadow-sm transition-all", currentTypeConfig.btnBg)}>
+						<Button type="submit" disabled={isSubmitting} className={cn("gap-2 font-medium shadow-xs transition-all", currentTypeConfig.btnBg)}>
 							{isSubmitting ? (
 								<>
 									<Loader2 className="size-4 animate-spin" aria-hidden="true" />

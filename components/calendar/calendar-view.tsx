@@ -183,7 +183,7 @@ function DayCell({
 			className={cn(
 				"min-h-[120px] cursor-pointer border-b border-r p-2 text-left transition-colors last:border-r-0",
 				isOutside && "bg-muted/30 text-muted-foreground",
-				!isOutside && "bg-background hover:bg-accent/50",
+				!isOutside && "bg-card hover:bg-accent/50",
 				isSelected && "bg-accent/20",
 			)}
 			role="button"
@@ -440,11 +440,11 @@ export function CalendarView({
 	};
 
 	return (
-		<div className={cn("border rounded-lg bg-background relative", className)}>
+		<div className={cn("border rounded-lg bg-card relative", className)}>
 			<div className="flex min-h-[800px]">
 				{/* Sidebar */}
 				<div className="hidden xl:block w-80 flex-shrink-0 border-r">
-					<div className="flex h-full flex-col rounded-lg bg-background">
+					<div className="flex h-full flex-col rounded-lg bg-card">
 						<div className="p-2 sm:p-6 border-b">
 {canCreate && (
 							<Button
@@ -551,7 +551,7 @@ export function CalendarView({
 							<Button
 								variant="outline"
 								size="sm"
-								className="gap-1.5 xl:hidden"
+								className="gap-1.5 bg-card xl:hidden"
 								aria-label="Toggle calendar sidebar"
 								onClick={() => setSidebarOpen(!sidebarOpen)}
 							>
@@ -561,7 +561,7 @@ export function CalendarView({
 								<Button
 									variant="outline"
 									size="sm"
-									className="gap-1.5"
+									className="gap-1.5 bg-card"
 									onClick={goToPrev}
 									aria-label={`${t("nav.previous", "Previous")} ${t(`view.${view}`, view)}`}
 								>
@@ -570,13 +570,13 @@ export function CalendarView({
 								<Button
 									variant="outline"
 									size="sm"
-									className="gap-1.5"
+									className="gap-1.5 bg-card"
 									onClick={goToNext}
 									aria-label={`${t("nav.next", "Next")} ${t(`view.${view}`, view)}`}
 								>
 									&gt;
 								</Button>
-								<Button variant="outline" size="sm" onClick={goToToday}>
+								<Button variant="outline" size="sm" className="bg-card" onClick={goToToday}>
 									{tc("time.today", "Today")}
 								</Button>
 							</div>
@@ -659,7 +659,7 @@ export function CalendarView({
 							onDelete={handleDelete}
 						/>
 					) : (
-						<div className="flex-1 bg-background">
+						<div className="flex-1 bg-card">
 							<div className="grid grid-cols-7 border-b">
 								{["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
 									(day, i) => (

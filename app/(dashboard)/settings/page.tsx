@@ -1093,7 +1093,7 @@ export default function SettingsPage() {
                 animate={{ y: 0, opacity: 1 }}
                 exit={directional}
                 transition={transition}
-                className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-6 lg:p-10"
+                className="rounded-2xl border border-border bg-card p-6 shadow-xs sm:p-6 lg:p-10"
               >
                 {isPending && activeTab === "profile" ? (
                   <div className="space-y-4" aria-busy="true">

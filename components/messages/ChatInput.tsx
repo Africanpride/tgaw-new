@@ -110,7 +110,7 @@ export function ChatInput({
 				</button>
 
 				{/* Textarea with border focus ring */}
-				<div className="flex flex-1 items-center rounded-lg border border-border/30 bg-card shadow-sm transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+				<div className="flex flex-1 items-center rounded-lg border border-border/30 bg-card shadow-xs transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
 					<textarea
 						ref={textareaRef}
 						value={value}
@@ -160,7 +160,7 @@ export function ChatInput({
 						size="icon"
 						onClick={onSend}
 						disabled={!value.trim() || disabled}
-						className="mb-0.5 size-10 shrink-0 cursor-pointer rounded-full bg-primary text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+						className="mb-0.5 size-10 shrink-0 cursor-pointer rounded-full bg-primary text-primary-foreground shadow-xs transition-all hover:bg-primary/90 hover:shadow-md"
 						aria-label="Send message"
 					>
 						<Send className="size-4" aria-hidden="true" />

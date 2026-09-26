@@ -20,7 +20,7 @@ export async function VerifyForm({
 	return (
 		<Card
 			className={cn(
-				"w-full max-w-md border-none p-2 text-center shadow-sm sm:p-6",
+				"w-full max-w-md border-none p-2 text-center shadow-xs sm:p-6",
 				className,
 			)}
 			{...props}

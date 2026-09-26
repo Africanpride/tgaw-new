@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
-  BarChart3,
   UserPlus,
   BookOpen,
   HandHeart,
@@ -186,24 +185,18 @@ export function BoardExecutiveStats() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Section header + toggle */}
+      {/* Description + period toggle */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <BarChart3
-            className="size-5 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <h3 className="text-lg font-semibold tracking-tight">
-            {t("board.stats.title")}
-          </h3>
-        </div>
-        <div className="flex rounded-lg border bg-muted p-0.5">
+        <p className="text-sm text-muted-foreground">
+          {t("board.stats.description")}
+        </p>
+        <div className="flex self-start rounded-lg border bg-muted p-0.5">
           <button
             onClick={() => setRange("week")}
             className={cn(
               "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
               range === "week"
-                ? "bg-background text-foreground shadow-sm"
+                ? "bg-background text-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -214,7 +207,7 @@ export function BoardExecutiveStats() {
             className={cn(
               "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
               range === "month"
-                ? "bg-background text-foreground shadow-sm"
+                ? "bg-background text-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -222,10 +215,6 @@ export function BoardExecutiveStats() {
           </button>
         </div>
       </div>
-
-      <p className="text-sm text-muted-foreground">
-        {t("board.stats.description")}
-      </p>
 
       {loading && !data ? (
         <StatsSkeleton />
