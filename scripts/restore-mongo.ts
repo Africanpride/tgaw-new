@@ -168,9 +168,15 @@ async function main(from: string, uri: string): Promise<void> {
       relaxed: false,
     }) as Record<string, Document[]>
   } catch {
-    console.warn(
-      `[WARN] _indexes.json not found or unreadable in ${dumpDir} — skipping index recreation`
+    // Presence was already checked by Guard D above, so reaching here
+    // means the file exists but cannot be read or parsed (e.g. truncated
+    // mid-write by a crashed backup). Continuing would silently restore
+    // zero indexes — losing every unique constraint — so treat it like
+    // any other partial backup and abort before reporting success.
+    console.error(
+      `[ERROR] Missing or unreadable _indexes.json in ${dumpDir} — refusing to restore a partial backup`
     )
+    process.exit(1)
   }
 
   for (const [name, indexes] of Object.entries(indexMap)) {
