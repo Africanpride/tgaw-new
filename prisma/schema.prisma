@@ -497,10 +497,12 @@ model User {
   notificationPrefs Json?
   onboardingComplete Boolean @default(false)
   preferredLocale String? @default("en")
+  calendarFeedToken String?
   userProfile        UserProfile?
   sessions      Session[]
   accounts      Account[]
 
+  @@index([calendarFeedToken])
   @@map("user")
 }
 
