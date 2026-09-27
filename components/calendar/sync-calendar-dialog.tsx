@@ -45,7 +45,7 @@ export function SyncCalendarDialog() {
 	const [regenerating, setRegenerating] = useState(false);
 
 	useEffect(() => {
-		if (!open || token || loading) return;
+		if (!open || token) return;
 		let cancelled = false;
 		async function run() {
 			setLoading(true);
@@ -62,7 +62,7 @@ export function SyncCalendarDialog() {
 		return () => {
 			cancelled = true;
 		};
-	}, [open, token, loading, t]);
+	}, [open, token, t]);
 
 	const origin = typeof window !== "undefined" ? window.location.origin : "";
 	const httpsUrl = token
