@@ -33,6 +33,7 @@ export interface FeedLabels {
 	BIBLE: string;
 	PRAYER: string;
 	PRAISE_WORSHIP: string;
+	SPECIAL: string;
 }
 
 export function buildFeedItems(input: {
@@ -62,7 +63,7 @@ export function buildFeedItems(input: {
 			uid: `slot-${slot.id}@tgaw`,
 			start: utcSlotToLocalDate(slot.date, slot.startTime),
 			end: utcSlotToLocalDate(slot.date, slot.endTime),
-			summary: input.labels[slot.type as keyof FeedLabels],
+			summary: input.labels[slot.type] ?? slot.type,
 			description: slot.notes,
 			url,
 		});

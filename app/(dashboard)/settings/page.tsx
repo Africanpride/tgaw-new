@@ -102,6 +102,7 @@ import {
   setPassword,
   updateProfile,
 } from "@/lib/actions/settingsActions"
+import { regenerateCalendarFeedToken } from "@/actions/calendarFeedActions"
 import { AvatarUploadDialog } from "@/components/settings/AvatarUploadDialog"
 import { IconTile } from "@/components/IconTile"
 import { sectionLabelClass } from "@/components/eyebrow"
@@ -1990,9 +1991,14 @@ export default function SettingsPage() {
                               variant="outline"
                               size="sm"
                               className="w-full cursor-pointer sm:w-auto"
-                              onClick={() =>
-                                toast.success(t("toast.calendarRegenerated"))
-                              }
+                              onClick={async () => {
+                                try {
+                                  await regenerateCalendarFeedToken()
+                                  toast.success(t("toast.calendarRegenerated"))
+                                } catch {
+                                  toast.error(t("toast.calendarRegenerateFailed", "Could not regenerate your calendar link. Try again."))
+                                }
+                              }}
                             >
                               {t("account.regenerate")}
                             </Button>

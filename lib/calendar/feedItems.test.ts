@@ -11,6 +11,7 @@ const labels: FeedLabels = {
 	BIBLE: "Bible Reading",
 	PRAYER: "Prayer",
 	PRAISE_WORSHIP: "Praise & Worship",
+	SPECIAL: "Special Event",
 };
 
 const empty = {

@@ -52,7 +52,8 @@ export function SyncCalendarDialog() {
 			try {
 				const next = await ensureCalendarFeedToken();
 				if (!cancelled) setToken(next);
-			} catch {
+			} catch (error) {
+				console.error("[ERROR] Calendar feed token load failed:", error);
 				if (!cancelled) toast.error(t("sync.loadFailed"));
 			} finally {
 				if (!cancelled) setLoading(false);

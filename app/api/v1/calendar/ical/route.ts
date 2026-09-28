@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
 		BIBLE: await t("type.BIBLE"),
 		PRAYER: await t("type.PRAYER"),
 		PRAISE_WORSHIP: await t("type.PRAISE_WORSHIP"),
+		SPECIAL: await t("type.SPECIAL"),
 	};
 
 	const ics = buildIcs(
