@@ -88,8 +88,9 @@ async function main(from: string, uri: string): Promise<void> {
     return // unreachable in practice — process.exit never returns
   }
 
-  // Collection files are <name>.json; _indexes.json is handled separately
-  // after the load (it is not a collection).
+  // Collection files are <name>.json; _indexes.json is not a collection
+  // (it is parsed pre-connect by Guard E below; only the index
+  // recreation happens after the load).
   const files = entries
     .filter((name) => name.endsWith(".json") && name !== "_indexes.json")
     .sort()
@@ -131,6 +132,72 @@ async function main(from: string, uri: string): Promise<void> {
     return // unreachable in practice — process.exit never returns
   }
 
+  // Guard F: read + parse EVERY <collection>.json BEFORE any connection is
+  // opened, and keep the parsed documents in memory for the load loop.
+  // The wipe below is destructive and irreversible, so the dump's contents
+  // must be proven good first: a truncated/corrupt file found after the
+  // drop would leave the target EMPTY (the exact partial-restore disaster
+  // Guards D and E exist to prevent), and a file that parses to something
+  // other than an array (e.g. `{"a": 1}`) would previously slip through
+  // the `as Document[]` cast, log `undefined docs`, add `NaN` to the
+  // total, and exit 0 — a silent "success" on a destructive operation.
+  // The memory cost is the same as before: the load loop fully buffered
+  // each file anyway, and the backup already holds a whole collection
+  // in RAM while writing it.
+  const collectionDocs = new Map<string, Document[]>()
+  for (const file of files) {
+    const name = file.slice(0, -".json".length)
+    let parsed: unknown
+    try {
+      // `BSON.EJSON.parse(text, { relaxed: false })` reverses the backup:
+      // {"$oid": ...} becomes a real ObjectId, {"$date": ...} a real Date,
+      // {"$numberInt": ...} a real integer. Plain JSON.parse would leave
+      // them as strings and the app would break on the restored data.
+      parsed = BSON.EJSON.parse(await readFile(join(dumpDir, file), "utf8"), {
+        relaxed: false,
+      })
+    } catch {
+      console.error(
+        `[ERROR] Corrupt or unreadable ${file} in ${dumpDir} — refusing to restore, target untouched`
+      )
+      process.exit(1)
+      return // unreachable in practice — process.exit never returns
+    }
+    // Valid JSON that is not an array is just as fatal as corrupt JSON:
+    // a backup only ever writes one EJSON array per collection file.
+    if (!Array.isArray(parsed)) {
+      console.error(
+        `[ERROR] ${file} in ${dumpDir} is not a JSON array — refusing to restore, target untouched`
+      )
+      process.exit(1)
+      return // unreachable in practice — process.exit never returns
+    }
+    collectionDocs.set(name, parsed as Document[])
+  }
+
+  // Guard F (continued): the parsed _indexes.json must also have the right
+  // SHAPE, not merely parse. `[]`, `"str"`, or `5` are all valid JSON that
+  // survives Guard E's parse, yet none is a map of collection -> index
+  // list: `Object.entries` on them yields nothing, so the restore would
+  // wipe the target, recreate ZERO indexes, and exit 0 as if it worked.
+  // Reject a non-object, an array, or an object holding non-array values
+  // while the target is still untouched.
+  const rawIndexMap: unknown = indexMap
+  if (
+    typeof rawIndexMap !== "object" ||
+    rawIndexMap === null ||
+    Array.isArray(rawIndexMap) ||
+    Object.values(rawIndexMap).some((value) => !Array.isArray(value))
+  ) {
+    console.error(
+      `[ERROR] _indexes.json in ${dumpDir} is not a map of collection -> index list — refusing to restore, target untouched`
+    )
+    process.exit(1)
+    return // unreachable in practice — process.exit never returns
+  }
+
+  // All guards passed: the dump is complete and every file parsed cleanly.
+  // From here on the target database is fair game.
   console.log(`[INFO] Restoring dump: ${dumpDir}`)
   client = new MongoClient(uri)
   await client.connect()
@@ -157,17 +224,10 @@ async function main(from: string, uri: string): Promise<void> {
   }
 
   // --- Load: one EJSON array file per collection ------------------------
+  // The documents were already read, parsed, and proven to be arrays by
+  // Guard F above (before the drop), so this loop only writes them.
   let totalDocs = 0
-  for (const file of files) {
-    const name = file.slice(0, -".json".length)
-    const text = await readFile(join(dumpDir, file), "utf8")
-
-    // `BSON.EJSON.parse(text, { relaxed: false })` reverses the backup:
-    // {"$oid": ...} becomes a real ObjectId, {"$date": ...} a real Date,
-    // {"$numberInt": ...} a real integer. Plain JSON.parse would leave
-    // them as strings and the app would break on the restored data.
-    const docs = BSON.EJSON.parse(text, { relaxed: false }) as Document[]
-
+  for (const [name, docs] of collectionDocs) {
     // insertMany with an empty array throws in the driver, so empty
     // collections just get logged (they still exist after a drop + no
     // inserts? they don't — create the empty collection explicitly).

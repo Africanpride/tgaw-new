@@ -3,7 +3,8 @@ import { createAccessControl } from "better-auth/plugins/access"
 import { mongodbAdapter } from "better-auth/adapters/mongodb"
 import { haveIBeenPwned, openAPI } from "better-auth/plugins"
 import { admin, customSession, twoFactor } from "better-auth/plugins"
-import { MongoClient } from "mongodb"
+import { MongoInvalidArgumentError, MongoParseError, MongoClient } from "mongodb"
+import { startReconnectLoop } from "@/lib/db/mongoRecovery"
 import { sendEmail } from "@/lib/notifications/email"
 import { preserveUserSetProfileOnLink } from "@/lib/auth/oauthLinkProfileGuard"
 
@@ -60,17 +61,52 @@ const restrictedRole = ac.newRole({
   session: [],
 })
 
-// MongoDB client with connection pooling to prevent memory leaks
-const client = new MongoClient(process.env.DATABASE_URL as string, {
-  maxPoolSize: 50,
-  minPoolSize: 5,
-  maxIdleTimeMS: 60000,
-  waitQueueTimeoutMS: 10000,
-})
+// MongoDB client with connection pooling.
+// Cached on globalThis (dev re-evaluates modules on HMR) — same pattern as lib/db/prisma.ts.
+const globalForMongo = globalThis as unknown as {
+  tgawMongoClient: MongoClient | undefined
+  tgawMongoRecoveryStarted: boolean | undefined
+}
+
+const client =
+  globalForMongo.tgawMongoClient ??
+  new MongoClient(process.env.DATABASE_URL as string, {
+    maxPoolSize: 50,
+    minPoolSize: 5,
+    maxIdleTimeMS: 60000,
+    waitQueueTimeoutMS: 10000,
+  })
+
+if (process.env.NODE_ENV !== "production") globalForMongo.tgawMongoClient = client
+
 const db = client.db()
 
 // Export for graceful shutdown
 export const mongoClient = client
+
+// Self-healing connection: mongodb@7 leaves a closed topology behind when the
+// first connect fails (Atlas blip, DNS, TLS), after which every operation in
+// this process throws `MongoTopologyClosedError` forever. An explicit
+// client.connect() re-attempts on a fresh topology, so retry in the background
+// until the server is reachable instead of waiting for the isolate to be
+// recycled. Skipped during `next build` so builds never touch the database.
+if (
+  process.env.NEXT_PHASE !== "phase-production-build" &&
+  !globalForMongo.tgawMongoRecoveryStarted
+) {
+  globalForMongo.tgawMongoRecoveryStarted = true
+  startReconnectLoop({
+    connect: () => client.connect(),
+    shouldRetry: (error) =>
+      !(error instanceof MongoParseError) && !(error instanceof MongoInvalidArgumentError),
+    onRetry: (error, attempt, nextDelayMs) => {
+      console.error(
+        `[ERROR] MongoDB connect attempt ${attempt} failed — retrying in ${nextDelayMs}ms:`,
+        error instanceof Error ? error.message : String(error)
+      )
+    },
+  })
+}
 
 const options = {
   appName: "TGAW",

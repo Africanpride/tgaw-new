@@ -26,9 +26,10 @@
 // Imports
 // ---------------------------------------------------------------------------
 // `node:fs/promises` is the modern, promise-based version of Node's
-// filesystem API. We use `mkdir` to create the output directory and
-// `writeFile` to save each collection's EJSON file.
-import { mkdir, writeFile } from "node:fs/promises"
+// filesystem API. We use `rm` to clear out any previous run's output for
+// today, `mkdir` to create the output directory, and `writeFile` to save
+// each collection's EJSON file.
+import { mkdir, rm, writeFile } from "node:fs/promises"
 
 // `node:path` gives us OS-independent path helpers. `join` stitches path
 // segments together with the right separator ("/" on Linux/macOS, "\" on
@@ -108,10 +109,21 @@ const client = new MongoClient(DATABASE_URL, {
 // value — it just performs side effects (writing files to disk) and prints
 // status to stdout.
 async function main(): Promise<void> {
+  // Clear today's folder BEFORE creating it, so every run starts from an
+  // empty directory and the folder always contains exactly ONE run's
+  // files. Without the wipe, two same-day runs could mix: a collection
+  // dropped or renamed between runs left its stale <Old>.json behind
+  // (restore would recreate a collection the source no longer has), and a
+  // run that crashed mid-loop left old files sitting next to the previous
+  // run's _indexes.json — a "complete-looking" but non-atomic dump that
+  // restore would happily accept. After the wipe, a crash leaves either
+  // no folder or a folder without _indexes.json, which restore's Guard D
+  // rejects outright. `force: true` means "don't error if it's missing".
+  await rm(outDir, { recursive: true, force: true })
+
   // Make sure the output directory exists. `recursive: true` means
   // "create the directory and any missing parents, and don't error if it
-  // already exists". A second run on the same day overwrites that day's
-  // files (intentional: the newest run wins).
+  // already exists".
   await mkdir(outDir, { recursive: true })
 
   console.log("[INFO] Connecting to MongoDB (readPreference: secondary)...")
