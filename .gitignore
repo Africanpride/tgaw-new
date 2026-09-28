@@ -58,3 +58,6 @@ session-ses_*.md
 
 # translator CSV exports (i18n:export handoffs — re-generate anytime)
 *.csv
+
+# local mongo dumps (bun run backup)
+db_backup/
