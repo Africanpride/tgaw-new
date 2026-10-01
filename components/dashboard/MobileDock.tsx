@@ -122,7 +122,12 @@ export function MobileDock() {
                 isActive ? "text-foreground" : "text-muted-foreground",
               )}
             >
-              <span className="relative inline-flex size-5 items-center justify-center">
+              <span
+                className={cn(
+                  "relative inline-flex size-5 items-center justify-center",
+                  isActive && "text-primary",
+                )}
+              >
                 {item.icon === "profile" ? (
                   userImage ? (
                     <Image
@@ -133,14 +138,14 @@ export function MobileDock() {
                       unoptimized
                       className={cn(
                         "rounded-full object-cover",
-                        isActive && "ring-2 ring-foreground",
+                        isActive && "ring-2 ring-primary",
                       )}
                     />
                   ) : (
                     <span
                       className={cn(
                         "flex size-5 items-center justify-center rounded-full bg-muted text-[8px] font-medium",
-                        isActive ? "text-foreground" : "text-muted-foreground",
+                        isActive ? "text-primary dark:text-foreground" : "text-muted-foreground",
                       )}
                     >
                       {getDockInitials(userName)}
@@ -173,18 +178,18 @@ export function MobileDock() {
               <span
                 className={cn(
                   "text-[10px] font-medium",
-                  isActive ? "text-foreground" : "text-muted-foreground",
+                  isActive ? "text-primary dark:text-foreground" : "text-muted-foreground",
                 )}
               >
                 {label}
               </span>
               {isActive &&
                 (reduceMotion ? (
-                  <span className="absolute left-1/2 top-0 h-0.5 w-8 -translate-x-1/2 rounded-full bg-foreground" />
+                  <span className="absolute left-1/2 top-0 h-0.5 w-8 -translate-x-1/2 rounded-full bg-primary" />
                 ) : (
                   <motion.span
                     layoutId="mobile-dock-active-pill"
-                    className="absolute left-1/2 top-0 h-0.5 w-8 -translate-x-1/2 rounded-full bg-foreground"
+                    className="absolute left-1/2 top-0 h-0.5 w-8 -translate-x-1/2 rounded-full bg-primary"
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 ))}

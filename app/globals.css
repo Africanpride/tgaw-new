@@ -73,10 +73,12 @@
   --card-foreground: oklch(0.148 0.004 228.8);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.148 0.004 228.8);
+  /* 10% accent — violet, reserved for primary actions and focus rings */
   --primary: oklch(0.491 0.27 292.581);
   --primary-foreground: oklch(0.969 0.016 293.756);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
+  /* 30% secondary — elevated surfaces, hue aligned to the canvas family */
+  --secondary: oklch(0.967 0.001 197.1);
+  --secondary-foreground: oklch(0.21 0.006 228.8);
   --muted: oklch(0.963 0.002 197.1);
   --muted-foreground: oklch(0.56 0.021 213.5);
   --accent: oklch(0.963 0.002 197.1);
@@ -84,7 +86,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.925 0.005 214.3);
   --input: oklch(0.925 0.005 214.3);
-  --ring: oklch(0.723 0.014 214.4);
+  --ring: var(--primary);
   --chart-1: oklch(0.872 0.007 219.6);
   --chart-2: oklch(0.56 0.021 213.5);
   --chart-3: oklch(0.45 0.017 213.2);
@@ -98,7 +100,8 @@
   --sidebar-accent: oklch(0.963 0.002 197.1);
   --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
   --sidebar-border: oklch(0.925 0.005 214.3);
-  --sidebar-ring: oklch(0.723 0.014 214.4);
+  --sidebar-ring: var(--primary);
+  /* 60% dominant — the neutral canvas */
   --background: oklch(0.984 0.002 197.1);
   --foreground: oklch(0.148 0.004 228.8);
 }
@@ -110,9 +113,11 @@
   --card-foreground: oklch(0.987 0.002 197.1);
   --popover: oklch(0.196 0.006 228.6);
   --popover-foreground: oklch(0.987 0.002 197.1);
+  /* 10% accent — violet, reserved for primary actions and focus rings */
   --primary: oklch(0.606 0.25 292.717);
   --primary-foreground: oklch(0.148 0.004 228.8);
-  --secondary: oklch(0.274 0.006 286.033);
+  /* 30% secondary — elevated surfaces, hue aligned to the canvas family */
+  --secondary: oklch(0.274 0.006 228.8);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.275 0.011 216.9);
   --muted-foreground: oklch(0.723 0.014 214.4);
@@ -121,7 +126,7 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.56 0.021 213.5);
+  --ring: var(--primary);
   --chart-1: oklch(0.872 0.007 219.6);
   --chart-2: oklch(0.56 0.021 213.5);
   --chart-3: oklch(0.45 0.017 213.2);
@@ -134,7 +139,7 @@
   --sidebar-accent: oklch(0.275 0.011 216.9);
   --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.56 0.021 213.5);
+  --sidebar-ring: var(--primary);
 }
 
 @layer base {
