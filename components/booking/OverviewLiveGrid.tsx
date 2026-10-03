@@ -221,7 +221,7 @@ function ChannelSection({
       <div className="flex items-center gap-1.5">
         <IconTile icon={Icon} size="xs" tone={meta.accent.iconTile} className="border" />
         <h3 className="text-xs font-semibold tracking-tight">
-          {tb(`type.${type}`)}
+          {tb(`type.${type === "PRAISE_WORSHIP" ? "worship" : type.toLowerCase()}`)}
         </h3>
         <Badge variant="outline" className="ml-1 text-[10px] font-normal">
           {dateBadge}
