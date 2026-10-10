@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSocket } from "@/providers/SocketProvider";
+import { getSupabase } from "@/providers/RealtimeProvider";
 
 export interface ChatMessage {
 	id: string;
@@ -20,17 +20,15 @@ export interface ChatMessage {
 }
 
 export function useMessages(conversationId: string | null) {
-	const { socket } = useSocket();
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [loading, setLoading] = useState(false);
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const bottomRef = useRef<HTMLDivElement>(null);
 	const loadedConvoRef = useRef<string | null>(null);
 
-	// Fetch messages when conversation changes
+	// Fetch initial messages from the API
 	useEffect(() => {
 		if (!conversationId) {
-			// Defer the state clear to avoid synchronous setState in effect
 			const id = requestAnimationFrame(() => setMessages([]));
 			loadedConvoRef.current = null;
 			return () => cancelAnimationFrame(id);
@@ -75,91 +73,87 @@ export function useMessages(conversationId: string | null) {
 		}
 	}, [messages.length, scrollToBottom]);
 
-	// Join/leave conversation rooms for real-time delivery + re-join on reconnect
+	// Subscribe to new messages via Supabase Realtime
 	useEffect(() => {
-		if (!socket || !conversationId) return;
+		if (!conversationId) return;
 
-		const joinRoom = () => {
-			socket.emit("conversation:join", conversationId);
+		const supa = getSupabase();
+		if (!supa) return;
+
+		const channel = supa.channel(`chat-${conversationId}`);
+
+		channel.on(
+			"postgres_changes",
+			{
+				event: "INSERT",
+				schema: "public",
+				table: "messages",
+				filter: `conversation_id=eq.${conversationId}`,
+			},
+			(payload) => {
+				// Add new message to state (filter out deleted messages)
+				if (payload?.new?.deletedAt) return;
+				setMessages((prev) => {
+					if (prev.some((m) => m.id === payload.new.id)) return prev;
+					// Make sure the sender info is included - fetch from API if needed
+					return [...prev, payload.new as ChatMessage];
+				});
+			}
+		);
+
+		channel.on(
+			"postgres_changes",
+			{
+				event: "UPDATE",
+				schema: "public",
+				table: "messages",
+				filter: `conversation_id=eq.${conversationId}`,
+			},
+			(payload) => {
+				// Handle message edits
+				setMessages((prev) =>
+					prev.map((m) =>
+						m.id === payload.new.id
+							? { ...m, body: payload.new.body, editedAt: payload.new.editedAt }
+							: m
+					)
+				);
+			}
+		);
+
+		channel.on(
+			"postgres_changes",
+			{
+				event: "DELETE",
+				schema: "public",
+				table: "messages",
+				filter: `conversation_id=eq.${conversationId}`,
+			},
+			(payload) => {
+				// Handle message deletion
+				setMessages((prev) =>
+					prev.map((m) =>
+						m.id === payload.old?.id
+							? { ...m, deletedAt: new Date().toISOString(), body: "" }
+							: m
+					)
+				);
+			}
+		);
+
+		channel.subscribe();
+
+		return () => {
+			channel.unsubscribe();
 		};
+	}, [conversationId]);
 
-		if (socket.connected) {
-			joinRoom();
+	// Scroll to bottom
+	useEffect(() => {
+		if (messages.length > 0) {
+			scrollToBottom();
 		}
-
-		socket.on("connect", joinRoom);
-
-		return () => {
-			socket.off("connect", joinRoom);
-			socket.emit("conversation:leave", conversationId);
-		};
-	}, [socket, conversationId]);
-
-	// Listen for socket events
-	useEffect(() => {
-		if (!socket || !conversationId) return;
-
-		const handleNew = (msg: ChatMessage) => {
-			if (msg.conversationId !== conversationId) return;
-			setMessages((prev) => {
-				if (prev.some((m) => m.id === msg.id)) return prev;
-				return [...prev, msg];
-			});
-		};
-
-		const handleEdited = (data: { messageId: string; conversationId: string; body: string; editedAt: string }) => {
-			if (data.conversationId !== conversationId) return;
-			setMessages((prev) =>
-				prev.map((m) => (m.id === data.messageId ? { ...m, body: data.body, editedAt: data.editedAt } : m))
-			);
-		};
-
-		const handleDeleted = (data: { messageId: string; conversationId: string }) => {
-			if (data.conversationId !== conversationId) return;
-			setMessages((prev) =>
-				prev.map((m) => (m.id === data.messageId ? { ...m, deletedAt: new Date().toISOString(), body: "" } : m))
-			);
-		};
-
-		const handleReaction = (data: { messageId: string; conversationId: string; userId: string; emoji: string; action: string }) => {
-			if (data.conversationId !== conversationId) return;
-			setMessages((prev) =>
-				prev.map((m) => {
-					if (m.id !== data.messageId) return m;
-					if (data.action === "added") {
-						return { ...m, reactions: [...m.reactions, { id: `${data.userId}-${data.emoji}`, userId: data.userId, emoji: data.emoji }] };
-					}
-					return { ...m, reactions: m.reactions.filter((r) => !(r.userId === data.userId && r.emoji === data.emoji)) };
-				})
-			);
-		};
-
-		const handleRead = (data: { conversationId: string; userId: string }) => {
-			if (data.conversationId !== conversationId) return;
-			setMessages((prev) =>
-				prev.map((m) => {
-					if (m.senderId !== data.userId && !m.readBy.includes(data.userId)) {
-						return { ...m, readBy: [...m.readBy, data.userId] };
-					}
-					return m;
-				})
-			);
-		};
-
-		socket.on("message:new", handleNew);
-		socket.on("message:edited", handleEdited);
-		socket.on("message:deleted", handleDeleted);
-		socket.on("message:reaction", handleReaction);
-		socket.on("message:read", handleRead);
-
-		return () => {
-			socket.off("message:new", handleNew);
-			socket.off("message:edited", handleEdited);
-			socket.off("message:deleted", handleDeleted);
-			socket.off("message:reaction", handleReaction);
-			socket.off("message:read", handleRead);
-		};
-	}, [socket, conversationId]);
+	}, [messages.length, scrollToBottom]);
 
 	return { messages, setMessages, loading, scrollRef, bottomRef, scrollToBottom };
 }

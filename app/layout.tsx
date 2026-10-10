@@ -13,6 +13,7 @@ import { ConsentProvider } from "@/components/consent/ConsentProvider"
 import { CookieConsent } from "@/components/consent"
 import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, isLocale } from "@/i18n/config"
 import { cn } from "@/lib/utils"
+import { RealtimeProvider } from "@/providers/RealtimeProvider"
 
 const ibmPlexSans = IBM_Plex_Sans({subsets:['latin'],variable:'--font-sans'});
 
@@ -109,13 +110,15 @@ export default async function RootLayout({
             __html: `<script>(function(){try{var t=localStorage.getItem("theme")||"system";var r=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var d=document.documentElement;d.classList.remove("light","dark");d.classList.add(r);d.style.colorScheme=r;}catch(e){}})();(function(){if(typeof window!=="undefined"&&window.performance&&typeof window.performance.measure==="function"){var orig=window.performance.measure.bind(window.performance);window.performance.measure=function(name,s,e){try{return orig(name,s,e);}catch(err){if(err&&(err.message||"").indexOf("negative")!==-1){return;}throw err;}};}})();</script>`,
           }}
         />
-        <ThemeProvider>
-          <ConsentProvider initialCountry={initialCountry}>
-            <TooltipProvider>{children}</TooltipProvider>
-            <CookieConsent />
-            <Toaster />
-          </ConsentProvider>
-        </ThemeProvider>
+        <RealtimeProvider>
+			<ThemeProvider>
+				<ConsentProvider initialCountry={initialCountry}>
+					<TooltipProvider>{children}</TooltipProvider>
+					<CookieConsent />
+					<Toaster />
+				</ConsentProvider>
+			</ThemeProvider>
+		</RealtimeProvider>
       </body>
     </html>
   )

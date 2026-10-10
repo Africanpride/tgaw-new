@@ -13,7 +13,7 @@ import { MediaSidebar } from "./MediaSidebar";
 import { EmptyState } from "@/components/EmptyState";
 import { useMessages, type ChatMessage } from "@/hooks/useMessages";
 import { useTyping } from "@/hooks/useTyping";
-import { useSocket } from "@/providers/SocketProvider";
+import { getSupabase } from "@/providers/RealtimeProvider";
 import { toast } from "sonner";
 import type { Conversation } from "./ConversationList";
 
@@ -49,7 +49,7 @@ export function ChatPanel({
 	onBack,
 	isOnline,
 }: ChatPanelProps) {
-	const { connected } = useSocket();
+	const connected = !!getSupabase();
 	const { messages, setMessages, loading, scrollRef: hookScrollRef, bottomRef } = useMessages(conversation?.id ?? null);
 
 	const { typingUsers, emitTyping, stopTyping } = useTyping(
@@ -264,7 +264,7 @@ export function ChatPanel({
 				{!connected && (
 					<div className="flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-1">
 						<WifiOff className="size-3 text-destructive" />
-						<span className="text-[10px] font-medium text-destructive">Reconnecting…</span>
+						<span className="text-[10px] font-medium text-destructive">Offline</span>
 					</div>
 				)}
 

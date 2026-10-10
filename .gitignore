@@ -64,3 +64,4 @@ session-ses_*.md
 
 # local mongo dumps (bun run backup)
 db_backup/
+.vercel

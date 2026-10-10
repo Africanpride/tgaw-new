@@ -2,7 +2,6 @@ import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
 import { z } from "zod"
-import { getIO } from "@/lib/socket/server"
 
 const createSchema = z.object({
   type: z.enum(["DIRECT", "GROUP"]),
@@ -88,15 +87,6 @@ export async function POST(req: NextRequest) {
   const conv = await prisma.conversation.create({
     data: { type: type as never, groupId: groupId || undefined, memberIds },
   })
-
-  // Broadcast to all conversation members that a new conversation was created
-  const io = getIO()
-  if (io) {
-    for (const mId of conv.memberIds) {
-      io.to(`user:${mId}`).emit("conversation:new", conv)
-      io.to(mId).emit("conversation:new", conv)
-    }
-  }
 
   return NextResponse.json({ success: true, data: conv }, { status: 201 })
 }

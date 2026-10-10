@@ -10,7 +10,10 @@ const nextConfig: NextConfig = {
 			{ protocol: "https", hostname: "res.cloudinary.com" },
 		],
 	},
-	serverExternalPackages: ["mongodb"],
+	output: "standalone",
+  // When output is 'standalone', next-intl may need this adjustment:
+  // trailingSlash: false,
+serverExternalPackages: ["mongodb"],
 };
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");

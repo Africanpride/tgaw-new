@@ -6,14 +6,12 @@ import { ConversationList, type Conversation } from "./ConversationList";
 import { ChatPanel } from "./ChatPanel";
 import { usePresence } from "@/hooks/usePresence";
 import { useSession } from "@/lib/auth-client";
-import { useSocket } from "@/providers/SocketProvider";
+import { getSupabase } from "@/providers/RealtimeProvider";
 
 export function ChatShell() {
 	const { data: session } = useSession();
 	const myId = session?.user?.id;
 	const myName = session?.user?.name;
-
-	const { socket } = useSocket();
 	const { isOnline } = usePresence();
 
 	const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -52,49 +50,74 @@ export function ChatShell() {
 	}, [fetchConversations]);
 
 	useEffect(() => {
-		if (!socket || !myId) return;
+		const supa = getSupabase();
+		if (!supa || !myId) return;
 
-		const handleMessageNew = (msg: { id: string; conversationId: string; body: string; senderId: string; createdAt: string; readBy: string[] }) => {
-			setConversations((prev) => {
-				const idx = prev.findIndex((c) => c.id === msg.conversationId);
-				if (idx === -1) {
+		const channel = supa.channel(`inbox-${myId}`);
+
+		channel.on(
+			"postgres_changes",
+			{
+				event: "INSERT",
+				schema: "public",
+				table: "messages",
+			},
+			(payload) => {
+				const msg = payload.new as {
+					id: string;
+					conversation_id?: string;
+					conversationId?: string;
+					body: string;
+					sender_id?: string;
+					senderId?: string;
+					created_at?: string;
+					createdAt?: string;
+					read_by?: string[];
+					readBy?: string[];
+				};
+				const convId = msg.conversationId || msg.conversation_id;
+				if (!convId) {
 					fetchConversations();
-					return prev;
+					return;
 				}
-				const updated = [...prev];
-				const conv = { ...updated[idx] };
-				conv.messages = [{ id: msg.id, body: msg.body, senderId: msg.senderId, readBy: msg.readBy, createdAt: msg.createdAt }];
-				conv.updatedAt = msg.createdAt;
-				const isFromMe = msg.senderId === myId;
-				const isCurrentActive = activeIdRef.current === msg.conversationId;
-				conv.hasUnread = !isFromMe && !isCurrentActive;
-				conv.unreadCount = isFromMe || isCurrentActive ? 0 : (conv.unreadCount || 0) + 1;
-				updated.splice(idx, 1);
-				return [conv, ...updated];
-			});
-		};
 
-		const handleRead = (data: { conversationId: string; userId: string }) => {
-			if (data.userId !== myId) return;
-			setConversations((prev) =>
-				prev.map((c) => (c.id === data.conversationId ? { ...c, hasUnread: false, unreadCount: 0 } : c)),
-			);
-		};
+				setConversations((prev) => {
+					const idx = prev.findIndex((c) => c.id === convId);
+					if (idx === -1) {
+						fetchConversations();
+						return prev;
+					}
+					const updated = [...prev];
+					const conv = { ...updated[idx] };
+					const sender = msg.senderId || msg.sender_id || "";
+					const created = msg.createdAt || msg.created_at || new Date().toISOString();
+					const read = msg.readBy || msg.read_by || [];
+					conv.messages = [
+						{
+							id: msg.id,
+							body: msg.body,
+							senderId: sender,
+							readBy: read,
+							createdAt: created,
+						},
+					];
+					conv.updatedAt = created;
+					const isFromMe = sender === myId;
+					const isCurrentActive = activeIdRef.current === convId;
+					conv.hasUnread = !isFromMe && !isCurrentActive;
+					conv.unreadCount = isFromMe || isCurrentActive ? 0 : (conv.unreadCount || 0) + 1;
+					updated.splice(idx, 1);
+					return [conv, ...updated];
+				});
+			}
+		);
 
-		const handleConversationNew = () => {
-			fetchConversations();
-		};
-
-		socket.on("message:new", handleMessageNew);
-		socket.on("message:read", handleRead);
-		socket.on("conversation:new", handleConversationNew);
+		channel.subscribe();
 
 		return () => {
-			socket.off("message:new", handleMessageNew);
-			socket.off("message:read", handleRead);
-			socket.off("conversation:new", handleConversationNew);
+			channel.unsubscribe();
 		};
-	}, [socket, myId, fetchConversations]);
+	}, [myId, fetchConversations]);
 
 	const activeConversation = conversations.find((c) => c.id === activeId);
 
