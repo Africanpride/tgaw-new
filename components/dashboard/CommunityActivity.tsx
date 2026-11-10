@@ -41,12 +41,17 @@ type Filter = typeof FILTERS[number]
 
 export function CommunityActivity() {
   const { t } = useTranslation("dashboard")
-  const { data: pulse } = useUnifiedPoll()
+  const { data: pulse, fetchedAt } = useUnifiedPoll()
   const [filter, setFilter] = useState<Filter>("all")
 
   const items = (pulse?.activity as ActivityItem[] | undefined) ?? null
   const latest = items?.[0]
-  const isLive = latest ? Date.now() - new Date(latest.createdAt).getTime() < 5 * 60 * 1000 : false
+  // Recency is measured against the last successful poll rather than the raw
+  // clock, so this stays a pure computation during render.
+  const isLive =
+    latest && fetchedAt
+      ? fetchedAt - new Date(latest.createdAt).getTime() < 5 * 60 * 1000
+      : false
 
   const filtered = items ? (filter === "all" ? items : items.filter((i) => i.category === filter)) : null
 

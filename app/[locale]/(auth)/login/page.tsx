@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import {
@@ -36,18 +36,18 @@ function LoginInner() {
   const t = useTranslations("auth")
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [error, setError] = useState<string | null>(null)
+  // Surface a redirect-borne OAuth/verification failure (?authError=...) once on
+  // mount. Derived in the initialiser rather than an effect so it never triggers
+  // a cascading re-render; local submit errors take over from here.
+  const [error, setError] = useState<string | null>(() => {
+    const authError = searchParams.get("authError")
+    return authError ? t("login.authError", { code: authError }) : null
+  })
   const [email, setEmail] = useState("")
   const [needsVerification, setNeedsVerification] = useState(false)
   const [resending, setResending] = useState(false)
   const [resent, setResent] = useState(false)
 
-  useEffect(() => {
-    const authError = searchParams.get("authError")
-    if (authError) {
-      setError(t("login.authError", { code: authError }))
-    }
-  }, [searchParams, t])
   const {
     register,
     handleSubmit,
