@@ -1,0 +1,608 @@
+From 3dc8bf2db2ac51f98e79d3bb34f1d0b40c7ba48a Mon Sep 17 00:00:00 2001
+From: claude <noreply@anthropic.com>
+Date: Sun, 8 Nov 2026 17:17:50 +0000
+Subject: [PATCH] perf: cut Vercel Active CPU (proxy matcher, profile cache,
+ shared visibility-aware polling)
+
+---
+ app/api/v1/dashboard/pulse/route.ts        | 31 +++++++
+ app/api/v1/slots/changed/route.ts          | 44 ++--------
+ components/booking/SlotSyncListener.tsx    | 87 +++++--------------
+ components/dashboard/CommunityActivity.tsx |  7 +-
+ components/dashboard/MobileDock.tsx        | 33 ++------
+ components/meetings/MeetingBanner.tsx      |  4 +-
+ components/nav-user.tsx                    |  4 +-
+ components/presence/PresenceProvider.tsx   |  4 +-
+ hooks/usePolling.ts                        | 99 ++++++++++++++++++++++
+ lib/client/pulse.ts                        | 23 +++++
+ lib/services/slotSignature.ts              | 17 ++++
+ proxy.ts                                   | 48 +++++++++--
+ 12 files changed, 256 insertions(+), 145 deletions(-)
+ create mode 100644 app/api/v1/dashboard/pulse/route.ts
+ create mode 100644 hooks/usePolling.ts
+ create mode 100644 lib/client/pulse.ts
+ create mode 100644 lib/services/slotSignature.ts
+
+diff --git a/app/api/v1/dashboard/pulse/route.ts b/app/api/v1/dashboard/pulse/route.ts
+new file mode 100644
+index 0000000..f7ba17a
+--- /dev/null
++++ b/app/api/v1/dashboard/pulse/route.ts
+@@ -0,0 +1,31 @@
++import { NextResponse } from "next/server";
++import { headers } from "next/headers";
++import { auth } from "@/lib/auth";
++import { getMobileDockCounts } from "@/lib/mobileDock";
++import { getSlotSignature } from "@/lib/services/slotSignature";
++
++export const dynamic = "force-dynamic";
++
++/**
++ * One request that replaces the separate /mobile-dock and /slots/changed polls:
++ * one getSession, one invocation, queries run in parallel.
++ */
++export async function GET() {
++	const session = await auth.api.getSession({ headers: await headers() });
++	if (!session?.user) {
++		return NextResponse.json({ success: false, error: "Unauthorised" }, { status: 401 });
++	}
++	const userId = session.user.id!;
++	try {
++		const [dock, slots] = await Promise.all([getMobileDockCounts(userId), getSlotSignature(userId)]);
++		return NextResponse.json(
++			{ success: true, data: { dock, slots } },
++			{ headers: { "Cache-Control": "private, no-store" } },
++		);
++	} catch (error: unknown) {
++		return NextResponse.json(
++			{ success: false, error: error instanceof Error ? error.message : String(error) },
++			{ status: 500 },
++		);
++	}
++}
+diff --git a/app/api/v1/slots/changed/route.ts b/app/api/v1/slots/changed/route.ts
+index 2c7e69f..8742753 100644
+--- a/app/api/v1/slots/changed/route.ts
++++ b/app/api/v1/slots/changed/route.ts
+@@ -1,55 +1,25 @@
+ import { NextResponse } from "next/server";
+ import { auth } from "@/lib/auth";
+ import { headers } from "next/headers";
+-import { prisma } from "@/lib/db/prisma";
++import { getSlotSignature } from "@/lib/services/slotSignature";
+ 
+ export const dynamic = "force-dynamic";
+ 
+ /**
+- * Lightweight "did my upcoming slots change?" check.
+- * Returns a signature (count + latest updatedAt) of the signed-in user's
+- * upcoming bookings. The client polls this and only triggers router.refresh()
+- * when the signature changes — so the assigned user's open views update
+- * without a manual reload and without refetching the whole page on a timer.
++ * Lightweight "did my upcoming slots change?" check. Kept for backwards
++ * compatibility — the dashboard now uses /api/v1/dashboard/pulse.
+  */
+ export async function GET() {
+ 	const session = await auth.api.getSession({ headers: await headers() });
+ 	if (!session?.user) {
+-		return NextResponse.json(
+-			{ success: false, error: "Unauthorised" },
+-			{ status: 401 },
+-		);
++		return NextResponse.json({ success: false, error: "Unauthorised" }, { status: 401 });
+ 	}
+-
+ 	try {
+-		const today = new Date().toISOString().split("T")[0];
+-		const latest = await prisma.slot.findFirst({
+-			where: {
+-				bookedBy: session.user.id,
+-				date: { gte: today },
+-			},
+-			orderBy: { updatedAt: "desc" },
+-			select: { updatedAt: true },
+-		});
+-		const count = await prisma.slot.count({
+-			where: {
+-				bookedBy: session.user.id,
+-				date: { gte: today },
+-			},
+-		});
+-
+-		const signature = `${count}:${latest?.updatedAt.toISOString() ?? "none"}`;
+-		return NextResponse.json({
+-			success: true,
+-			data: { signature, count, latest: latest?.updatedAt.toISOString() ?? null },
+-		});
++		return NextResponse.json({ success: true, data: await getSlotSignature(session.user.id!) });
+ 	} catch (error: unknown) {
+ 		return NextResponse.json(
+-			{
+-				success: false,
+-				error: error instanceof Error ? error.message : String(error),
+-			},
++			{ success: false, error: error instanceof Error ? error.message : String(error) },
+ 			{ status: 500 },
+ 		);
+ 	}
+-}
+\ No newline at end of file
++}
+diff --git a/components/booking/SlotSyncListener.tsx b/components/booking/SlotSyncListener.tsx
+index fa0ae18..bf67502 100644
+--- a/components/booking/SlotSyncListener.tsx
++++ b/components/booking/SlotSyncListener.tsx
+@@ -1,89 +1,42 @@
+ "use client";
+ 
+-import { useCallback, useEffect, useRef } from "react";
++import { useCallback, useRef } from "react";
+ import { useRouter } from "next/navigation";
++import { usePolling } from "@/hooks/usePolling";
++import { fetchPulse } from "@/lib/client/pulse";
+ 
+-const POLL_INTERVAL_MS = 8000;
+-
+-interface ChangedResponse {
+-	success: boolean;
+-	data?: { signature: string };
+-	error?: unknown;
+-}
++const POLL_INTERVAL_MS = 60_000;
+ 
+ /**
+  * Watches for slot changes affecting the signed-in user and keeps their open
+  * views fresh without a manual reload.
+  *
+- * - Polls /api/v1/slots/changed every few seconds while the tab is visible.
++ * - Polls the shared dashboard pulse (visibility/idle-aware, 60 s).
+  * - When the "my upcoming bookings" signature changes, calls router.refresh()
+- *   (re-renders the Server Components, e.g. overview + calendar) and fires a
+- *   window "slots:changed" event so client pages (e.g. /booking) can refetch.
+- * - Re-checks immediately on window focus to catch anything missed while the
+- *   tab was backgrounded.
++ *   and fires a window "slots:changed" event so client pages can refetch.
+  *
+  * Mounted once in the dashboard layout; emits nothing visible on its own.
+  */
+ export function SlotSyncListener() {
+ 	const router = useRouter();
+ 	const lastSignature = useRef<string | null>(null);
+-	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+-
+-	const notify = useCallback(() => {
+-		router.refresh();
+-		window.dispatchEvent(new Event("slots:changed"));
+-	}, [router]);
+ 
+ 	const poll = useCallback(async () => {
+-		try {
+-			const res = await fetch("/api/v1/slots/changed", {
+-				cache: "no-store",
+-			});
+-			const data = (await res.json()) as ChangedResponse;
+-			if (!data.success || !data.data) return;
+-
+-			const signature = data.data.signature;
+-			if (lastSignature.current === null) {
+-				// First poll: seed the baseline, don't refresh.
+-				lastSignature.current = signature;
+-				return;
+-			}
+-			if (signature !== lastSignature.current) {
+-				lastSignature.current = signature;
+-				notify();
+-			}
+-		} catch {
+-			// Transient network failure — try again next tick.
++		const pulse = await fetchPulse();
++		if (!pulse) return;
++		const signature = pulse.slots.signature;
++		if (lastSignature.current === null) {
++			lastSignature.current = signature; // seed baseline, don't refresh
++			return;
+ 		}
+-	}, [notify]);
+-
+-	useEffect(() => {
+-		let cancelled = false;
+-
+-		const tick = async () => {
+-			if (cancelled) return;
+-			await poll();
+-			if (cancelled) return;
+-			timerRef.current = setTimeout(tick, POLL_INTERVAL_MS);
+-		};
+-
+-		const onFocus = () => {
+-			if (document.visibilityState === "visible") {
+-				void poll();
+-			}
+-		};
+-
+-		window.addEventListener("focus", onFocus);
+-		document.addEventListener("visibilitychange", onFocus);
+-		void tick();
++		if (signature !== lastSignature.current) {
++			lastSignature.current = signature;
++			router.refresh();
++			window.dispatchEvent(new Event("slots:changed"));
++		}
++	}, [router]);
+ 
+-		return () => {
+-			cancelled = true;
+-			if (timerRef.current) clearTimeout(timerRef.current);
+-			window.removeEventListener("focus", onFocus);
+-			document.removeEventListener("visibilitychange", onFocus);
+-		};
+-	}, [poll]);
++	usePolling(poll, { intervalMs: POLL_INTERVAL_MS });
+ 
+ 	return null;
+-}
+\ No newline at end of file
++}
+diff --git a/components/dashboard/CommunityActivity.tsx b/components/dashboard/CommunityActivity.tsx
+index 81f25f2..5348568 100644
+--- a/components/dashboard/CommunityActivity.tsx
++++ b/components/dashboard/CommunityActivity.tsx
+@@ -1,5 +1,6 @@
+ "use client"
+ 
++import { usePolling } from "@/hooks/usePolling"
+ import { Activity, Clock } from "lucide-react"
+ import Link from "next/link"
+ import { useEffect, useState } from "react"
+@@ -61,11 +62,7 @@ export function CommunityActivity() {
+     }
+   }
+ 
+-  useEffect(() => {
+-    fetchActivity()
+-    const id = setInterval(fetchActivity, 30000)
+-    return () => clearInterval(id)
+-  }, [])
++  usePolling(fetchActivity, { intervalMs: 90_000 })
+ 
+   const filtered = items ? (filter === "all" ? items : items.filter((i) => i.category === filter)) : null
+ 
+diff --git a/components/dashboard/MobileDock.tsx b/components/dashboard/MobileDock.tsx
+index 4711032..333b209 100644
+--- a/components/dashboard/MobileDock.tsx
++++ b/components/dashboard/MobileDock.tsx
+@@ -1,5 +1,7 @@
+ "use client"
+ 
++import { usePolling } from "@/hooks/usePolling"
++import { fetchPulse } from "@/lib/client/pulse"
+ import Image from "next/image"
+ import Link from "next/link"
+ import { usePathname } from "next/navigation"
+@@ -71,30 +73,13 @@ export function MobileDock() {
+   const userName = user?.name ?? null
+   const userImage = user?.image ?? null
+ 
+-  useEffect(() => {
+-    let active = true
+-
+-    async function loadCounts() {
+-      try {
+-        const response = await fetch("/api/v1/mobile-dock", {
+-          cache: "no-store",
+-        })
+-        if (!response.ok) return
+-        const result = (await response.json()) as {
+-          success: boolean
+-          data?: DockCounts
+-        }
+-        if (active && result.success && result.data) setCounts(result.data)
+-      } catch {}
+-    }
+-
+-    void loadCounts()
+-    const timer = window.setInterval(loadCounts, 15000)
+-    return () => {
+-      active = false
+-      window.clearInterval(timer)
+-    }
+-  }, [])
++  usePolling(
++    async () => {
++      const pulse = await fetchPulse()
++      if (pulse) setCounts(pulse.dock)
++    },
++    { intervalMs: 60_000 },
++  )
+ 
+   const dockLabelByHref: Record<string, string> = {
+     "/overview": t("dock.home"),
+diff --git a/components/meetings/MeetingBanner.tsx b/components/meetings/MeetingBanner.tsx
+index cf8329c..6a2b200 100644
+--- a/components/meetings/MeetingBanner.tsx
++++ b/components/meetings/MeetingBanner.tsx
+@@ -155,7 +155,9 @@ export function MeetingBanner({
+       }
+     }
+     fetchBooked()
+-    const id = setInterval(fetchBooked, 60000)
++    const id = setInterval(() => {
++      if (document.visibilityState === "visible") void fetchBooked()
++    }, 180_000)
+     return () => {
+       cancelled = true
+       clearInterval(id)
+diff --git a/components/nav-user.tsx b/components/nav-user.tsx
+index d6809e9..cb4e833 100644
+--- a/components/nav-user.tsx
++++ b/components/nav-user.tsx
+@@ -170,7 +170,9 @@ export function NavUser({
+       }
+     }
+     loadLive()
+-    const id = setInterval(loadLive, 60000)
++    const id = setInterval(() => {
++      if (document.visibilityState === "visible") void loadLive()
++    }, 120_000)
+     return () => {
+       cancelled = true
+       clearInterval(id)
+diff --git a/components/presence/PresenceProvider.tsx b/components/presence/PresenceProvider.tsx
+index be2794e..3941118 100644
+--- a/components/presence/PresenceProvider.tsx
++++ b/components/presence/PresenceProvider.tsx
+@@ -8,8 +8,8 @@ import {
+ 	type ReactNode,
+ } from "react";
+ 
+-const HEARTBEAT_MS = 60_000;
+-const LIST_REFRESH_MS = 90_000;
++const HEARTBEAT_MS = 120_000; // server TTL is 300 s, so 2 min is safe
++const LIST_REFRESH_MS = 180_000;
+ 
+ const PresenceContext = createContext<ReadonlySet<string>>(new Set());
+ 
+diff --git a/hooks/usePolling.ts b/hooks/usePolling.ts
+new file mode 100644
+index 0000000..cd03183
+--- /dev/null
++++ b/hooks/usePolling.ts
+@@ -0,0 +1,99 @@
++"use client";
++
++import { useEffect, useRef } from "react";
++
++interface UsePollingOptions {
++	/** Delay between runs while the tab is visible and the user is active. */
++	intervalMs: number;
++	/** Stop polling after this long without user interaction (default 10 min). */
++	idleAfterMs?: number;
++	/** Run once immediately on mount (default true). */
++	immediate?: boolean;
++	/** Disable polling entirely (e.g. feature flag / signed-out). */
++	enabled?: boolean;
++}
++
++const ACTIVITY_EVENTS = ["pointerdown", "keydown", "scroll", "touchstart"] as const;
++
++/**
++ * Visibility- and idle-aware polling.
++ *
++ * - Never fires while the tab is hidden.
++ * - Stops after `idleAfterMs` with no interaction, resumes on the next one.
++ * - On return to the tab / window focus it refreshes immediately, but only if
++ *   the data is at least half an interval old (prevents focus-spam).
++ * - Uses a self-scheduling timeout so slow requests never overlap.
++ */
++export function usePolling(
++	fn: () => void | Promise<void>,
++	{ intervalMs, idleAfterMs = 10 * 60_000, immediate = true, enabled = true }: UsePollingOptions,
++) {
++	const fnRef = useRef(fn);
++	fnRef.current = fn;
++
++	useEffect(() => {
++		if (!enabled) return;
++
++		let cancelled = false;
++		let timer: ReturnType<typeof setTimeout> | null = null;
++		let lastRun = 0;
++		let lastActivity = Date.now();
++		let running = false;
++
++		const canRun = () =>
++			document.visibilityState === "visible" && Date.now() - lastActivity < idleAfterMs;
++
++		const schedule = () => {
++			if (cancelled) return;
++			if (timer) clearTimeout(timer);
++			timer = setTimeout(tick, intervalMs);
++		};
++
++		const run = async () => {
++			if (running) return;
++			running = true;
++			lastRun = Date.now();
++			try {
++				await fnRef.current();
++			} catch {
++				// transient failure — next tick retries
++			} finally {
++				running = false;
++			}
++		};
++
++		const tick = async () => {
++			if (cancelled) return;
++			if (canRun()) await run();
++			schedule();
++		};
++
++		const refreshIfStale = () => {
++			if (cancelled || !canRun()) return;
++			if (Date.now() - lastRun >= intervalMs / 2) {
++				void run().then(schedule);
++			}
++		};
++
++		const onActivity = () => {
++			const wasIdle = Date.now() - lastActivity >= idleAfterMs;
++			lastActivity = Date.now();
++			if (wasIdle) refreshIfStale();
++		};
++
++		if (immediate && canRun()) void run();
++		schedule();
++
++		document.addEventListener("visibilitychange", refreshIfStale);
++		window.addEventListener("focus", refreshIfStale);
++		for (const ev of ACTIVITY_EVENTS) window.addEventListener(ev, onActivity, { passive: true });
++
++		return () => {
++			cancelled = true;
++			if (timer) clearTimeout(timer);
++			document.removeEventListener("visibilitychange", refreshIfStale);
++			window.removeEventListener("focus", refreshIfStale);
++			for (const ev of ACTIVITY_EVENTS) window.removeEventListener(ev, onActivity);
++		};
++	}, [intervalMs, idleAfterMs, immediate, enabled]);
++}
+diff --git a/lib/client/pulse.ts b/lib/client/pulse.ts
+new file mode 100644
+index 0000000..981c792
+--- /dev/null
++++ b/lib/client/pulse.ts
+@@ -0,0 +1,23 @@
++export interface PulseData {
++	dock: { todayBookings: number; unreadMessages: number };
++	slots: { signature: string; count: number; latest: string | null };
++}
++
++const SHARE_WINDOW_MS = 5_000;
++let inflight: Promise<PulseData | null> | null = null;
++let fetchedAt = 0;
++
++/**
++ * Shared fetch for /api/v1/dashboard/pulse. Every component that needs it
++ * calls this; calls within SHARE_WINDOW_MS reuse the same request, so N
++ * subscribers still cost one invocation per poll cycle.
++ */
++export function fetchPulse(): Promise<PulseData | null> {
++	if (inflight && Date.now() - fetchedAt < SHARE_WINDOW_MS) return inflight;
++	fetchedAt = Date.now();
++	inflight = fetch("/api/v1/dashboard/pulse", { cache: "no-store" })
++		.then((res) => (res.ok ? res.json() : null))
++		.then((body) => (body?.success ? (body.data as PulseData) : null))
++		.catch(() => null);
++	return inflight;
++}
+diff --git a/lib/services/slotSignature.ts b/lib/services/slotSignature.ts
+new file mode 100644
+index 0000000..e0ac2f3
+--- /dev/null
++++ b/lib/services/slotSignature.ts
+@@ -0,0 +1,17 @@
++import { prisma } from "@/lib/db/prisma";
++
++/** Count + latest updatedAt of the user's upcoming bookings. */
++export async function getSlotSignature(userId: string) {
++	const today = new Date().toISOString().split("T")[0];
++	const where = { bookedBy: userId, date: { gte: today } };
++	const [latest, count] = await Promise.all([
++		prisma.slot.findFirst({
++			where,
++			orderBy: { updatedAt: "desc" },
++			select: { updatedAt: true },
++		}),
++		prisma.slot.count({ where }),
++	]);
++	const latestIso = latest?.updatedAt.toISOString() ?? null;
++	return { signature: `${count}:${latestIso ?? "none"}`, count, latest: latestIso };
++}
+diff --git a/proxy.ts b/proxy.ts
+index 7151e70..baa306e 100644
+--- a/proxy.ts
++++ b/proxy.ts
+@@ -35,6 +35,33 @@ function stripLocalePrefix(path: string): string {
+ 	return path.replace(LOCALE_PREFIX_RE, "") || "/";
+ }
+ 
++// --- Onboarding-profile cache (per-process, positive results only) ---
++// A UserProfile never disappears for a live session, so once we've seen one we
++// skip the DB round-trip on every subsequent request for 10 minutes.
++const PROFILE_TTL_MS = 10 * 60_000;
++const profileSeen = new Map<string, number>();
++
++async function hasProfile(userId: string): Promise<boolean> {
++	const seenAt = profileSeen.get(userId);
++	if (seenAt && Date.now() - seenAt < PROFILE_TTL_MS) return true;
++	const profile = await prisma.userProfile.findUnique({
++		where: { userId },
++		select: { id: true },
++	});
++	if (profile) {
++		if (profileSeen.size > 5000) profileSeen.clear();
++		profileSeen.set(userId, Date.now());
++		return true;
++	}
++	return false;
++}
++
++// Cheap check: does the request carry a Better Auth session cookie at all?
++// Visitors without one can never have a session, so skip the lookup entirely.
++function hasSessionCookie(req: NextRequest): boolean {
++	return req.cookies.getAll().some((c) => c.name.endsWith("session_token"));
++}
++
+ const SUPERADMIN_ONLY_PATHS = ["/admin/users"];
+ const ADMIN_PORTAL_PATHS = ["/admin"];
+ const COORDINATOR_PATHS = ["/coordinator"];
+@@ -155,7 +182,9 @@ export async function proxy(req: NextRequest) {
+ 		}
+ 	}
+ 
+-	const session = await auth.api.getSession({ headers: req.headers });
++	const session = hasSessionCookie(req)
++		? await auth.api.getSession({ headers: req.headers })
++		: null;
+ 
+ 	// Banned users are locked out of everything except the banned page
+ 	const isBanned = !!session && !!(session.user as { banned?: boolean }).banned;
+@@ -173,10 +202,7 @@ export async function proxy(req: NextRequest) {
+ 
+ 	if (isAuthPage && session) {
+ 		// Check if onboarding is complete by looking for a UserProfile
+-		const profile = await prisma.userProfile.findUnique({
+-			where: { userId: session.user.id! },
+-		});
+-		if (!profile) {
++		if (!(await hasProfile(session.user.id!))) {
+ 			return withConsentHeaders(NextResponse.redirect(new URL(ONBOARDING_PATH, req.url)), req);
+ 		}
+ 		return withConsentHeaders(NextResponse.redirect(new URL("/overview", req.url)), req);
+@@ -209,9 +235,7 @@ export async function proxy(req: NextRequest) {
+ 	}
+ 
+ 	// Onboarding guard — redirect to /setup if no UserProfile exists
+-	const profile = await prisma.userProfile.findUnique({
+-		where: { userId: session.user.id! },
+-	});
++	const profile = await hasProfile(session.user.id!);
+ 	if (!profile && !isOnboardingPath) {
+ 		return withConsentHeaders(NextResponse.redirect(new URL(ONBOARDING_PATH, req.url)), req);
+ 	}
+@@ -257,3 +281,11 @@ export async function proxy(req: NextRequest) {
+ 
+ 	return withConsentHeaders(NextResponse.next(), req);
+ }
++
++// Never run the proxy for static assets / Next internals — they previously
++// each triggered a function invocation plus a session lookup.
++export const config = {
++	matcher: [
++		"/((?!_next/static|_next/image|images/|fonts/|favicon.ico|icon.png|sitemap.xml|robots.txt|manifest.webmanifest|sw.js|.*\\.(?:png|jpg|jpeg|gif|svg|webp|avif|ico|css|js|map|woff2?|ttf|mp4|webm|txt|json)$).*)",
++	],
++};
+-- 
+2.43.0
+
