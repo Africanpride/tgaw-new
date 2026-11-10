@@ -248,5 +248,5 @@ export async function GET(req: NextRequest) {
       recentActivity,
       userActivity,
     },
-  })
+  }, { headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=300" } })
 }

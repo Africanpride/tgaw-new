@@ -1,5 +1,6 @@
 "use client"
 
+import { useUnifiedPoll } from "@/providers/UnifiedPollProvider"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -11,7 +12,7 @@ import {
   UserRound,
   type LucideIcon,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { motion, useReducedMotion } from "motion/react"
 import { useSession } from "@/lib/auth-client"
@@ -66,35 +67,11 @@ export function MobileDock() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const reduceMotion = useReducedMotion()
-  const [counts, setCounts] = useState<DockCounts | null>(null)
+  const { data: pulse } = useUnifiedPoll()
+  const counts = pulse?.dock ?? null
   const user = session?.user
   const userName = user?.name ?? null
   const userImage = user?.image ?? null
-
-  useEffect(() => {
-    let active = true
-
-    async function loadCounts() {
-      try {
-        const response = await fetch("/api/v1/mobile-dock", {
-          cache: "no-store",
-        })
-        if (!response.ok) return
-        const result = (await response.json()) as {
-          success: boolean
-          data?: DockCounts
-        }
-        if (active && result.success && result.data) setCounts(result.data)
-      } catch {}
-    }
-
-    void loadCounts()
-    const timer = window.setInterval(loadCounts, 15000)
-    return () => {
-      active = false
-      window.clearInterval(timer)
-    }
-  }, [])
 
   const dockLabelByHref: Record<string, string> = {
     "/overview": t("dock.home"),

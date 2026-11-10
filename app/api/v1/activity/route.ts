@@ -9,5 +9,5 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const limit = Math.min(20, Math.max(1, Number(searchParams.get("limit") ?? 8) || 8))
   const data = await getCommunityActivity(limit)
-  return NextResponse.json({ success: true, data }, { headers: { "Cache-Control": "private, max-age=10" } })
+  return NextResponse.json({ success: true, data }, { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=60" } })
 }

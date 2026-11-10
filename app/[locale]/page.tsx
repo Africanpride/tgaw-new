@@ -5,7 +5,7 @@ import { DEFAULT_LOCALE } from "@/i18n/config";
 import { LandingContent } from "@/components/landing/landing-content";
 import { VerseCard } from "@/components/verse/VerseCard";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 function localizedPath(locale: string, path = ""): string {
   const suffix = path ? `/${path.replace(/^\//, "")}` : "";

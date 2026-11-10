@@ -16,6 +16,15 @@ export async function touchPresence(userId: string): Promise<void> {
   });
 }
 
+/** Lightweight variant — returns only online user IDs for presence dots without hydrating users. */
+export async function getOnlineUserIds(): Promise<string[]> {
+  const rows = await prisma.presence.findMany({
+    select: { userId: true },
+    take: 200,
+  });
+  return [...new Set(rows.map((r) => r.userId))];
+}
+
 export interface OnlineUser {
   id: string;
   name: string;
@@ -35,6 +44,7 @@ interface UserRow {
 export async function getOnlineUsers(): Promise<OnlineUser[]> {
   const rows = await prisma.presence.findMany({
     select: { userId: true },
+    take: 100,
   });
   if (rows.length === 0) return [];
   const userIds: string[] = [...new Set(rows.map((r) => r.userId))];

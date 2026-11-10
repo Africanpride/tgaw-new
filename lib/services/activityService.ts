@@ -75,7 +75,15 @@ function timeAgo(date: Date): string {
   return `${d}d ago`
 }
 
+let _activityCache: { data: ActivityItem[]; ts: number; limit: number } | null = null;
+const ACTIVITY_CACHE_TTL_MS = 30_000;
+
 export async function getCommunityActivity(limit = 8): Promise<ActivityItem[]> {
+  const now = Date.now();
+  if (_activityCache && now - _activityCache.ts < ACTIVITY_CACHE_TTL_MS && limit <= _activityCache.limit) {
+    return _activityCache.data.slice(0, limit);
+  }
+
   const today = new Date().toISOString().split("T")[0]
   const [posts, members, slots, events, comments] = await Promise.all([
     prisma.post.findMany({
@@ -252,6 +260,9 @@ export async function getCommunityActivity(limit = 8): Promise<ActivityItem[]> {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, limit)
     .map((a) => ({ ...a, subtitle: a.subtitle }))
+
+  // cache result for short window to prevent concurrent poll hammering
+  _activityCache = { data: all, ts: Date.now(), limit };
 
   // ensure tint is computed via helper if needed client-side; we keep category for client tint
   return all

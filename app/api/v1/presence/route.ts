@@ -13,5 +13,8 @@ export async function GET() {
 	}
 
 	const users = await getOnlineUsers();
-	return NextResponse.json({ success: true, data: users });
+	return NextResponse.json(
+		{ success: true, data: users },
+		{ headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=60" } },
+	);
 }

@@ -28,10 +28,10 @@ export async function bookSlotAction(data: { slotIds: string[], notes?: string }
         const h = await headers();
         const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? null;
         const ua = h.get("user-agent") ?? null;
-        const dbUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { role: true } });
+        const userRole = (session.user as { role?: string })?.role ?? null;
         void logAudit({
           actorId: session.user.id,
-          actorRole: dbUser?.role ?? (session.user as { role?: string })?.role ?? null,
+          actorRole: userRole,
           action: "SLOT_BOOK",
           targetType: "Slot",
           targetId: validation.data.slotIds.join(","),
@@ -73,10 +73,10 @@ export async function cancelSlotAction(data: { slotId: string }) {
         const h = await headers();
         const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? null;
         const ua = h.get("user-agent") ?? null;
-        const dbUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { role: true } });
+        const userRole = (session.user as { role?: string })?.role ?? null;
         void logAudit({
           actorId: session.user.id,
-          actorRole: dbUser?.role ?? (session.user as { role?: string })?.role ?? null,
+          actorRole: userRole,
           action: "SLOT_CANCEL",
           targetType: "Slot",
           targetId: validation.data.slotId,

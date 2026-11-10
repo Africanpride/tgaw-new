@@ -170,10 +170,12 @@ export function NavUser({
       }
     }
     loadLive()
-    const id = setInterval(loadLive, 60000)
+    // Re-check when slots change (fired by SlotSyncListener on unified poll)
+    const onSlotsChanged = () => void loadLive()
+    window.addEventListener("slots:changed", onSlotsChanged)
     return () => {
       cancelled = true
-      clearInterval(id)
+      window.removeEventListener("slots:changed", onSlotsChanged)
     }
   }, [])
 

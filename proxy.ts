@@ -35,6 +35,51 @@ function stripLocalePrefix(path: string): string {
 	return path.replace(LOCALE_PREFIX_RE, "") || "/";
 }
 
+// --- Onboarding-profile cache (per-process, positive results only) ---
+// A UserProfile never disappears for a live session, so once we've seen one we
+// skip the DB round-trip on every subsequent request for 10 minutes.
+const PROFILE_TTL_MS = 10 * 60_000;
+const profileSeen = new Map<string, number>();
+
+async function hasProfile(userId: string): Promise<boolean> {
+	const seenAt = profileSeen.get(userId);
+	if (seenAt && Date.now() - seenAt < PROFILE_TTL_MS) return true;
+	const profile = await prisma.userProfile.findUnique({
+		where: { userId },
+		select: { id: true },
+	});
+	if (profile) {
+		if (profileSeen.size > 5000) profileSeen.clear();
+		profileSeen.set(userId, Date.now());
+		return true;
+	}
+	return false;
+}
+
+// Cheap check: does the request carry a Better Auth session cookie at all?
+// Visitors without one can never have a session, so skip the lookup entirely.
+function hasSessionCookie(req: NextRequest): boolean {
+	return req.cookies.getAll().some((c) => c.name.endsWith("session_token"));
+}
+
+/** Fast-path: skip the DB profile check when this cookie is already set. */
+const PROFILE_COOKIE = "tgaw-profile-ok";
+
+function hasProfileCookie(req: NextRequest): boolean {
+	return req.cookies.get(PROFILE_COOKIE)?.value === "1";
+}
+
+function setProfileCookie(res: NextResponse): NextResponse {
+	res.cookies.set(PROFILE_COOKIE, "1", {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production",
+		sameSite: "lax",
+		maxAge: 7 * 24 * 60 * 60, // 7 days
+		path: "/",
+	});
+	return res;
+}
+
 const SUPERADMIN_ONLY_PATHS = ["/admin/users"];
 const ADMIN_PORTAL_PATHS = ["/admin"];
 const COORDINATOR_PATHS = ["/coordinator"];
@@ -155,7 +200,9 @@ export async function proxy(req: NextRequest) {
 		}
 	}
 
-	const session = await auth.api.getSession({ headers: req.headers });
+	const session = hasSessionCookie(req)
+		? await auth.api.getSession({ headers: req.headers })
+		: null;
 
 	// Banned users are locked out of everything except the banned page
 	const isBanned = !!session && !!(session.user as { banned?: boolean }).banned;
@@ -173,13 +220,11 @@ export async function proxy(req: NextRequest) {
 
 	if (isAuthPage && session) {
 		// Check if onboarding is complete by looking for a UserProfile
-		const profile = await prisma.userProfile.findUnique({
-			where: { userId: session.user.id! },
-		});
-		if (!profile) {
+		if (!hasProfileCookie(req) && !(await hasProfile(session.user.id!))) {
 			return withConsentHeaders(NextResponse.redirect(new URL(ONBOARDING_PATH, req.url)), req);
 		}
-		return withConsentHeaders(NextResponse.redirect(new URL("/overview", req.url)), req);
+		const res = NextResponse.redirect(new URL("/overview", req.url));
+		return withConsentHeaders(setProfileCookie(res), req);
 	}
 
 	if (!isProtected && !isOnboardingPath) {
@@ -208,14 +253,13 @@ export async function proxy(req: NextRequest) {
 		return withConsentHeaders(NextResponse.redirect(new URL("/login", req.url)), req);
 	}
 
-	// Onboarding guard — redirect to /setup if no UserProfile exists
-	const profile = await prisma.userProfile.findUnique({
-		where: { userId: session.user.id! },
-	});
-	if (!profile && !isOnboardingPath) {
+	// Onboarding guard — redirect to /setup if no UserProfile exists.
+	// Fast-path: skip the DB call if the profile cookie is already present.
+	const profileOk = hasProfileCookie(req) || (await hasProfile(session.user.id!));
+	if (!profileOk && !isOnboardingPath) {
 		return withConsentHeaders(NextResponse.redirect(new URL(ONBOARDING_PATH, req.url)), req);
 	}
-	if (profile && isOnboardingPath) {
+	if (profileOk && isOnboardingPath) {
 		return withConsentHeaders(NextResponse.redirect(new URL("/overview", req.url)), req);
 	}
 
@@ -223,7 +267,9 @@ export async function proxy(req: NextRequest) {
 
 	// superadmin short-circuit (passes all RBAC checks)
 	if (role === "superadmin") {
-		return withConsentHeaders(NextResponse.next(), req);
+		const res = withConsentHeaders(NextResponse.next(), req);
+		if (profileOk && !hasProfileCookie(req)) setProfileCookie(res);
+		return res;
 	}
 
 	if (path.startsWith("/api/v1/slots/book") || path.startsWith("/api/v1/slots/cancel") || path === "/api/v1/slots") {
@@ -255,5 +301,17 @@ export async function proxy(req: NextRequest) {
 		return withConsentHeaders(isApi ? NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/unauthorized", req.url)), req);
 	}
 
-	return withConsentHeaders(NextResponse.next(), req);
+	const res = withConsentHeaders(NextResponse.next(), req);
+	if (profileOk && !hasProfileCookie(req)) {
+		setProfileCookie(res);
+	}
+	return res;
 }
+
+// Never run the proxy for static assets / Next internals — they previously
+// each triggered a function invocation plus a session lookup.
+export const config = {
+	matcher: [
+		"/((?!_next/static|_next/image|images/|fonts/|favicon.ico|icon.png|sitemap.xml|robots.txt|manifest.webmanifest|sw.js|.*\\.(?:png|jpg|jpeg|gif|svg|webp|avif|ico|css|js|map|woff2?|ttf|mp4|webm|txt|json)$).*)",
+	],
+};

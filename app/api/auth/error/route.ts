@@ -12,6 +12,9 @@ export async function GET(req: Request) {
 		return NextResponse.redirect(url);
 	}
 
-	// Any other auth error returns to sign-in
-	return NextResponse.redirect(new URL("/login", req.url));
+	// Any other auth error returns to sign-in with the error code surfaced
+	// so the login page can show it instead of failing silently.
+	const url = new URL("/login", req.url);
+	if (error) url.searchParams.set("authError", error);
+	return NextResponse.redirect(url);
 }

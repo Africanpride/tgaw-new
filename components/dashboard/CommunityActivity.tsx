@@ -1,8 +1,9 @@
 "use client"
 
+import { useUnifiedPoll } from "@/providers/UnifiedPollProvider"
 import { Activity, Clock } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { AnimatedList } from "@/components/shadcn-space/animated-list/animated-list-01"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -40,32 +41,12 @@ type Filter = typeof FILTERS[number]
 
 export function CommunityActivity() {
   const { t } = useTranslation("dashboard")
-  const [items, setItems] = useState<ActivityItem[] | null>(null)
+  const { data: pulse } = useUnifiedPoll()
   const [filter, setFilter] = useState<Filter>("all")
-  const [isLive, setIsLive] = useState(false)
 
-  async function fetchActivity() {
-    try {
-      const res = await fetch("/api/v1/activity?limit=10")
-      const data = await res.json()
-      if (data.success) {
-        setItems(data.data)
-        const latest = data.data[0] as ActivityItem | undefined
-        if (latest) {
-          const age = Date.now() - new Date(latest.createdAt).getTime()
-          setIsLive(age < 5 * 60 * 1000)
-        }
-      }
-    } catch {
-      // keep previous
-    }
-  }
-
-  useEffect(() => {
-    fetchActivity()
-    const id = setInterval(fetchActivity, 30000)
-    return () => clearInterval(id)
-  }, [])
+  const items = (pulse?.activity as ActivityItem[] | undefined) ?? null
+  const latest = items?.[0]
+  const isLive = latest ? Date.now() - new Date(latest.createdAt).getTime() < 5 * 60 * 1000 : false
 
   const filtered = items ? (filter === "all" ? items : items.filter((i) => i.category === filter)) : null
 

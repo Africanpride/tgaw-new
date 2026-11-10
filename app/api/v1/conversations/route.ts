@@ -31,25 +31,37 @@ export async function GET(req: NextRequest) {
   })
   const memberMap = new Map(members.map((m) => [m.id, m]))
 
-  // Compute unread count per conversation
-  const conversationsWithMeta = await Promise.all(conversations.map(async (conv) => {
+  // Resolve unread counts in a single batch query instead of N individual counts
+  const unreadConvIds = conversations
+    .filter((c) => {
+      const lastMsg = c.messages[0]
+      return lastMsg && !lastMsg.readBy.includes(myId) && lastMsg.senderId !== myId
+    })
+    .map((c) => c.id)
+
+  const unreadCountsByConv = new Map<string, number>()
+  if (unreadConvIds.length > 0) {
+    const unreadMessages = await prisma.message.findMany({
+      where: {
+        conversationId: { in: unreadConvIds },
+        deletedAt: null,
+        senderId: { not: myId },
+        NOT: { readBy: { has: myId } },
+      },
+      select: { conversationId: true },
+      take: 1000,
+    })
+    for (const msg of unreadMessages) {
+      unreadCountsByConv.set(msg.conversationId, (unreadCountsByConv.get(msg.conversationId) ?? 0) + 1)
+    }
+  }
+
+  const conversationsWithMeta = conversations.map((conv) => {
     const lastMsg = conv.messages[0]
     const hasUnread = lastMsg
       ? !lastMsg.readBy.includes(myId) && lastMsg.senderId !== myId
       : false
-
-    // Count unread messages
-    let unreadCount = 0
-    if (hasUnread) {
-      unreadCount = await prisma.message.count({
-        where: {
-          conversationId: conv.id,
-          deletedAt: null,
-          senderId: { not: myId },
-          NOT: { readBy: { has: myId } },
-        },
-      })
-    }
+    const unreadCount = unreadCountsByConv.get(conv.id) ?? (hasUnread ? 1 : 0)
 
     return {
       ...conv,
@@ -57,7 +69,7 @@ export async function GET(req: NextRequest) {
       unreadCount,
       members: conv.memberIds.map((id) => memberMap.get(id)).filter(Boolean),
     }
-  }))
+  })
 
   return NextResponse.json({ success: true, data: conversationsWithMeta })
 }

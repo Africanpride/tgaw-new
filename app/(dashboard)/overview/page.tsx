@@ -193,15 +193,32 @@ export default async function OverviewPage() {
   const today = new Date().toISOString().split("T")[0]
   const tomorrow = addDays(today, 1)
 
-  const mySlots = (
-    await prisma.slot.findMany({
-      where: {
-        bookedBy: user.id!,
-        date: { gte: today },
-      },
-      orderBy: [{ date: "asc" }, { startTime: "asc" }],
-    })
-  ).map((slot) => ({
+  // Fire all independent queries concurrently to minimize execution duration and CPU
+  const [rawMySlots, rawLinks, activeHosts, stats, bookingConfig, rawSpecialEvents] =
+    await Promise.all([
+      prisma.slot.findMany({
+        where: {
+          bookedBy: user.id!,
+          date: { gte: today },
+        },
+        orderBy: [{ date: "asc" }, { startTime: "asc" }],
+      }),
+      prisma.meetingLink.findMany({
+        where: {
+          OR: [{ date: { gte: today } }, { date: "DEFAULT" }],
+        },
+      }),
+      getActiveSlotHosts(),
+      user.id ? getUserSlotStats(user.id) : Promise.resolve(null),
+      getBookingConfig(),
+      prisma.event.findMany({
+        where: { type: "SPECIAL", date: { gte: today } },
+        orderBy: [{ date: "asc" }, { time: "asc" }],
+        take: 10,
+      }),
+    ])
+
+  const mySlots = rawMySlots.map((slot) => ({
     id: slot.id,
     type: slot.type,
     date: slot.date,
@@ -222,37 +239,13 @@ export default async function OverviewPage() {
   const todayBlocks = mergeBlocks(todaySlots)
   const nextBlocks = nextDate ? mergeBlocks(nextSlots) : []
 
-  const linkDates = [
-    ...new Set([today, nextDate].filter((d): d is string => !!d)),
-  ]
-  const links = await prisma.meetingLink.findMany({
-    where: {
-      OR: [{ date: { in: linkDates } }, { date: "DEFAULT" }],
-    },
-  })
+  const linkDates = new Set([today, nextDate, "DEFAULT"].filter(Boolean))
+  const links = rawLinks.filter((link) => linkDates.has(link.date))
   const leaderIds = [...new Set(links.map((link) => link.createdBy))]
-  const leaders = leaderIds.length
-    ? await prisma.user.findMany({
-        where: { id: { in: leaderIds } },
-        select: { id: true, name: true, initials: true },
-      })
-    : []
 
-  const activeHosts = await getActiveSlotHosts()
-  const [stats, bookingConfig] = await Promise.all([
-    user.id ? getUserSlotStats(user.id) : Promise.resolve(null),
-    getBookingConfig(),
-  ])
-
-  // Upcoming / in-progress organization-wide Special Events for the meeting banner.
+  // Now resolve leader and special host lookups in parallel
   const now = new Date()
-  const specialCandidates = (
-    await prisma.event.findMany({
-      where: { type: "SPECIAL", date: { gte: today } },
-      orderBy: [{ date: "asc" }, { time: "asc" }],
-      take: 10,
-    })
-  )
+  const specialCandidates = rawSpecialEvents
     .map((event) => ({
       event,
       endTime: eventEndTime(event.time, event.duration),
@@ -263,12 +256,22 @@ export default async function OverviewPage() {
   const specialHostIds = [
     ...new Set(specialCandidates.map(({ event }) => event.userId)),
   ]
-  const specialHostUsers = specialHostIds.length
-    ? await prisma.user.findMany({
-        where: { id: { in: specialHostIds } },
-        select: { id: true, name: true },
-      })
-    : []
+
+  const [leaders, specialHostUsers] = await Promise.all([
+    leaderIds.length
+      ? prisma.user.findMany({
+          where: { id: { in: leaderIds } },
+          select: { id: true, name: true, initials: true },
+        })
+      : Promise.resolve([]),
+    specialHostIds.length
+      ? prisma.user.findMany({
+          where: { id: { in: specialHostIds } },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve([]),
+  ])
+
   const specialHostNameMap = new Map(
     specialHostUsers.map((u) => [u.id, u.name])
   )

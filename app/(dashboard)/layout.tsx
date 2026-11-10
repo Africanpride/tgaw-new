@@ -7,7 +7,7 @@ import { SlotSyncListener } from "@/components/booking/SlotSyncListener";
 import { PageTransition } from "@/components/dashboard/PageTransition";
 import { MobileDock } from "@/components/dashboard/MobileDock";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
-import { PresenceProvider } from "@/components/presence/PresenceProvider";
+import { UnifiedPollProvider } from "@/providers/UnifiedPollProvider";
 import { RealtimeProvider } from "@/providers/RealtimeProvider";
 import { I18nProvider } from "@/providers/I18nProvider";
 import { auth } from "@/lib/auth";
@@ -29,7 +29,7 @@ export default async function DashboardLayout({
 				<a href="#main-content" className="sr-only z-[100] focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground">
 					Skip to content
 				</a>
-				<PresenceProvider>
+				<UnifiedPollProvider>
 					<SlotSyncListener />
 					<CommandPalette role={role} />
 					<AppSidebar role={role} />
@@ -40,7 +40,7 @@ export default async function DashboardLayout({
 						</main>
 					</div>
 					<MobileDock />
-				</PresenceProvider>
+				</UnifiedPollProvider>
 			</SidebarProvider>
 		</RealtimeProvider>
 		</I18nProvider>

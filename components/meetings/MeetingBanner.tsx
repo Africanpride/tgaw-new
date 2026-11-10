@@ -155,10 +155,11 @@ export function MeetingBanner({
       }
     }
     fetchBooked()
-    const id = setInterval(fetchBooked, 60000)
+    const onSlotsChanged = () => void fetchBooked()
+    window.addEventListener("slots:changed", onSlotsChanged)
     return () => {
       cancelled = true
-      clearInterval(id)
+      window.removeEventListener("slots:changed", onSlotsChanged)
     }
   }, [])
 

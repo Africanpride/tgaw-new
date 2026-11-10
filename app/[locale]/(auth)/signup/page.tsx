@@ -64,17 +64,25 @@ export default function SignUpPage() {
 	}
 
 	async function handleMicrosoft() {
-		await authClient.signIn.social({
+		setError(null);
+		const { error } = await authClient.signIn.social({
 			provider: "microsoft",
 			callbackURL: "/overview",
 		});
+		if (error) {
+			setError(error.message || t("signup.socialFailed"));
+		}
 	}
 
 	async function handleGoogle() {
-		await authClient.signIn.social({
+		setError(null);
+		const { error } = await authClient.signIn.social({
 			provider: "google",
 			callbackURL: "/overview",
 		});
+		if (error) {
+			setError(error.message || t("signup.socialFailed"));
+		}
 	}
 
 	if (success) {

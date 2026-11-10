@@ -72,31 +72,51 @@ export async function generateSlotsForDateRange(startDateStr: string, endDateStr
   }
 }
 
+const datesWithSlots = new Set<string>();
+
 /**
  * Ensure slots exist for a date, generating the rolling month window on demand
  * (spec §2.1: auto-generate on first load when slots don't exist).
  */
 export async function ensureSlotsForDate(dateStr: string) {
+  if (datesWithSlots.has(dateStr)) return;
+
   const existingCount = await prisma.slot.count({
     where: { date: dateStr },
   });
-  if (existingCount > 0) return;
+  if (existingCount > 0) {
+    if (datesWithSlots.size > 500) datesWithSlots.clear();
+    datesWithSlots.add(dateStr);
+    return;
+  }
 
   const today = new Date();
   const startDate = format(startOfMonth(today), "yyyy-MM-dd");
   const endDate = format(endOfMonth(addMonths(today, 1)), "yyyy-MM-dd");
   await generateSlotsForDateRange(startDate, endDate);
+  datesWithSlots.add(dateStr);
 }
 
+let _cachedBookingConfig: { data: Awaited<ReturnType<typeof prisma.bookingConfig.findFirst>>; ts: number } | null = null;
+const CONFIG_CACHE_TTL_MS = 60_000;
+
 export async function getBookingConfig() {
+  const now = Date.now();
+  if (_cachedBookingConfig && now - _cachedBookingConfig.ts < CONFIG_CACHE_TTL_MS && _cachedBookingConfig.data) {
+    return _cachedBookingConfig.data;
+  }
+
   const config = await prisma.bookingConfig.findFirst();
   if (!config) {
-    return await prisma.bookingConfig.create({
+    const created = await prisma.bookingConfig.create({
       data: {
         updatedBy: "system",
       },
     });
+    _cachedBookingConfig = { data: created, ts: now };
+    return created;
   }
+  _cachedBookingConfig = { data: config, ts: now };
   return config;
 }
 
@@ -110,6 +130,7 @@ export async function updateBookingConfig(
     liveGridUpcoming?: number;
   }
 ) {
+  _cachedBookingConfig = null; // Invalidate cache
   const config = await getBookingConfig();
   return prisma.bookingConfig.update({
     where: { id: config.id },

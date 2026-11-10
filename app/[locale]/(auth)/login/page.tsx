@@ -3,8 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Suspense, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import {
@@ -25,13 +25,29 @@ type LoginForm = {
 }
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginInner />
+    </Suspense>
+  )
+}
+
+function LoginInner() {
   const t = useTranslations("auth")
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState("")
   const [needsVerification, setNeedsVerification] = useState(false)
   const [resending, setResending] = useState(false)
   const [resent, setResent] = useState(false)
+
+  useEffect(() => {
+    const authError = searchParams.get("authError")
+    if (authError) {
+      setError(t("login.authError", { code: authError }))
+    }
+  }, [searchParams, t])
   const {
     register,
     handleSubmit,
@@ -87,17 +103,25 @@ export default function LoginPage() {
   }
 
   async function handleMicrosoft() {
-    await authClient.signIn.social({
+    setError(null)
+    const { error } = await authClient.signIn.social({
       provider: "microsoft",
       callbackURL: "/overview",
     })
+    if (error) {
+      setError(error.message || t("login.socialFailed"))
+    }
   }
 
   async function handleGoogle() {
-    await authClient.signIn.social({
+    setError(null)
+    const { error } = await authClient.signIn.social({
       provider: "google",
       callbackURL: "/overview",
     })
+    if (error) {
+      setError(error.message || t("login.socialFailed"))
+    }
   }
 
   return (
