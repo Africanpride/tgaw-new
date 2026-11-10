@@ -24,12 +24,14 @@
 # misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.log
 
 # playwright-cli artifacts
 /.playwright-cli/
@@ -43,25 +45,48 @@ pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
-# superpowers SDD scratch artifacts (briefs, reports, review packages)
+# AI session logs / scratch artifacts
+session-ses_*.md
+session-*.md
+session-continue.md
+
+# scratchpads
+.memory/
+
+# superpowers workflow scratch (briefs, reports, review packages)
+.superpowers/
 .superpowers/sdd/*-brief.md
 .superpowers/sdd/*-report.md
 .superpowers/sdd/review-*.diff
 
-# AI session logs / scratch artifacts
-session-ses_*.md
-
-# scratchpads
-.memory/
+# regenerable codebase-visualizer caches (keep the *.md docs)
+/.codebase-viz/cache-*.json
 
 # translator CSV exports (i18n:export handoffs — re-generate anytime)
 *.csv
 
 # local mongo dumps (bun run backup)
 db_backup/
+
+# deploy / platform local state
 .vercel
+/.wrangler/
+/.freebuff/
+
+# editor / OS temp noise
+.idea/
+*.swp
+*~
+.~lock.*#
+*.bak
+*.orig
+*.rej
+
+# stray local screenshots / one-off audit artifacts at repo root
+/fluid.png
