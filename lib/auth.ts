@@ -108,8 +108,39 @@ if (
   })
 }
 
+// ---------------------------------------------------------------------------
+// Trusted origins
+// Better Auth trusts only `BETTER_AUTH_URL` by default, so once Vercel served
+// the app on www.tgaw.app every sign-in POST came back `403 INVALID_ORIGIN`.
+// Trust both spellings of the canonical domain, plus this deployment's own
+// Vercel URL so preview builds can authenticate, plus TRUSTED_ORIGINS extras.
+// ---------------------------------------------------------------------------
+function siblingOriginsOf(value: string): string[] {
+  try {
+    const { protocol, hostname } = new URL(value)
+    const apex = hostname.startsWith("www.") ? hostname.slice(4) : hostname
+    return [`${protocol}//${apex}`, `${protocol}//www.${apex}`]
+  } catch {
+    return []
+  }
+}
+
+const trustedOrigins = Array.from(
+  new Set([
+    ...siblingOriginsOf(
+      process.env.NEXT_PUBLIC_APP_URL ?? process.env.BETTER_AUTH_URL ?? "http://localhost:3000"
+    ),
+    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+    ...(process.env.TRUSTED_ORIGINS ?? "")
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean),
+  ])
+)
+
 const options = {
   appName: "TGAW",
+  trustedOrigins,
   database: mongodbAdapter(db, { client }),
   advanced: {
     database: {
